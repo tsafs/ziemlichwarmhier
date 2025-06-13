@@ -17,6 +17,7 @@ Develop a Python script to process extracted DWD daily climate files, aggregate 
 
 1. **File Selection**
    - Accept a user-specified list of extracted files to process.
+   - Accept a start and end date. Only data from within these dates is taken.
 
 2. **Parsing**
    - For each file:
@@ -25,38 +26,30 @@ Develop a Python script to process extracted DWD daily climate files, aggregate 
 
 3. **Aggregation**
    - For each station:
-     - Calculate the mean of all valid `TXK` (daily max) values.
-     - Calculate the mean of all valid `TNK` (daily min) values.
+     - Calculate the mean daily temperature taking `TXK` (daily max) and `TNK`(daily min) into account.
+     - Calculate the mean of daily max, min, and mean accross a configurable time span around the corresponding day. I.e. the specified `span=7` would calculate the mean of each metric across 7 days before today and 7 days after today, totalling to a mean of 15 days (7 before, today, 7 after). `span` defaults to `0`, which means that no days prior or past are taken into account.
 
 4. **Database Storage**
    - Store the results in a database table with columns:
-     - `station_id`
-     - `mean_TXK`
-     - `mean_TNK`
-   - Ensure each entry is linked to the station's metadata (including GPS coordinates) via `station_id`.
+     - `station_id` - id of the station
+     - `date` - corresponding day
+     - `span` - number of days around current day
+     - `mean` - mean of average daily temperature
+     - `max` - mean of max daily temperature
+     - `min` - mean of min daily temperature
 
 ---
 
 ### Requirements
 
 - Use efficient data processing libraries (e.g., pandas).
-- Use an ORM (e.g., SQLAlchemy) or direct SQL for database interaction.
+- Use an ORM (e.g., SQLAlchemy), PostgreSQL + PostGIS
 - Handle missing or invalid data gracefully.
-- Add logging for processed files and errors.
+- Add logging for processed files, errors, and summary of missing and invalid data per source.
 - Provide a summary report after processing.
-
----
-
-### Example Output Table
-
-| station_id | mean_TXK | mean_TNK |
-|------------|----------|----------|
-| 00314      | 18.2     | 7.5      |
-| ...        | ...      | ...      |
 
 ---
 
 ### Notes
 
 - Station metadata (including GPS coordinates) is stored in a separate table and should be linked via `station_id`.
-- Optionally, extend the script to process additional statistics or time windows as needed.
