@@ -15,6 +15,9 @@ pyenv install 3.13.1
 # Activate the Poetry environment
 poetry env activate
 
+# Install dependencies
+poetry install --no-root
+
 # Or run commands directly through Poetry
 poetry run python your_script.py
 ```
