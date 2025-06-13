@@ -31,6 +31,7 @@ function MapView() {
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
   const [sliderRange, setSliderRange] = useState([null, null]);
+  const [minConsecutiveYears, setMinConsecutiveYears] = useState(0);
 
   useEffect(() => {
     fetch('/station_date_ranges.csv')
@@ -60,13 +61,15 @@ function MapView() {
       });
   }, []);
 
-  // Filter stations by slider range
+  // Filter stations by slider range and minConsecutiveYears
   const filteredStations = stations.filter(s => {
     const startYear = Number(s.von_datum?.slice(0,4));
     const endYear = Number(s.bis_datum?.slice(0,4));
+    const years = endYear - startYear + 1;
     return (
       sliderRange[0] !== null && sliderRange[1] !== null &&
-      startYear >= sliderRange[0] && endYear <= sliderRange[1]
+      startYear >= sliderRange[0] && endYear <= sliderRange[1] &&
+      years >= minConsecutiveYears
     );
   });
 
@@ -96,7 +99,7 @@ function MapView() {
           <div style={{ marginBottom: 8 }}>
             <span>Entries displayed: <b>{filteredStations.length}</b></span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <input
               type="number"
               min={minYear}
@@ -112,6 +115,18 @@ function MapView() {
               max={maxYear}
               value={sliderRange[1]}
               onChange={e => handleSliderChange({ target: { value: e.target.value } }, 1)}
+              style={{ width: 80 }}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <label htmlFor="min-years">Min. consecutive years:</label>
+            <input
+              id="min-years"
+              type="number"
+              min={1}
+              max={sliderRange[1] - sliderRange[0] + 1}
+              value={minConsecutiveYears}
+              onChange={e => setMinConsecutiveYears(Number(e.target.value))}
               style={{ width: 80 }}
             />
           </div>
