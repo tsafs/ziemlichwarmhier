@@ -1,7 +1,7 @@
 ## Task: Aggregate Daily Temperature Data from DWD Files
 
 ### Objective
-Develop a Python script to process extracted DWD daily climate files, aggregate daily maximum (TXK) and minimum (TNK) temperature values, calculate their means, and store the results in a database linked to each station ID.
+Develop a Python script to process extracted DWD daily climate NetCDF files, aggregate daily maximum and minimum temperature values, calculate their means, and store the results in a database linked to each station ID.
 
 ---
 

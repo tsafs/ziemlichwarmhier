@@ -1,0 +1,16 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Extract HYRAS Climate Metrics",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/playground/extract_hyras_climate_metrics.py",
+            "console": "integratedTerminal",
+            "args": "--file ./data/netcdf/tasmin_hyras_5_{1961-2010}_v5-0_de.nc --file ./data/netcdf/tas_hyras_5_{1961-2010}_v5-0_de.nc --file ./data/netcdf/tasmax_hyras_5_{1961-2010}_v5-0_de.nc --file ./data/netcdf/hurs_hyras_5_{1961-2010}_v5-0_de.nc --cities ./data/other/cities.csv --output-dir ./data/other --param tasmin --param tas --param tasmax --param hurs"
+        }
+    ]
+}

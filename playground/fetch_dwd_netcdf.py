@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 OUTPUT_DIR = "./data/netcdf"
 
 # Base URL for the DWD NetCDF data
-BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/grids_germany/daily/hyras_de/air_temperature_max/"
+BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/grids_germany/daily/hyras_de/"
 
 # Ensure the output directory exists
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -31,20 +31,14 @@ def download_netcdf_file(url, output_dir):
     else:
         print(f"Failed to download: {url}")
 
-def fetch_netcdf_files(start_year=None, end_year=None, resolution=None):
-    """Fetch NetCDF files for the specified year range and resolution."""
-    # Set default values if not provided
-    if start_year is None:
-        start_year = 1951  # First available year in the dataset
+def fetch_netcdf_files(dataset=None, start_year=None, end_year=None, resolution=None):
+    """Fetch NetCDF files for the specified year range and resolution."""        
+    print(f"Fetching '{dataset}' NetCDF files from year {start_year} to {end_year} with resolution '{resolution}'")
     
-    if end_year is None:
-        end_year = datetime.now().year
-        
-    resolution_str = f" with resolution '{resolution}'" if resolution else ""
-    print(f"Fetching NetCDF files from year {start_year} to {end_year}{resolution_str}")
-    
+    base_url = f"{BASE_URL}/{dataset}/"
+
     # Fetch the directory listing
-    response = requests.get(BASE_URL)
+    response = requests.get(base_url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
         
@@ -60,24 +54,25 @@ def fetch_netcdf_files(start_year=None, end_year=None, resolution=None):
                         
                         # Check if the file is within the requested year range and matches resolution (if specified)
                         if start_year <= file_year <= end_year and (resolution is None or file_resolution == resolution):
-                            file_url = f"{BASE_URL}{href}"
+                            file_url = f"{base_url}{href}"
                             download_netcdf_file(file_url, OUTPUT_DIR)
                 except (ValueError, IndexError) as e:
                     print(f"Error parsing filename {href}: {e}")
     else:
-        print(f"Failed to fetch the list of files: {BASE_URL}")
+        print(f"Failed to fetch the list of files: {base_url}")
 
 def main():
     # Set up command line arguments
     parser = argparse.ArgumentParser(description="Download NetCDF files from DWD")
-    parser.add_argument("--start-year", type=int, help="Start year for data download")
-    parser.add_argument("--end-year", type=int, help="End year for data download")
-    parser.add_argument("--resolution", type=str, help="Resolution of the data (e.g., '1' for 1km resolution)")
+    parser.add_argument("--dataset", required=True, type=str, help="Dataset to download (air_temperature_max, air_temperature_min, air_temperature_mean, humidity, precipitation, radiation_global)")
+    parser.add_argument("--start-year", required=True, type=int, help="Start year for data download")
+    parser.add_argument("--end-year", required=True, type=int, help="End year for data download")
+    parser.add_argument("--resolution", required=True, type=str, help="Resolution of the data (e.g., '1' for 1km resolution)")
     
     args = parser.parse_args()
     
     # Download files based on specified year range and resolution
-    fetch_netcdf_files(args.start_year, args.end_year, args.resolution)
+    fetch_netcdf_files(args.dataset, args.start_year, args.end_year, args.resolution)
 
 if __name__ == "__main__":
     main()
