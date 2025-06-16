@@ -7,7 +7,7 @@ import { Popup } from 'react-leaflet';
  * @param {Object} props.city - City data object
  */
 const CityMarkerPopup = ({ city }) => (
-    <Popup>
+    <Popup autoPan={false} closeButton={false}>
         <b>City:</b> {city.city_name}<br />
         <b>Grid:</b> X: {city.grid_x}, Y: {city.grid_y}
     </Popup>
