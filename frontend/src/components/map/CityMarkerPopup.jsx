@@ -1,6 +1,7 @@
 import { Popup } from 'react-leaflet';
 import { WiHumidity } from 'react-icons/wi';
 import { BsThermometerSnow, BsThermometerHalf, BsThermometerSun } from "react-icons/bs";
+import './CityMarkerPopup.css'; // Add a CSS import (will create this file next)
 
 /**
  * Popup component for city markers
@@ -18,7 +19,7 @@ const CityMarkerPopup = ({ city }) => {
     };
 
     return (
-        <Popup autoPan={false} closeButton={false}>
+        <Popup autoPan={false} closeButton={false} className="transparent-popup">
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
