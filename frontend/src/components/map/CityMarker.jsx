@@ -13,7 +13,7 @@ const CityMarker = ({ city, index }) => (
     <Marker
         key={`city-${index}`}
         position={[parseFloat(city.city_lat), parseFloat(city.city_lon)]}
-        icon={createCityMarkerIcon(city.city_name)}
+        icon={createCityMarkerIcon()}
     >
         <CityMarkerPopup city={city} />
     </Marker>

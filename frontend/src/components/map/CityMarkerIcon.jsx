@@ -2,10 +2,9 @@ import L from 'leaflet';
 
 /**
  * Create a city marker with red dot and city name above
- * @param {string} cityName - The name of the city
  * @returns {L.DivIcon} - A Leaflet DivIcon for the city marker
  */
-function createCityMarkerIcon(cityName) {
+function createCityMarkerIcon() {
   const radius = 8;
   const svg = `
     <svg width="${radius * 2 + 100}" height="${radius * 2 + 25}" xmlns="http://www.w3.org/2000/svg">
