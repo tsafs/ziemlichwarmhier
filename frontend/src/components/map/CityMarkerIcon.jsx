@@ -7,15 +7,15 @@ import L from 'leaflet';
 function createCityMarkerIcon() {
   const radius = 8;
   const svg = `
-    <svg width="${radius * 2 + 100}" height="${radius * 2 + 25}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="${radius}" cy="${radius + 14}" r="${radius - 2}" fill="#d32f2f" stroke="#333" stroke-width="1" />
+    <svg width="${radius * 2}" height="${radius * 2}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${radius}" cy="${radius}" r="${radius - 2}" fill="#d32f2f" stroke="#333" stroke-width="1" />
     </svg>
   `;
   return L.divIcon({
     className: '',
     html: svg,
-    iconSize: [radius * 2 + 100, radius * 2 + 25],
-    iconAnchor: [radius, radius + 14]
+    iconSize: [radius * 2, radius * 2],
+    iconAnchor: [radius, radius]
   });
 }
 

@@ -14,6 +14,7 @@ const CityMarker = ({ city, index }) => (
         key={`city-${index}`}
         position={[parseFloat(city.city_lat), parseFloat(city.city_lon)]}
         icon={createCityMarkerIcon()}
+        bubblingMouseEvents={false}
     >
         <CityMarkerPopup city={city} />
     </Marker>
