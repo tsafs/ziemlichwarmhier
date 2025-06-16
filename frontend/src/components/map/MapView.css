@@ -1,0 +1,4 @@
+/* Change cursor when over map element */
+.leaflet-interactive {
+    cursor: crosshair !important;
+}

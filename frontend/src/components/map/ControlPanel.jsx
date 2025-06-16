@@ -16,51 +16,37 @@ const ControlPanel = ({
     setShowCities,
     showGrid,
     setShowGrid,
-    isDebugMode = false
 }) => {
     return (
-        <div style={{
-            position: 'absolute',
-            zIndex: 1000,
-            background: 'rgba(255,255,255,0.9)',
-            padding: 12,
-            borderRadius: 8,
-            left: 20,
-            top: 20,
-            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-        }}>
+        <div style={{ marginTop: 20 }}>
             <div style={{ marginBottom: 8, fontWeight: 'bold', borderBottom: '1px solid #eee', paddingBottom: 5 }}>
-                Map Controls
+                Debug Map Controls
             </div>
 
             <div style={{ marginBottom: 8 }}>
                 <span>Cities displayed: <b>{citiesCount}</b></span>
             </div>
 
-            {isDebugMode && (
-                <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <label htmlFor="show-cities">Show cities overlay:</label>
-                        <input
-                            id="show-cities"
-                            type="checkbox"
-                            checked={showCities}
-                            onChange={e => setShowCities(e.target.checked)}
-                        />
-                    </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <label htmlFor="show-cities">Show cities overlay:</label>
+                <input
+                    id="show-cities"
+                    type="checkbox"
+                    checked={showCities}
+                    onChange={e => setShowCities(e.target.checked)}
+                />
+            </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <label htmlFor="show-grid">Show grid overlay:</label>
-                        <input
-                            id="show-grid"
-                            type="checkbox"
-                            checked={showGrid}
-                            onChange={e => setShowGrid(e.target.checked)}
-                        />
-                    </div>
-                </>
-            )}
-        </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <label htmlFor="show-grid">Show grid overlay:</label>
+                <input
+                    id="show-grid"
+                    type="checkbox"
+                    checked={showGrid}
+                    onChange={e => setShowGrid(e.target.checked)}
+                />
+            </div>
+        </div >
     );
 };
 
