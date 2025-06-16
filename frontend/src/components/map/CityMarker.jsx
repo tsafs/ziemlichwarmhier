@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Marker } from 'react-leaflet';
 import createCityMarkerIcon from './CityMarkerIcon';
 import CityMarkerPopup from './CityMarkerPopup';
@@ -10,16 +9,6 @@ import CityMarkerPopup from './CityMarkerPopup';
  * @param {number} props.index - Index for React key prop
  */
 const CityMarker = ({ city, index }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const handleMouseOver = () => {
-        setIsOpen(true);
-    };
-
-    const handleMouseOut = () => {
-        setIsOpen(false);
-    };
-
     return (
         <Marker
             key={`city-${index}`}
@@ -27,11 +16,12 @@ const CityMarker = ({ city, index }) => {
             icon={createCityMarkerIcon()}
             bubblingMouseEvents={false}
             eventHandlers={{
-                mouseover: handleMouseOver,
-                mouseout: handleMouseOut,
+                mouseover: (event) => event.target.openPopup(),
+                mouseout: (event) => event.target.closePopup(),
             }}
+            riseOnHover={true}
         >
-            {isOpen && <CityMarkerPopup city={city} />}
+            <CityMarkerPopup city={city} />
         </Marker>
     );
 };
