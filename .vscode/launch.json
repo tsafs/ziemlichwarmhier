@@ -8,9 +8,17 @@
             "name": "Python: Extract HYRAS Climate Metrics",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/playground/extract_hyras_climate_metrics.py",
+            "program": "${workspaceFolder}/analysis/hyras/extract_hyras_data.py",
             "console": "integratedTerminal",
-            "args": "--file ./data/netcdf/tasmin_hyras_5_{1961-2010}_v5-0_de.nc --file ./data/netcdf/tas_hyras_5_{1961-2010}_v5-0_de.nc --file ./data/netcdf/tasmax_hyras_5_{1961-2010}_v5-0_de.nc --file ./data/netcdf/hurs_hyras_5_{1961-2010}_v5-0_de.nc --cities ./data/other/cities.csv --output-dir ./data/other --param tasmin --param tas --param tasmax --param hurs"
+            "args": "--file ./data/netcdf/tasmin_hyras_5_{1960-2011}_v5-0_de.nc --file ./data/netcdf/tas_hyras_5_{1960-2011}_v5-0_de.nc --file ./data/netcdf/tasmax_hyras_5_{1960-2011}_v5-0_de.nc --file ./data/netcdf/hurs_hyras_5_{1960-2011}_v5-0_de.nc --cities ./data/other/cities.csv --output-dir ./data/other --param tasmin --param tas --param tasmax --param hurs"
+        },
+        {
+            "name": "Python: Calculate Rolling Averages",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/analysis/rolling_average/calculate_rolling_average.py",
+            "console": "integratedTerminal",
+            "args": "--data-dir ./data/other --output-dir ./data/rolling_average --from-year 1981 --to-year 2010 --rolling-window 7"
         }
     ]
 }
