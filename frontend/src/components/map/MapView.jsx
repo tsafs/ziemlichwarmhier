@@ -8,9 +8,10 @@ import CitiesOverlay from './CitiesOverlay';
 import GridOverlay from './GridOverlay';
 import ControlPanel from './ControlPanel';
 import GermanyBoundary from './GermanyBoundary';
+import StationsOverlay from './StationsOverlay';
 
 // Import services
-import { fetchCitiesMetadata } from '../../services/DataService';
+import { fetchCitiesMetadata, fetchWeatherStationsData } from '../../services/DataService';
 
 // Constants
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
@@ -20,8 +21,10 @@ const DEFAULT_ZOOM = 6;
 function MapView() {
   // State
   const [cities, setCities] = useState([]);
+  const [stations, setStations] = useState([]);
   const [showCities, setShowCities] = useState(true);
   const [showGrid, setShowGrid] = useState(false);
+  const [showStations, setShowStations] = useState(false);
 
   // Fetch cities data when component mounts
   useEffect(() => {
@@ -34,7 +37,17 @@ function MapView() {
       }
     };
 
+    const loadStations = async () => {
+      try {
+        const stationsData = await fetchWeatherStationsData();
+        setStations(stationsData);
+      } catch (error) {
+        console.error("Failed to load stations data:", error);
+      }
+    };
+
     loadCities();
+    loadStations();
   }, []);
 
   return (
@@ -56,6 +69,7 @@ function MapView() {
           {/* Overlays */}
           <GridOverlay cities={cities} visible={showGrid} />
           <CitiesOverlay cities={cities} visible={showCities} />
+          <StationsOverlay stations={stations} visible={showStations} />
         </MapContainer>
       </div>
 
@@ -67,7 +81,9 @@ function MapView() {
           setShowCities={setShowCities}
           showGrid={showGrid}
           setShowGrid={setShowGrid}
-          isDebugMode={DEBUG_MODE}
+          showStations={showStations}
+          setShowStations={setShowStations}
+          stationsCount={stations.length}
         />
       }
     </div>

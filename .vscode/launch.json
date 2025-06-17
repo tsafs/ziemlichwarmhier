@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Extract HYRAS Climate Metrics",
+            "name": "Extract HYRAS Climate Metrics",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/analysis/hyras/extract_hyras_data.py",
@@ -13,12 +13,20 @@
             "args": "--file ./data/netcdf/tasmin_hyras_5_{1960-2011}_v5-0_de.nc --file ./data/netcdf/tas_hyras_5_{1960-2011}_v5-0_de.nc --file ./data/netcdf/tasmax_hyras_5_{1960-2011}_v5-0_de.nc --file ./data/netcdf/hurs_hyras_5_{1960-2011}_v5-0_de.nc --cities ./data/other/cities.csv --output-dir ./data/other --param tasmin --param tas --param tasmax --param hurs"
         },
         {
-            "name": "Python: Calculate Rolling Averages",
+            "name": "Calculate Rolling Averages",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/analysis/rolling_average/calculate_rolling_average.py",
             "console": "integratedTerminal",
             "args": "--data-dir ./data/other --output-dir ./data/rolling_average --from-year 1981 --to-year 2010 --rolling-window 7"
+        },
+        {
+            "name": "Extract Active Stations",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/analysis/stations/extract_active_stations.py",
+            "console": "integratedTerminal",
+            "args": "--input-file ./data/stations/daily/kl_recent/KL_Tageswerte_Beschreibung_Stationen.txt --output-file ./data/stations/daily/kl_recent/active_stations.csv --data-dir ./data/stations/daily/kl_recent --reference-date 20250616 --max-days-offset 7 --invalid-value -999 --check-columns TMK,TXK,TNK,UPM"
         }
     ]
 }
