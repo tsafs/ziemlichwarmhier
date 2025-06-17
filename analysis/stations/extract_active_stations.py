@@ -56,9 +56,11 @@ def read_station_descriptions(input_file, encoding='latin1'):
             bis_datum = parts[2]
             geoBreite = parts[4]
             geoLaenge = parts[5]
+            station_name = parts[6]
             
             stations.append({
                 'station_id': station_id,
+                'station_name': station_name,
                 'von_datum': von_datum,
                 'bis_datum': bis_datum,
                 'geoBreite': geoBreite,
@@ -83,7 +85,7 @@ def find_recent_data_files(data_dir):
         return {}
     
     # Pattern: produkt_klima_tag_YYYYMMDD_YYYYMMDD_XXXXX.txt
-    file_pattern = re.compile(r'produkt_klima_tag_\d+_\d+_(\d+)\.txt')
+    file_pattern = re.compile(r'produkt_[a-z_]+_\d+_\d+_(\d+)\.txt')
     
     station_files = {}
     for subdir in data_dir_path.glob('*'):
@@ -163,7 +165,7 @@ def check_station_data(file_path, reference_date, max_days_offset, invalid_value
 def write_results_to_csv(stations, output_file):
     """Write filtered stations to CSV file including latest data points."""
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['station_id', 'from_date', 'to_date', 'lat', 'lon']
+        fieldnames = ['station_id', 'station_name', 'from_date', 'to_date', 'lat', 'lon']
         
         # Add data point fields for any metrics that might be present
         metric_fields = set()
@@ -180,6 +182,7 @@ def write_results_to_csv(stations, output_file):
         for station in stations:
             row_data = {
                 'station_id': station['station_id'],
+                'station_name': station['station_name'],
                 'from_date': station['von_datum'],
                 'to_date': station['bis_datum'],
                 'lat': station['geoBreite'],
@@ -218,6 +221,7 @@ def main():
     
     for station in stations:
         station_id = station['station_id']
+        station_id = station_id.lstrip('0')  # Ensure leading zeros are stripped for matching
         
         if station_id in station_files:
             has_valid_data, latest_data = check_station_data(

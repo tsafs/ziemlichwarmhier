@@ -6,7 +6,8 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 
 # Base URL for the DWD data
-BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/"
+DAILY_BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/"
+HOURLY_BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/hourly/air_temperature/"
 
 def download_and_extract_zip(url, output_dir):
     """Download and extract a zip file from the given URL."""
@@ -44,17 +45,25 @@ def fetch_metadata(url, output_dir):
     else:
         print(f"Failed to download metadata: {url}")
 
-def fetch_climate_data(data_type="recent", output_dir="./data"):
+def fetch_climate_data(data_granularity="hourly", data_type="recent", output_dir="./data"):
     """Fetch climate data files of the specified type."""
+    if data_granularity not in ["daily", "hourly"]:
+        print(f"Invalid granularity: {data_granularity}. Must be 'daily' or 'hourly'")
+        return
+
     if data_type not in ["recent", "historical"]:
         print(f"Invalid data type: {data_type}. Must be 'recent' or 'historical'")
         return
-        
-    current_base_url = f"{BASE_URL}{data_type}/"
-    metadata_url = f"{current_base_url}KL_Tageswerte_Beschreibung_Stationen.txt"
+    
+    if data_granularity == "daily":
+        current_base_url = f"{DAILY_BASE_URL}{data_type}/"
+        metadata_url = f"{current_base_url}KL_Tageswerte_Beschreibung_Stationen.txt"
+    else:
+        current_base_url = f"{HOURLY_BASE_URL}{data_type}/"
+        metadata_url = f"{current_base_url}TU_Stundenwerte_Beschreibung_Stationen.txt"
     
     # Create data type specific directory
-    data_dir = os.path.join(output_dir, f"kl_{data_type}")
+    data_dir = os.path.join(output_dir, f"{data_type}")
     os.makedirs(data_dir, exist_ok=True)
     
     # Fetch metadata file
@@ -75,6 +84,8 @@ def fetch_climate_data(data_type="recent", output_dir="./data"):
 
 def main():
     parser = argparse.ArgumentParser(description="Download DWD climate data")
+    parser.add_argument("--granularity", choices=["daily", "hourly"], default="hourly", 
+                        help="Granularity of data to download: 'daily' or 'hourly'")
     parser.add_argument("--type", choices=["recent", "historical"], default="recent", 
                         help="Type of data to download: 'recent' or 'historical'")
     parser.add_argument("--output-dir", type=str, default="./data",
@@ -86,7 +97,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     
     # Download files based on specified type
-    fetch_climate_data(args.type, args.output_dir)
+    fetch_climate_data(args.granularity, args.type, args.output_dir)
 
 if __name__ == "__main__":
     main()

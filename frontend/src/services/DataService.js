@@ -51,28 +51,28 @@ export const fetchWeatherStationsData = async (filename = 'active_stations_daily
             if (!line.trim()) return null; // Skip empty lines
 
             const cols = line.split(',');
-            if (cols.length < 13) return null; // Ensure we have all required columns
+            if (cols.length < 14) return null; // Ensure we have all required columns
 
             // Format date for subtitle
-            const fromDate = formatDate(cols[1]);
-            const toDate = formatDate(cols[2]);
+            const fromDate = formatDate(cols[2]);
+            const toDate = formatDate(cols[3]);
             const subtitle = `Data from ${fromDate} to ${toDate}`;
 
             return {
                 station_id: cols[0],
-                from_date: cols[1],
-                to_date: cols[2],
-                city_lat: parseFloat(cols[3]), // Using city_lat for compatibility with CityMarker
-                city_lon: parseFloat(cols[4]), // Using city_lon for compatibility with CityMarker
-                mean_temperature_date: cols[5],
-                mean_temperature: parseFloat(cols[6]),
-                min_temperature_date: cols[7],
-                min_temperature: parseFloat(cols[8]),
-                max_temperature_date: cols[9],
-                max_temperature: parseFloat(cols[10]),
-                humidity_date: cols[11],
-                humidity: parseFloat(cols[12]),
-                city_name: cols[0], // Use station_id as city_name for compatibility with CityMarker
+                city_name: cols[1],
+                from_date: cols[2],
+                to_date: cols[3],
+                city_lat: parseFloat(cols[4]), // Using city_lat for compatibility with CityMarker
+                city_lon: parseFloat(cols[5]), // Using city_lon for compatibility with CityMarker
+                mean_temperature_date: cols[6],
+                mean_temperature: parseFloat(cols[7]),
+                min_temperature_date: cols[8],
+                min_temperature: parseFloat(cols[9]),
+                max_temperature_date: cols[10],
+                max_temperature: parseFloat(cols[11]),
+                humidity_date: cols[12],
+                humidity: parseFloat(cols[13]),
                 subtitle: subtitle
             };
         }).filter(Boolean); // Remove null entries
