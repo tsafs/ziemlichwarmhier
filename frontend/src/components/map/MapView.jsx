@@ -11,7 +11,11 @@ import GermanyBoundary from './GermanyBoundary';
 import StationsOverlay from './StationsOverlay';
 
 // Import services
-import { fetchCitiesMetadata, fetchWeatherStationsData } from '../../services/DataService';
+import {
+  fetchCitiesMetadata,
+  fetchDailyWeatherStationsData,
+  fetchLatestWeatherStationsData
+} from '../../services/DataService';
 
 // Constants
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
@@ -39,7 +43,8 @@ function MapView() {
 
     const loadStations = async () => {
       try {
-        const stationsData = await fetchWeatherStationsData();
+        // const stationsData = await fetchDailyWeatherStationsData();
+        const stationsData = await fetchLatestWeatherStationsData();
         setStations(stationsData);
       } catch (error) {
         console.error("Failed to load stations data:", error);

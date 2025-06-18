@@ -39,7 +39,7 @@ export const fetchCitiesMetadata = async () => {
  * @param {string} filename - Name of the CSV file (default: 'active_stations_daily.csv')
  * @returns {Promise<Array>} Array of station data objects
  */
-export const fetchWeatherStationsData = async (filename = 'active_stations_daily.csv') => {
+export const fetchDailyWeatherStationsData = async (filename = 'active_stations_daily.csv') => {
     try {
         const response = await fetch(`/${filename}`);
         const text = await response.text();
@@ -84,8 +84,54 @@ export const fetchWeatherStationsData = async (filename = 'active_stations_daily
     }
 };
 
+/**
+ * Service to fetch weather stations data from CSV file
+ * @param {string} filename - Name of the CSV file (default: 'active_stations_daily.csv')
+ * @returns {Promise<Array>} Array of station data objects
+ */
+export const fetchLatestWeatherStationsData = async (filename = 'station_10min_data.csv') => {
+    try {
+        const response = await fetch(`/${filename}`);
+        const text = await response.text();
+
+        const lines = text.split('\n');
+
+        // Parse CSV data into array of station objects
+        const data = lines.slice(1).map(line => {
+            if (!line.trim()) return null; // Skip empty lines
+
+            const cols = line.split(',');
+            if (cols.length < 9) return null; // Ensure we have all required columns
+
+            return {
+                station_id: cols[0],
+                city_name: cols[1],
+                data_date: cols[2],
+                city_lat: parseFloat(cols[3]), // Using city_lat for compatibility with CityMarker
+                city_lon: parseFloat(cols[4]), // Using city_lon for compatibility with CityMarker
+                mean_temperature: parseFloat(cols[7]),
+                min_temperature: parseFloat(cols[8]),
+                max_temperature: parseFloat(cols[6]),
+                humidity: parseFloat(cols[5]),
+                subtitle: `Aktualisiert um ${cols[2] ? cols[2] + ' Uhr' : 'unbekannt'}`
+            };
+        }).filter(Boolean); // Remove null entries
+
+        return data;
+    } catch (error) {
+        console.error(`Error loading weather stations data from ${filename}:`, error);
+        throw error;
+    }
+};
+
 // Helper function to format date from YYYYMMDD to YYYY-MM-DD
 const formatDate = (dateString) => {
     if (!dateString || dateString.length !== 8) return dateString;
     return `${dateString.substring(0, 4)}-${dateString.substring(4, 6)}-${dateString.substring(6, 8)}`;
+};
+
+// Helper function to format date from YYYYMMDDHHMM to YYYY-MM-DD HH:MM
+const formatDateTime = (dateString) => {
+    if (!dateString || dateString.length !== 12) return dateString;
+    return `${dateString.substring(0, 4)}-${dateString.substring(4, 6)}-${dateString.substring(6, 8)} ${dateString.substring(8, 10)}:${dateString.substring(10, 12)}`;
 };

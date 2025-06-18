@@ -27,6 +27,14 @@
             "program": "${workspaceFolder}/analysis/stations/extract_active_stations.py",
             "console": "integratedTerminal",
             "args": "--input-file ./data/stations/daily/recent/KL_Tageswerte_Beschreibung_Stationen.txt --output-file ./data/stations/daily/recent/active_stations_daily.csv --data-dir ./data/stations/daily/recent --reference-date 20250616 --max-days-offset 7 --invalid-value -999 --check-columns TMK,TXK,TNK,UPM"
+        },
+        {
+            "name": "Extract 10min Station data",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/analysis/stations/extract_10min_station_data.py",
+            "console": "integratedTerminal",
+            "args": "--reference-date 20250618 --invalid-value -999"
         }
     ]
 }
