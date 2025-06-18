@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 # Base URL for the DWD data
 DAILY_BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/"
 HOURLY_BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/hourly/air_temperature/"
+TEN_MIN_BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/"
 
 def download_and_extract_zip(url, output_dir):
     """Download and extract a zip file from the given URL."""
@@ -47,20 +48,26 @@ def fetch_metadata(url, output_dir):
 
 def fetch_climate_data(data_granularity="hourly", data_type="recent", output_dir="./data"):
     """Fetch climate data files of the specified type."""
-    if data_granularity not in ["daily", "hourly"]:
-        print(f"Invalid granularity: {data_granularity}. Must be 'daily' or 'hourly'")
+    if data_granularity not in ["daily", "hourly", "10min"]:
+        print(f"Invalid granularity: {data_granularity}. Must be 'daily', 'hourly', or '10min'")
         return
 
-    if data_type not in ["recent", "historical"]:
-        print(f"Invalid data type: {data_type}. Must be 'recent' or 'historical'")
+    if data_type not in ["recent", "historical", "now"]:
+        print(f"Invalid data type: {data_type}. Must be 'recent', 'historical', or 'now'")
         return
     
     if data_granularity == "daily":
         current_base_url = f"{DAILY_BASE_URL}{data_type}/"
         metadata_url = f"{current_base_url}KL_Tageswerte_Beschreibung_Stationen.txt"
-    else:
+    elif data_granularity == "hourly":
         current_base_url = f"{HOURLY_BASE_URL}{data_type}/"
         metadata_url = f"{current_base_url}TU_Stundenwerte_Beschreibung_Stationen.txt"
+    else:  # 10min
+        current_base_url = f"{TEN_MIN_BASE_URL}{data_type}/"
+        if data_type == "now":
+            metadata_url = f"{current_base_url}zehn_now_tu_Beschreibung_Stationen.txt"
+        else:
+            metadata_url = f"{current_base_url}zehn_min_tu_Beschreibung_Stationen.txt"
     
     # Create data type specific directory
     data_dir = os.path.join(output_dir, f"{data_type}")
@@ -84,10 +91,10 @@ def fetch_climate_data(data_granularity="hourly", data_type="recent", output_dir
 
 def main():
     parser = argparse.ArgumentParser(description="Download DWD climate data")
-    parser.add_argument("--granularity", choices=["daily", "hourly"], default="hourly", 
-                        help="Granularity of data to download: 'daily' or 'hourly'")
-    parser.add_argument("--type", choices=["recent", "historical"], default="recent", 
-                        help="Type of data to download: 'recent' or 'historical'")
+    parser.add_argument("--granularity", choices=["daily", "hourly", "10min"], default="hourly", 
+                        help="Granularity of data to download: 'daily', 'hourly', or '10min'")
+    parser.add_argument("--type", choices=["recent", "historical", "now"], default="recent", 
+                        help="Type of data to download: 'recent', 'historical', or 'now' (10min only)")
     parser.add_argument("--output-dir", type=str, default="./data",
                         help="Directory to store downloaded data (default: ./data)")
     
