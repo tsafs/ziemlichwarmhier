@@ -11,10 +11,10 @@ python src/fetch_station_data.py --output-dir ./data --granularity 10min --type 
 
 # 2. Extract and process the data
 echo "Extracting and processing station data..."
-python src/extract_10min_station_data.py --data-dir ./data --reference-date $TODAY --output-file ./data/10min_station_data_$TODAY.csv
+python src/extract_10min_station_data.py --data-dir ./data/now --reference-date $TODAY --output-file ./data/now/10min_station_data_$TODAY.csv
 
 # 3. Check if the output file was created
-OUTPUT_FILE="./data/10min_station_data_${TODAY}.csv"
+OUTPUT_FILE="./data/now/10min_station_data_${TODAY}.csv"
 if [ ! -f "$OUTPUT_FILE" ]; then
     echo "Error: Output file $OUTPUT_FILE was not created!"
     exit 1
