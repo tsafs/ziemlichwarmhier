@@ -1,10 +1,5 @@
 name: Docker Publish
 
-on:
-  push:
-    paths:
-      - "version.txt" # Trigger only if version.txt changes
-
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
