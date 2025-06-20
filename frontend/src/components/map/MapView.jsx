@@ -42,6 +42,18 @@ function MapView() {
     loadStations();
   }, []);
 
+  // Set Berlin as the default selected station
+  useEffect(() => {
+    if (stations.length > 0) {
+      const berlinStation = stations.find(station =>
+        station.station_name.toLowerCase() == "berlin");
+
+      if (berlinStation) {
+        setSelectedStation(berlinStation);
+      }
+    }
+  }, [stations]);
+
   return (
     <div style={{ height: '1000px', width: '100vw', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Station Info Panel */}
