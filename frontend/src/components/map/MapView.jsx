@@ -5,7 +5,7 @@ import './MapView.css';
 
 // Import components
 import ControlPanel from './ControlPanel';
-import GermanyBoundary from './GermanyBoundary';
+import EuropeBoundary from './GermanyBoundary';
 import StationsOverlay from './StationsOverlay';
 import StationInfoPanel from './StationInfoPanel';
 
@@ -15,9 +15,9 @@ import {
 } from '../../services/DataService';
 
 // Constants
-const DEBUG_MODE = process.env.NODE_ENV === 'development';
+const DEBUG_MODE = false;//process.env.NODE_ENV === 'development';
 // Default map settings
-const DEFAULT_ZOOM = 6;
+const DEFAULT_ZOOM = 6.1;
 const ZOOM_SNAP = 0.1;
 
 function MapView() {
@@ -43,35 +43,31 @@ function MapView() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
-      <div style={{ height: '800px', width: '600px', position: 'relative' }}>
-        {/* Map */}
-        <MapContainer
-          zoom={DEFAULT_ZOOM}
-          // zoomSnap={ZOOM_SNAP}
-          style={{ height: '100%', width: '100%', background: '#ffffff' }} // White background
-          zoomControl={false}
-          doubleClickZoom={false}
-          scrollWheelZoom={false}
-          dragging={false}
-          attributionControl={true}
-        >
-          {/* Germany boundary mask */}
-          {<GermanyBoundary />}
+    <div style={{ height: '1000px', width: '100vw', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {/* Station Info Panel */}
+      <StationInfoPanel selectedStation={selectedStation} />
 
-          {/* Overlays */}
-          {/* <GridOverlay stations={stations} visible={showGrid} /> */}
-          <StationsOverlay stations={stations} visible={showStations} onStationSelect={setSelectedStation} />
-        </MapContainer>
-      </div>
+      {/* Map */}
+      <MapContainer
+        zoom={DEFAULT_ZOOM}
+        zoomSnap={ZOOM_SNAP}
+        style={{ height: '80%', width: '100%' }}
+        zoomControl={true}
+        doubleClickZoom={false}
+        scrollWheelZoom={false}
+        dragging={false}
+        attributionControl={false}
+        center={[51.165691, 10.451526]}
+      >
+        {/* Germany boundary mask */}
+        {<EuropeBoundary />}
 
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginLeft: '20px' }}>
+        {/* Overlays */}
+        {/* <GridOverlay stations={stations} visible={showGrid} /> */}
+        <StationsOverlay stations={stations} visible={showStations} onStationSelect={setSelectedStation} />
+      </MapContainer>
 
-        {/* Station Info Panel */}
-        <div style={{ marginTop: '20px', width: '100%' }}>
-          <StationInfoPanel selectedStation={selectedStation} />
-        </div>
-
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', position: 'absolute', top: '20px', right: '100px', zIndex: 400 }}>
         {/* Control panel overlay */}
         {DEBUG_MODE &&
           <ControlPanel

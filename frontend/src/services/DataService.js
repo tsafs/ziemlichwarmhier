@@ -57,20 +57,20 @@ export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.
 };
 
 /**
- * Service to fetch Germany's boundary GeoJSON data
- * @param {string} url - URL to the GeoJSON file (default: '/germany.geojson')
- * @returns {Promise<Object>} GeoJSON data for Germany's boundaries
+ * Service to fetch Europe's boundary GeoJSON data
+ * @param {string} url - URL to the GeoJSON file (default: '/"europe.geojson"')
+ * @returns {Promise<Object>} GeoJSON data for Europe's boundaries
  */
-export const fetchGermanyBoundaries = async (url = '/germany.geojson') => {
+export const fetchEuropeBoundaries = async (url = '/europe.geojson') => {
     try {
         if (!DEBUG_MODE) {
-            url = "/ist-es-gerade-warm/germany.geojson";
+            url = "/ist-es-gerade-warm/europe.geojson";
         }
         const response = await fetch(url);
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error("Error loading Germany boundaries:", error);
+        console.error("Error loading boundaries:", error);
         throw error;
     }
 };
