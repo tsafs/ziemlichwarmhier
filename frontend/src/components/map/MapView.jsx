@@ -46,7 +46,7 @@ function MapView() {
   useEffect(() => {
     if (stations.length > 0) {
       const berlinStation = stations.find(station =>
-        station.station_name.toLowerCase() == "berlin");
+        station.station_name.toLowerCase() === "berlin");
 
       if (berlinStation) {
         setSelectedStation(berlinStation);
