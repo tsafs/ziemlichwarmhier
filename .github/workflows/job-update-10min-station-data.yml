@@ -1,9 +1,12 @@
-name: Docker Publish
+name: Job Update 10min Station Data
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'jobs/job-update-10min-station-data/**'
+  workflow_dispatch:  # Allows manual triggering
       
 jobs:
   build-and-publish:
