@@ -46,7 +46,7 @@ jobs:
       - name: Deploy to S3
         working-directory: frontend
         run: |
-          aws s3 sync build/ s3://${{ secrets.S3_BUCKET_NAME }} --delete --acl public-read
+          aws s3 sync build/ s3://${{ secrets.S3_BUCKET_NAME }} --endpoint-url=${{ secrets.S3_ENDPOINT_URL }} --delete --acl public-read
           
       # - name: Invalidate CloudFront cache (if using CloudFront)
       #   if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
