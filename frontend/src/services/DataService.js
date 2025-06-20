@@ -100,7 +100,7 @@ export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
             const day = String(today.getDate()).padStart(2, '0');
-            url = `ist-es-gerade-warm/10min_station_data_${year}${month}${day}.csv`;
+            url = `/10min_station_data_${year}${month}${day}.csv`;
         }
 
         const response = await fetch(url);
