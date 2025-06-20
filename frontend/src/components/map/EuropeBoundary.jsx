@@ -42,16 +42,23 @@ const EuropeBoundary = ({ fitBounds = false }) => {
     }, [map, fitBounds]);
 
     // Styles for the boundary and mask
-    const germanyStyle = {
-        fillColor: 'white',
-        weight: 1,
-        opacity: 1,
-        color: '#666',
-        fillOpacity: 1,
+    const countryStyle = (feature) => {
+        // Check if the feature is Germany by ISO3 or NAME
+        const isGermany =
+            feature.properties.ISO3 === "DEU" ||
+            feature.properties.NAME === "Germany";
+
+        return {
+            fillColor: isGermany ? '#3c6e7f' : '#e0e1dd',
+            weight: 1,
+            opacity: 1,
+            color: '#666',
+            fillOpacity: 1,
+        };
     };
 
     const maskStyle = {
-        fillColor: '#cdcdcd',
+        fillColor: '#0d1b2a',
         color: 'transparent',
         fillOpacity: 1,
     };
@@ -71,7 +78,7 @@ const EuropeBoundary = ({ fitBounds = false }) => {
 
             <GeoJSON
                 data={boundaryData}
-                style={germanyStyle}
+                style={countryStyle}
             />
         </>
     );

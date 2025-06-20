@@ -5,7 +5,7 @@ import './MapView.css';
 
 // Import components
 import ControlPanel from './ControlPanel';
-import EuropeBoundary from './GermanyBoundary';
+import EuropeBoundary from './EuropeBoundary';
 import StationsOverlay from './StationsOverlay';
 import StationInfoPanel from './StationInfoPanel';
 
@@ -52,7 +52,7 @@ function MapView() {
         zoom={DEFAULT_ZOOM}
         zoomSnap={ZOOM_SNAP}
         style={{ height: '80%', width: '100%' }}
-        zoomControl={true}
+        zoomControl={false}
         doubleClickZoom={false}
         scrollWheelZoom={false}
         dragging={false}
