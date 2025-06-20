@@ -13,7 +13,6 @@ import StationsOverlay from './StationsOverlay';
 // Import services
 import {
   fetchCitiesMetadata,
-  fetchDailyWeatherStationsData,
   fetchLatestWeatherStationsData
 } from '../../services/DataService';
 
