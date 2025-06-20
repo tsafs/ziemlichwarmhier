@@ -42,7 +42,11 @@ jobs:
           region=${{ secrets.AWS_REGION }}
           s3 =
             endpoint_url = ${{ secrets.S3_ENDPOINT_URL }}" > ~/.aws/config
-          
+            
+      - name: Test S3 connection
+        run: |
+          aws s3 ls s3://${{ secrets.S3_BUCKET_NAME }} --endpoint-url=${{ secrets.S3_ENDPOINT_URL }}
+        
       - name: Deploy to S3
         working-directory: frontend
         run: |
