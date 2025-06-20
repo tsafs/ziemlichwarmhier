@@ -1,3 +1,6 @@
+// Constants
+const DEBUG_MODE = process.env.NODE_ENV === 'development';
+
 /**
  * Service to fetch city metadata from CSV file
  */
@@ -86,12 +89,27 @@ export const fetchDailyWeatherStationsData = async (filename = 'active_stations_
 
 /**
  * Service to fetch weather stations data from CSV file
- * @param {string} filename - Name of the CSV file (default: 'active_stations_daily.csv')
+ * @param {string} url - Name of the CSV file (default: '/active_stations_daily.csv')
  * @returns {Promise<Array>} Array of station data objects
  */
-export const fetchLatestWeatherStationsData = async (filename = 'station_10min_data.csv') => {
+export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.csv') => {
     try {
-        const response = await fetch(`/${filename}`);
+        if (!DEBUG_MODE) {
+            // Get today's date in YYYYMMDD format
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            url = `ist-es-gerade-warm/10min_station_data_${year}${month}${day}.csv`;
+        }
+
+        const response = await fetch(url);
+
+        // in case of a 404 error, error out
+        if (!response.ok) {
+            throw new Error(`Failed to fetch data from ${url}: ${response.status} ${response.statusText}. Are you in the wrong timezone? Our data is based on UTC.`);
+        }
+
         const text = await response.text();
 
         const lines = text.split('\n');
@@ -119,7 +137,7 @@ export const fetchLatestWeatherStationsData = async (filename = 'station_10min_d
 
         return data;
     } catch (error) {
-        console.error(`Error loading weather stations data from ${filename}:`, error);
+        console.error(`Error loading weather stations data from ${url}:`, error);
         throw error;
     }
 };
@@ -128,10 +146,4 @@ export const fetchLatestWeatherStationsData = async (filename = 'station_10min_d
 const formatDate = (dateString) => {
     if (!dateString || dateString.length !== 8) return dateString;
     return `${dateString.substring(0, 4)}-${dateString.substring(4, 6)}-${dateString.substring(6, 8)}`;
-};
-
-// Helper function to format date from YYYYMMDDHHMM to YYYY-MM-DD HH:MM
-const formatDateTime = (dateString) => {
-    if (!dateString || dateString.length !== 12) return dateString;
-    return `${dateString.substring(0, 4)}-${dateString.substring(4, 6)}-${dateString.substring(6, 8)} ${dateString.substring(8, 10)}:${dateString.substring(10, 12)}`;
 };
