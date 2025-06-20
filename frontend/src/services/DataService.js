@@ -4,9 +4,12 @@ const DEBUG_MODE = process.env.NODE_ENV === 'development';
 /**
  * Service to fetch city metadata from CSV file
  */
-export const fetchCitiesMetadata = async () => {
+export const fetchCitiesMetadata = async (url = '/cities_metadata.csv') => {
     try {
-        const response = await fetch('/cities_metadata.csv');
+        if (!DEBUG_MODE) {
+            url = "/ist-es-gerade-warm/cities_metadata.csv";
+        }
+        const response = await fetch(url);
         const text = await response.text();
 
         const lines = text.split('\n');
@@ -100,7 +103,7 @@ export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
             const day = String(today.getDate()).padStart(2, '0');
-            url = `/10min_station_data_${year}${month}${day}.csv`;
+            url = `/ist-es-gerade-warm/station_data/10min_station_data_${year}${month}${day}.csv`;
         }
 
         const response = await fetch(url);
@@ -138,6 +141,25 @@ export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.
         return data;
     } catch (error) {
         console.error(`Error loading weather stations data from ${url}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * Service to fetch Germany's boundary GeoJSON data
+ * @param {string} url - URL to the GeoJSON file (default: '/germany.geojson')
+ * @returns {Promise<Object>} GeoJSON data for Germany's boundaries
+ */
+export const fetchGermanyBoundaries = async (url = '/germany.geojson') => {
+    try {
+        if (!DEBUG_MODE) {
+            url = "/ist-es-gerade-warm/germany.geojson";
+        }
+        const response = await fetch(url);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error loading Germany boundaries:", error);
         throw error;
     }
 };

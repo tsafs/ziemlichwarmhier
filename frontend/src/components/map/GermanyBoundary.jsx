@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { GeoJSON, useMap } from 'react-leaflet';
 import * as turf from '@turf/turf';
+import { fetchGermanyBoundaries } from '../../services/DataService';
 
 /**
  * Component for rendering Germany's boundaries and masking other countries
@@ -12,11 +13,10 @@ const GermanyBoundary = () => {
 
     useEffect(() => {
         // Fetch Germany GeoJSON data
-        const fetchGermanyBoundaries = async () => {
+        const loadGermanyBoundaries = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch('/germany.geojson');
-                const data = await response.json();
+                const data = await fetchGermanyBoundaries();
                 setGermanyData(data);
 
                 // For more precise bounds if needed
@@ -36,7 +36,7 @@ const GermanyBoundary = () => {
             }
         };
 
-        fetchGermanyBoundaries();
+        loadGermanyBoundaries();
     }, [map]);
 
     // Styles for the boundary and mask
