@@ -56,7 +56,7 @@ def upload_file(file_path, bucket, region, endpoint_url, object_name=None):
         )
         
         print(f"Uploading {file_path} to {bucket}/{object_name}")
-        s3_client.upload_file(file_path, bucket, object_name)
+        s3_client.upload_file(file_path, bucket, object_name, ExtraArgs={'ACL': 'public-read'})
         print(f"Successfully uploaded {file_path} to {bucket}/{object_name}")
         return True
     
