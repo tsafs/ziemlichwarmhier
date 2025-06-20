@@ -4,14 +4,14 @@ import { Rectangle } from 'react-leaflet';
 /**
  * Component for rendering a grid rectangle on the map
  * @param {Object} props
- * @param {Object} props.city - City data with grid information
+ * @param {Object} props.station - Station data with grid information
  * @param {number} props.index - Index for React key prop
  */
-const GridItem = ({ city, index }) => {
+const GridItem = ({ station, index }) => {
     // Create bounds for the grid rectangle
     const bounds = [
-        [parseFloat(city.grid_lat1), parseFloat(city.grid_lon1)],
-        [parseFloat(city.grid_lat2), parseFloat(city.grid_lon2)]
+        [parseFloat(station.grid_lat1), parseFloat(station.grid_lon1)],
+        [parseFloat(station.grid_lat2), parseFloat(station.grid_lon2)]
     ];
 
     return (

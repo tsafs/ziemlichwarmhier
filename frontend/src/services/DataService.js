@@ -2,95 +2,6 @@
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
 /**
- * Service to fetch city metadata from CSV file
- */
-export const fetchCitiesMetadata = async (url = '/cities_metadata.csv') => {
-    try {
-        if (!DEBUG_MODE) {
-            url = "/ist-es-gerade-warm/cities_metadata.csv";
-        }
-        const response = await fetch(url);
-        const text = await response.text();
-
-        const lines = text.split('\n');
-
-        // Parse CSV data into array of city objects
-        const data = lines.slice(1).map(line => {
-            const cols = line.split(',');
-            if (cols.length < 10) return null;
-
-            return {
-                city_id: cols[0],
-                city_name: cols[1],
-                city_lat: parseFloat(cols[2]),
-                city_lon: parseFloat(cols[3]),
-                grid_y: parseInt(cols[4]),
-                grid_x: parseInt(cols[5]),
-                grid_lat1: parseFloat(cols[6]),
-                grid_lon1: parseFloat(cols[7]),
-                grid_lat2: parseFloat(cols[8]),
-                grid_lon2: parseFloat(cols[9])
-            };
-        }).filter(Boolean); // Remove null entries
-
-        return data;
-    } catch (error) {
-        console.error("Error loading cities data:", error);
-        throw error;
-    }
-};
-
-/**
- * Service to fetch weather stations data from CSV file
- * @param {string} filename - Name of the CSV file (default: 'active_stations_daily.csv')
- * @returns {Promise<Array>} Array of station data objects
- */
-export const fetchDailyWeatherStationsData = async (filename = 'active_stations_daily.csv') => {
-    try {
-        const response = await fetch(`/${filename}`);
-        const text = await response.text();
-
-        const lines = text.split('\n');
-
-        // Parse CSV data into array of station objects
-        const data = lines.slice(1).map(line => {
-            if (!line.trim()) return null; // Skip empty lines
-
-            const cols = line.split(',');
-            if (cols.length < 14) return null; // Ensure we have all required columns
-
-            // Format date for subtitle
-            const fromDate = formatDate(cols[2]);
-            const toDate = formatDate(cols[3]);
-            const subtitle = `Data from ${fromDate} to ${toDate}`;
-
-            return {
-                station_id: cols[0],
-                city_name: cols[1],
-                from_date: cols[2],
-                to_date: cols[3],
-                city_lat: parseFloat(cols[4]), // Using city_lat for compatibility with CityMarker
-                city_lon: parseFloat(cols[5]), // Using city_lon for compatibility with CityMarker
-                mean_temperature_date: cols[6],
-                mean_temperature: parseFloat(cols[7]),
-                min_temperature_date: cols[8],
-                min_temperature: parseFloat(cols[9]),
-                max_temperature_date: cols[10],
-                max_temperature: parseFloat(cols[11]),
-                humidity_date: cols[12],
-                humidity: parseFloat(cols[13]),
-                subtitle: subtitle
-            };
-        }).filter(Boolean); // Remove null entries
-
-        return data;
-    } catch (error) {
-        console.error(`Error loading weather stations data from ${filename}:`, error);
-        throw error;
-    }
-};
-
-/**
  * Service to fetch weather stations data from CSV file
  * @param {string} url - Name of the CSV file (default: '/active_stations_daily.csv')
  * @returns {Promise<Array>} Array of station data objects
@@ -126,10 +37,10 @@ export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.
 
             return {
                 station_id: cols[0],
-                city_name: cols[1],
+                station_name: cols[1],
                 data_date: cols[2],
-                city_lat: parseFloat(cols[3]), // Using city_lat for compatibility with CityMarker
-                city_lon: parseFloat(cols[4]), // Using city_lon for compatibility with CityMarker
+                station_lat: parseFloat(cols[3]), // Using city_lat for compatibility with CityMarker
+                station_lon: parseFloat(cols[4]), // Using city_lon for compatibility with CityMarker
                 mean_temperature: parseFloat(cols[7]),
                 min_temperature: parseFloat(cols[8]),
                 max_temperature: parseFloat(cols[6]),
@@ -162,10 +73,4 @@ export const fetchGermanyBoundaries = async (url = '/germany.geojson') => {
         console.error("Error loading Germany boundaries:", error);
         throw error;
     }
-};
-
-// Helper function to format date from YYYYMMDD to YYYY-MM-DD
-const formatDate = (dateString) => {
-    if (!dateString || dateString.length !== 8) return dateString;
-    return `${dateString.substring(0, 4)}-${dateString.substring(4, 6)}-${dateString.substring(6, 8)}`;
 };

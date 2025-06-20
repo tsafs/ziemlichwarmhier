@@ -1,0 +1,16 @@
+.simple-station-popup .leaflet-popup-content-wrapper {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.simple-station-popup .leaflet-popup-content {
+    margin: 5px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.simple-station-popup .leaflet-popup-tip {
+    background: white;
+}

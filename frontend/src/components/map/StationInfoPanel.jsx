@@ -1,14 +1,24 @@
-import { Popup } from 'react-leaflet';
 import { WiHumidity } from 'react-icons/wi';
 import { BsThermometerSnow, BsThermometerHalf, BsThermometerSun } from "react-icons/bs";
-import './CityMarkerPopup.css'; // Add a CSS import (will create this file next)
+import './StationInfoPanel.css'; // We'll need to create this CSS file
 
 /**
- * Popup component for city markers
+ * Panel component to display station information outside the map
  * @param {Object} props
- * @param {Object} props.city - City data object
+ * @param {Object} props.selectedStation - Selected station data object
  */
-const CityMarkerPopup = ({ city }) => {
+const StationInfoPanel = ({ selectedStation }) => {
+    // If no station is selected, show a placeholder
+    if (!selectedStation) {
+        return (
+            <div className="station-info-panel">
+                <div className="station-info-placeholder">
+                    Klicke auf eine Wetterstation um Details anzuzeigen
+                </div>
+            </div>
+        );
+    }
+
     // Common cell style for consistency
     const cellStyle = {
         display: 'flex',
@@ -19,30 +29,30 @@ const CityMarkerPopup = ({ city }) => {
     };
 
     return (
-        <Popup autoPan={false} closeButton={false} className="transparent-popup">
+        <div className="station-info-panel">
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
             }}>
-                {/* City name */}
+                {/* Station name */}
                 <div style={{
                     fontWeight: 'bold',
                     fontSize: '1.2rem',
                     marginBottom: '20px'
                 }}>
-                    {city.city_name}
+                    {selectedStation.station_name}
                 </div>
 
                 {/* Subtitle - only shown if content is provided */}
-                {city.subtitle && (
+                {selectedStation.subtitle && (
                     <div style={{
                         fontSize: '0.9rem',
                         color: '#666',
                         marginBottom: '20px'
                     }}>
-                        {city.subtitle}
+                        {selectedStation.subtitle}
                     </div>
                 )}
 
@@ -58,24 +68,24 @@ const CityMarkerPopup = ({ city }) => {
                     <div style={cellStyle}>
                         <BsThermometerSnow size={25} color="#1E88E5" /> {/* Freezing blue */}
                         <span style={{ marginLeft: '4px' }}>
-                            {city.min_temperature !== undefined
-                                ? `${city.min_temperature.toFixed(1)}°C`
+                            {selectedStation.min_temperature !== undefined
+                                ? `${selectedStation.min_temperature.toFixed(1)}°C`
                                 : "N/A"}
                         </span>
                     </div>
                     <div style={cellStyle}>
                         <BsThermometerHalf size={25} color="#FF9800" /> {/* Moderate orange */}
                         <span style={{ marginLeft: '4px' }}>
-                            {city.mean_temperature !== undefined
-                                ? `${city.mean_temperature.toFixed(1)}°C`
+                            {selectedStation.mean_temperature !== undefined
+                                ? `${selectedStation.mean_temperature.toFixed(1)}°C`
                                 : "N/A"}
                         </span>
                     </div>
                     <div style={cellStyle}>
                         <BsThermometerSun size={25} color="#F44336" /> {/* Blazing red */}
                         <span style={{ marginLeft: '4px' }}>
-                            {city.max_temperature !== undefined
-                                ? `${city.max_temperature.toFixed(1)}°C`
+                            {selectedStation.max_temperature !== undefined
+                                ? `${selectedStation.max_temperature.toFixed(1)}°C`
                                 : "N/A"}
                         </span>
                     </div>
@@ -87,8 +97,8 @@ const CityMarkerPopup = ({ city }) => {
                     <div style={{ ...cellStyle, marginLeft: '-2px' }}>
                         <WiHumidity size={30} color="#444444" /> {/* Grey */}
                         <span style={{ marginLeft: '3px' }}>
-                            {city.humidity !== undefined
-                                ? `${city.humidity.toFixed(0)}%`
+                            {selectedStation.humidity !== undefined
+                                ? `${selectedStation.humidity.toFixed(0)}%`
                                 : "N/A"}
                         </span>
                     </div>
@@ -97,8 +107,8 @@ const CityMarkerPopup = ({ city }) => {
                     </div>
                 </div>
             </div>
-        </Popup>
+        </div>
     );
 };
 
-export default CityMarkerPopup;
+export default StationInfoPanel;

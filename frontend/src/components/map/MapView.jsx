@@ -4,15 +4,13 @@ import 'leaflet/dist/leaflet.css';
 import './MapView.css';
 
 // Import components
-import CitiesOverlay from './CitiesOverlay';
-import GridOverlay from './GridOverlay';
 import ControlPanel from './ControlPanel';
 import GermanyBoundary from './GermanyBoundary';
 import StationsOverlay from './StationsOverlay';
+import StationInfoPanel from './StationInfoPanel';
 
 // Import services
 import {
-  fetchCitiesMetadata,
   fetchLatestWeatherStationsData
 } from '../../services/DataService';
 
@@ -20,26 +18,17 @@ import {
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 // Default map settings
 const DEFAULT_ZOOM = 6;
+const ZOOM_SNAP = 0.1;
 
 function MapView() {
   // State
-  const [cities, setCities] = useState([]);
   const [stations, setStations] = useState([]);
-  const [showCities, setShowCities] = useState(true);
   const [showGrid, setShowGrid] = useState(false);
-  const [showStations, setShowStations] = useState(false);
+  const [showStations, setShowStations] = useState(true);
+  const [selectedStation, setSelectedStation] = useState(null);
 
-  // Fetch cities data when component mounts
+  // Fetch stations data when component mounts
   useEffect(() => {
-    const loadCities = async () => {
-      try {
-        const citiesData = await fetchCitiesMetadata();
-        setCities(citiesData);
-      } catch (error) {
-        console.error("Failed to load cities data:", error);
-      }
-    };
-
     const loadStations = async () => {
       try {
         // const stationsData = await fetchDailyWeatherStationsData();
@@ -50,16 +39,16 @@ function MapView() {
       }
     };
 
-    loadCities();
     loadStations();
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', height: '100vh', width: '100vw' }}>
-      <div style={{ height: '600px', width: '450px', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
+      <div style={{ height: '800px', width: '600px', position: 'relative' }}>
         {/* Map */}
         <MapContainer
           zoom={DEFAULT_ZOOM}
+          // zoomSnap={ZOOM_SNAP}
           style={{ height: '100%', width: '100%', background: '#ffffff' }} // White background
           zoomControl={false}
           doubleClickZoom={false}
@@ -71,25 +60,29 @@ function MapView() {
           {<GermanyBoundary />}
 
           {/* Overlays */}
-          <GridOverlay cities={cities} visible={showGrid} />
-          <CitiesOverlay cities={cities} visible={showCities} />
-          <StationsOverlay stations={stations} visible={showStations} />
+          {/* <GridOverlay stations={stations} visible={showGrid} /> */}
+          <StationsOverlay stations={stations} visible={showStations} onStationSelect={setSelectedStation} />
         </MapContainer>
       </div>
 
-      {/* Control panel overlay */}
-      {DEBUG_MODE &&
-        <ControlPanel
-          citiesCount={cities.length}
-          showCities={showCities}
-          setShowCities={setShowCities}
-          showGrid={showGrid}
-          setShowGrid={setShowGrid}
-          showStations={showStations}
-          setShowStations={setShowStations}
-          stationsCount={stations.length}
-        />
-      }
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginLeft: '20px' }}>
+
+        {/* Station Info Panel */}
+        <div style={{ marginTop: '20px', width: '100%' }}>
+          <StationInfoPanel selectedStation={selectedStation} />
+        </div>
+
+        {/* Control panel overlay */}
+        {DEBUG_MODE &&
+          <ControlPanel
+            showGrid={showGrid}
+            setShowGrid={setShowGrid}
+            showStations={showStations}
+            setShowStations={setShowStations}
+            stationsCount={stations.length}
+          />
+        }
+      </div>
     </div>
   );
 }
