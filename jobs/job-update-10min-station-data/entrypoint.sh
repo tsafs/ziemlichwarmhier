@@ -32,7 +32,7 @@ if [ -z "$ACCESS_KEY" ] || [ -z "$SECRET_KEY" ] || [ -z "$BUCKET_NAME" ] || [ -z
 fi
 
 # Run the Python script for S3 upload
-python_output=$(python src/upload_to_s3.py --file $OUTPUT_FILE --bucket "$BUCKET_NAME" --region "$REGION" --endpoint-url "$ENDPOINT_URL" 2>&1)
+python_output=$(python src/upload_to_s3.py --file $OUTPUT_FILE --bucket "$BUCKET_NAME" --region "$REGION" --endpoint-url "$ENDPOINT_URL" --directory "station_data" 2>&1)
 upload_exit_code=$?
 
 if [ $upload_exit_code -eq 0 ]; then

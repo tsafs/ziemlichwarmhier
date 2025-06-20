@@ -24,21 +24,32 @@ def parse_arguments():
                         help='S3 endpoint URL (e.g., https://bucket.fr-par.scw.cloud')
     parser.add_argument('--object-name', type=str,
                         help='Object name in S3 bucket (default: same as file basename)')
+    parser.add_argument('--directory', type=str,
+                        help='Directory path in S3 bucket (will be prepended to object name)')
     return parser.parse_args()
 
 
-def upload_file(file_path, bucket, region, endpoint_url, object_name=None):
+def upload_file(file_path, bucket, region, endpoint_url, object_name=None, directory=None):
     """Upload a file to an S3 bucket
 
     :param file_path: Path to the file to upload
     :param bucket: Bucket name
     :param region: S3 region name
+    :param endpoint_url: S3 endpoint URL
     :param object_name: S3 object name. If not specified, file_path basename is used
+    :param directory: Directory path in S3 bucket
     :return: True if file was uploaded, False otherwise
     """
     # If S3 object_name was not specified, use file basename
     if object_name is None:
         object_name = Path(file_path).name
+        
+    # If directory is specified, prepend it to the object name
+    if directory:
+        # Remove leading/trailing slashes and join with object name
+        directory = directory.strip('/')
+        if directory:
+            object_name = f"{directory}/{object_name}"
 
     # Check credentials
     if not os.environ.get('ACCESS_KEY') or not os.environ.get('SECRET_KEY'):
@@ -78,7 +89,8 @@ def main():
         sys.exit(1)
     
     # Upload the file
-    if upload_file(data_file, args.bucket, args.region, args.endpoint_url, args.object_name):
+    if upload_file(data_file, args.bucket, args.region, args.endpoint_url, 
+                   args.object_name, args.directory):
         sys.exit(0)
     else:
         sys.exit(1)
