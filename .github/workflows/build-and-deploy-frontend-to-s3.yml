@@ -31,26 +31,23 @@ jobs:
         working-directory: frontend
         run: npm run build
         
-      - name: Set up AWS CLI for Scaleway
+      - name: Install rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone
         run: |
-          mkdir -p ~/.aws
-          echo "[default]
-          aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          region=${{ secrets.AWS_REGION }}" > ~/.aws/credentials
-          echo "[default]
-          region=${{ secrets.AWS_REGION }}
-          s3 =
-            endpoint_url = ${{ secrets.S3_ENDPOINT_URL }}" > ~/.aws/config
-            
-      - name: Test S3 connection
-        run: |
-          aws s3 ls s3://${{ secrets.S3_BUCKET_NAME }} --endpoint-url=${{ secrets.S3_ENDPOINT_URL }}
-        
-      - name: Deploy to S3
+          mkdir -p ~/.config/rclone
+          echo "[scaleway]
+          type = s3
+          provider = Other
+          env_auth = false
+          access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          endpoint = ${{ secrets.S3_ENDPOINT_URL }}" > ~/.config/rclone/rclone.conf
+
+      - name: Deploy with rclone
         working-directory: frontend
-        run: |
-          aws s3 sync build/ s3://${{ secrets.S3_BUCKET_NAME }} --endpoint-url=${{ secrets.S3_ENDPOINT_URL }} --acl public-read
+        run: rclone sync build/ scaleway:${{ secrets.S3_BUCKET_NAME }} --fast-list
           
       # - name: Invalidate CloudFront cache (if using CloudFront)
       #   if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
