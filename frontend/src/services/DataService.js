@@ -32,12 +32,33 @@ export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.
         const data = lines.slice(1).map(line => {
             if (!line.trim()) return null; // Skip empty lines
 
-            const cols = line.split(',');
+            // Custom parsing to handle commas within quoted fields
+            const cols = [];
+            let currentValue = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    cols.push(currentValue);
+                    currentValue = '';
+                } else {
+                    currentValue += char;
+                }
+            }
+            cols.push(currentValue); // Add the last column
+
             if (cols.length < 9) return null; // Ensure we have all required columns
+
+            // Remove trailing commas and clean station name
+            const stationName = cols[1].replace(/,\s*$/, '').replace(/^"|"$/g, '');
 
             return {
                 station_id: cols[0],
-                station_name: cols[1],
+                station_name: stationName,
                 data_date: cols[2],
                 station_lat: parseFloat(cols[3]), // Using city_lat for compatibility with CityMarker
                 station_lon: parseFloat(cols[4]), // Using city_lon for compatibility with CityMarker
@@ -45,7 +66,7 @@ export const fetchLatestWeatherStationsData = async (url = '/station_10min_data.
                 min_temperature: parseFloat(cols[8]),
                 max_temperature: parseFloat(cols[6]),
                 humidity: parseFloat(cols[5]),
-                subtitle: `Aktualisiert um ${cols[2] ? cols[2] + ' Uhr' : 'unbekannt'}`
+                subtitle: `${cols[2] ? cols[2] + ' Uhr' : 'unbekannt'}`
             };
         }).filter(Boolean); // Remove null entries
 

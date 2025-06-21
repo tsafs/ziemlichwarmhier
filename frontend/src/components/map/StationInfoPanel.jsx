@@ -49,7 +49,7 @@ const StationInfoPanel = ({ selectedStation }) => {
                 textAlign: 'center',
             }}>
                 <div style={cellStyle}>
-                    <span style={labelStyle}>Jetzt</span>
+                    <span style={labelStyle}>Zuletzt</span>
                     <span style={valueStyle}>
                         {selectedStation.mean_temperature !== undefined
                             ? `${selectedStation.mean_temperature.toFixed(1)}°C`
@@ -100,7 +100,7 @@ const StationInfoPanel = ({ selectedStation }) => {
                             color: '#666',
                             marginTop: '2px',
                         }}>
-                            {selectedStation.subtitle}
+                            {`${selectedStation.data_date + ' Uhr'}`}
                         </div>
                     )}
                 </div>
