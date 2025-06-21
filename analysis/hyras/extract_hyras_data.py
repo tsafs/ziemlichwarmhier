@@ -6,14 +6,41 @@ import json
 from pathlib import Path
 import re
 import glob
+import time
+import logging
+from datetime import datetime, timedelta
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 def load_cities(cities_file):
     # Expects a JSON or CSV with columns: name, lat, lon
+    # Or station data CSV with columns: station_id, station_name, data_date, lat, lon, ...
     if cities_file.endswith('.json'):
         with open(cities_file, 'r') as f:
             return json.load(f)
     else:
-        return pd.read_csv(cities_file).to_dict(orient='records')
+        df = pd.read_csv(cities_file)
+        # Check if this is station data format
+        if all(col in df.columns for col in ['station_id', 'station_name', 'data_date']):
+            # Map station data to city format
+            cities = []
+            for _, row in df.drop_duplicates(subset=['station_id']).iterrows():
+                cities.append({
+                    'name': row['station_name'],
+                    'lat': row['lat'],
+                    'lon': row['lon'],
+                    'station_id': row['station_id']  # Keep station_id for reference
+                })
+            return cities
+        else:
+            # Regular city CSV format
+            return df.to_dict(orient='records')
 
 def calculate_grid_centers(lat_arr, lon_arr):
     """
@@ -139,6 +166,93 @@ def parse_file_patterns(file_patterns):
     
     return expanded_files
 
+def process_city(city, input_files, params, output_dir, cities_df):
+    """Process a single city, extracting data from all input files and saving to CSV"""
+    city_id = city['id']
+    city_data_dict = {}
+    grid_bounds = {}
+    
+    logger.info(f"Processing city: {city['name']} ({city_id})")
+    
+    for file_path in input_files:
+        try:
+            ds = xr.open_dataset(file_path)
+            
+            # Check which parameters are in this file
+            available_params = [param for param in params if param in ds]
+            if not available_params:
+                logger.warning(f"None of the specified parameters {params} found in {file_path}. Skipping this file.")
+                continue
+            
+            # Get lat and lon arrays for bounds calculation
+            lat_arr = ds['lat'].values
+            lon_arr = ds['lon'].values
+            
+            # Calculate grid centers once
+            centers_lat, centers_lon = calculate_grid_centers(lat_arr, lon_arr)
+                
+            city_data, grid_y, grid_x = extract_city_timeseries(ds, city, params, centers_lat, centers_lon)
+            
+            # Update the grid indices in cities metadata (from first file)
+            if cities_df.loc[cities_df['city_id'] == city_id, 'grid_y'].iloc[0] is None:
+                cities_df.loc[cities_df['city_id'] == city_id, 'grid_y'] = grid_y
+                cities_df.loc[cities_df['city_id'] == city_id, 'grid_x'] = grid_x
+                
+                # Calculate and store grid cell bounds
+                if city_id not in grid_bounds:
+                    grid_lat1, grid_lon1, grid_lat2, grid_lon2 = get_grid_cell_bounds(lat_arr, lon_arr, grid_y, grid_x)
+                    grid_bounds[city_id] = {
+                        'grid_lat1': grid_lat1,
+                        'grid_lon1': grid_lon1,
+                        'grid_lat2': grid_lat2,
+                        'grid_lon2': grid_lon2
+                    }
+            
+            # Add data for this city
+            for i, date in enumerate(city_data["time"]):
+                date_str = pd.to_datetime(date).strftime('%Y-%m-%d')
+                
+                # Create entry for this date if it doesn't exist
+                if date_str not in city_data_dict:
+                    city_data_dict[date_str] = {'date': date_str}
+                
+                # Add each available parameter to the existing entry
+                for param in params:
+                    if param in city_data and i < len(city_data[param]):
+                        city_data_dict[date_str][param] = city_data[param][i]
+        
+        except Exception as e:
+            logger.error(f"Error processing {file_path} for {city['name']}: {e}")
+    
+    # Update grid bounds in cities dataframe
+    if city_id in grid_bounds:
+        for bound_name, bound_val in grid_bounds[city_id].items():
+            cities_df.loc[cities_df['city_id'] == city_id, bound_name] = bound_val
+    
+    # Convert city data to DataFrame and save
+    grid_y = int(cities_df.loc[cities_df['city_id'] == city_id, 'grid_y'].iloc[0]) if not pd.isna(cities_df.loc[cities_df['city_id'] == city_id, 'grid_y'].iloc[0]) else 0
+    grid_x = int(cities_df.loc[cities_df['city_id'] == city_id, 'grid_x'].iloc[0]) if not pd.isna(cities_df.loc[cities_df['city_id'] == city_id, 'grid_x'].iloc[0]) else 0
+    
+    # Convert dictionary to list for DataFrame creation
+    city_data_list = list(city_data_dict.values())
+    city_df = pd.DataFrame(city_data_list)
+    
+    if not city_df.empty:  # Only create file if we have data
+        # Sort by date
+        if 'date' in city_df.columns:
+            city_df['date'] = pd.to_datetime(city_df['date'])
+            city_df = city_df.sort_values('date')
+            city_df['date'] = city_df['date'].dt.strftime('%Y-%m-%d')
+        
+        city_file_path = output_dir / f"{grid_y}_{grid_x}_{city_id}.csv"
+        city_df.to_csv(city_file_path, index=False)
+        logger.info(f"Saved: {city_file_path}")
+    else:
+        logger.warning(f"No data found for {city['name']} ({city_id})")
+    
+    # Return updated cities_df and indicate completion
+    return cities_df
+
 def main():
     parser = argparse.ArgumentParser(description="Extract daily temperatures for cities from NetCDF")
     parser.add_argument('--file', action='append', required=True, 
@@ -153,10 +267,10 @@ def main():
     # Parse and expand file patterns
     input_files = parse_file_patterns(args.file)
     if not input_files:
-        print("Error: No matching input files found.")
+        logger.error("No matching input files found.")
         return
     
-    print(f"Processing {len(input_files)} input files...")
+    logger.info(f"Processing {len(input_files)} input files...")
     
     # Create output directory if it doesn't exist
     output_dir = Path(args.output_dir)
@@ -164,10 +278,13 @@ def main():
     
     # Load cities and assign IDs
     cities = load_cities(args.cities)
+    total_cities = len(cities)
+    logger.info(f"Loaded {total_cities} cities/stations for processing")
+    
     for i, city in enumerate(cities):
         city['id'] = generate_city_id(city['name'])
     
-    # Save cities metadata file
+    # Initialize cities metadata file
     cities_df = pd.DataFrame([{
         'city_id': city['id'],
         'city_name': city['name'],
@@ -181,96 +298,52 @@ def main():
         'grid_lon2': None,  # Grid cell upper bound for longitude
     } for city in cities])
     
-    # Initialize city data dictionaries - change to use a nested dict with dates as keys
-    city_data_dict = {city['id']: {} for city in cities}
-    
     # Process each input file
     params = args.param  # List of parameters to extract
     
-    # Store grid bounds for each city
-    grid_bounds = {}
+    # Process one city at a time to save memory
+    start_time = time.time()
     
-    for file_path in input_files:
-        print(f"Processing {file_path}...")
-        try:
-            ds = xr.open_dataset(file_path)
-            
-            # Check which parameters are in this file
-            available_params = [param for param in params if param in ds]
-            if not available_params:
-                print(f"Warning: None of the specified parameters {params} found in {file_path}. Skipping this file.")
-                continue
-            
-            # Get lat and lon arrays for bounds calculation
-            lat_arr = ds['lat'].values
-            lon_arr = ds['lon'].values
-            
-            # Calculate grid centers once for all cities
-            centers_lat, centers_lon = calculate_grid_centers(lat_arr, lon_arr)
-                
-            for city in cities:
-                city_data, grid_y, grid_x = extract_city_timeseries(ds, city, params, centers_lat, centers_lon)
-                
-                # Update the grid indices in cities metadata (from first file)
-                if cities_df.loc[cities_df['city_id'] == city['id'], 'grid_y'].iloc[0] is None:
-                    cities_df.loc[cities_df['city_id'] == city['id'], 'grid_y'] = grid_y
-                    cities_df.loc[cities_df['city_id'] == city['id'], 'grid_x'] = grid_x
-                    
-                    # Calculate and store grid cell bounds
-                    if city['id'] not in grid_bounds:
-                        grid_lat1, grid_lon1, grid_lat2, grid_lon2 = get_grid_cell_bounds(lat_arr, lon_arr, grid_y, grid_x)
-                        grid_bounds[city['id']] = {
-                            'grid_lat1': grid_lat1,
-                            'grid_lon1': grid_lon1,
-                            'grid_lat2': grid_lat2,
-                            'grid_lon2': grid_lon2
-                        }
-                # Add data for this city
-                for i, date in enumerate(city_data["time"]):
-                    date_str = pd.to_datetime(date).strftime('%Y-%m-%d')
-                    
-                    # Create entry for this date if it doesn't exist
-                    if date_str not in city_data_dict[city['id']]:
-                        city_data_dict[city['id']][date_str] = {'date': date_str}
-                    
-                    # Add each available parameter to the existing entry
-                    for param in params:
-                        if param in city_data and i < len(city_data[param]):
-                            city_data_dict[city['id']][date_str][param] = city_data[param][i]
-            
-        except Exception as e:
-            print(f"Error processing {file_path}: {e}")
+    # Process each city sequentially to minimize memory usage
+    completed_cities = 0
+    city_processing_times = []
     
-    # Update cities DataFrame with grid bounds
-    for city_id, bounds in grid_bounds.items():
-        for bound_name, bound_val in bounds.items():
-            cities_df.loc[cities_df['city_id'] == city_id, bound_name] = bound_val
+    for city_idx, city in enumerate(cities):
+        city_start_time = time.time()
+        
+        # Process this city
+        logger.info(f"Processing city {city_idx+1}/{total_cities}: {city['name']}")
+        cities_df = process_city(city, input_files, params, output_dir, cities_df)
+        
+        # Calculate and log progress
+        completed_cities += 1
+        city_processing_time = time.time() - city_start_time
+        city_processing_times.append(city_processing_time)
+        
+        # Calculate average time per city and ETA
+        avg_time_per_city = sum(city_processing_times) / len(city_processing_times)
+        remaining_cities = total_cities - completed_cities
+        eta_seconds = avg_time_per_city * remaining_cities
+        eta = str(timedelta(seconds=int(eta_seconds)))
+        
+        # Log progress with ETA
+        elapsed = time.time() - start_time
+        logger.info(f"Progress: {completed_cities}/{total_cities} cities completed ({completed_cities/total_cities*100:.1f}%)")
+        logger.info(f"Time elapsed: {str(timedelta(seconds=int(elapsed)))}, ETA: {eta}")
+        
+        # Save cities metadata after each city to maintain progress
+        if city_idx % 10 == 0 or city_idx == len(cities) - 1:  # Save every 10 cities or on last city
+            cities_metadata_path = output_dir / args.cities_metadata
+            cities_df.to_csv(cities_metadata_path, index=False)
+            logger.info(f"Saved cities metadata: {cities_metadata_path}")
     
-    # Save cities metadata
+    # Final save of city metadata
     cities_metadata_path = output_dir / args.cities_metadata
     cities_df.to_csv(cities_metadata_path, index=False)
-    print(f"Saved cities metadata: {cities_metadata_path}")
     
-    # Save individual city files - convert dict of dicts to list for DataFrame
-    for city in cities:
-        city_id = city['id']
-        grid_y = int(cities_df.loc[cities_df['city_id'] == city_id, 'grid_y'].iloc[0])
-        grid_x = int(cities_df.loc[cities_df['city_id'] == city_id, 'grid_x'].iloc[0])
-        
-        # Convert dictionary to list for DataFrame creation
-        city_data_list = list(city_data_dict[city_id].values())
-        city_df = pd.DataFrame(city_data_list)
-        
-        if not city_df.empty:  # Only create file if we have data
-            # Sort by date
-            if 'date' in city_df.columns:
-                city_df['date'] = pd.to_datetime(city_df['date'])
-                city_df = city_df.sort_values('date')
-                city_df['date'] = city_df['date'].dt.strftime('%Y-%m-%d')
-            
-            city_file_path = output_dir / f"{grid_y}_{grid_x}_{city_id}.csv"
-            city_df.to_csv(city_file_path, index=False)
-            print(f"Saved: {city_file_path}")
+    # Final report
+    total_time = time.time() - start_time
+    logger.info(f"All processing complete! Processed {total_cities} cities in {str(timedelta(seconds=int(total_time)))}")
 
 if __name__ == "__main__":
     main()
