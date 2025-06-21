@@ -68,6 +68,7 @@ function MapView() {
         doubleClickZoom={false}
         scrollWheelZoom={false}
         dragging={false}
+        touchZoom={false}
         attributionControl={false}
         center={[51.165691, 10.451526]}
       >
