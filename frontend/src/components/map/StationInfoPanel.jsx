@@ -11,7 +11,7 @@ const StationInfoPanel = ({ selectedStation }) => {
         return (
             <div className="station-info-panel">
                 <div className="station-info-placeholder">
-                    Klicke auf eine Wetterstation um Details anzuzeigen
+                    Klicke auf eine Wetterstation oder nutze die Suche um Details anzuzeigen
                 </div>
             </div>
         );

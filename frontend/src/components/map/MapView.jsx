@@ -8,6 +8,7 @@ import ControlPanel from './ControlPanel';
 import EuropeBoundary from './EuropeBoundary';
 import StationsOverlay from './StationsOverlay';
 import StationInfoPanel from './StationInfoPanel';
+import StationSearch from './StationSearch';
 
 // Import services
 import {
@@ -58,6 +59,13 @@ function MapView() {
     <div style={{ height: '1000px', width: '100vw', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Station Info Panel */}
       <StationInfoPanel selectedStation={selectedStation} />
+
+      {/* Station Search */}
+      <StationSearch
+        stations={stations}
+        selectedStation={selectedStation}
+        onStationSelect={setSelectedStation}
+      />
 
       {/* Map */}
       <MapContainer
