@@ -6,8 +6,9 @@ import StationMarker from './StationMarker';
  * @param {Array} props.stations - Array of weather station data objects
  * @param {boolean} props.visible - Whether the overlay is visible
  * @param {Function} props.onStationSelect - Callback function when a station is selected
+ * @param {Object} props.selectedStation - The currently selected station
  */
-const StationsOverlay = ({ stations, visible, onStationSelect }) => {
+const StationsOverlay = ({ stations, visible, onStationSelect, selectedStation }) => {
     if (!visible || !stations?.length) return null;
 
     return (
@@ -18,6 +19,7 @@ const StationsOverlay = ({ stations, visible, onStationSelect }) => {
                     station={station}
                     index={i}
                     onSelect={onStationSelect}
+                    isSelected={selectedStation && selectedStation.station_id === station.station_id}
                 />
             ))}
         </>

@@ -85,7 +85,12 @@ function MapView() {
 
         {/* Overlays */}
         {/* <GridOverlay stations={stations} visible={showGrid} /> */}
-        <StationsOverlay stations={stations} visible={showStations} onStationSelect={setSelectedStation} />
+        <StationsOverlay
+          stations={stations}
+          visible={showStations}
+          onStationSelect={setSelectedStation}
+          selectedStation={selectedStation}
+        />
       </MapContainer>
 
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', position: 'absolute', top: '20px', right: '100px', zIndex: 400 }}>
