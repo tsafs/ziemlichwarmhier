@@ -1,31 +1,32 @@
 {
     "plots.monthlyAnomalies": {
         "title": "Monatliche Temperatur‑Anomalien in {city}",
-        "baseline": "Abweichungen vom Referenzzeitraum 1961–1990. Positive Werte = wärmer, negative = kälter.",
-        "insight.noAnomaly": "Der aktuelle Monat liegt im Referenzzeitraum.",
-        "insight.positive": "Aktuelle Abweichung liegt über der Referenz.",
-        "insight.highPositive": "Aktuelle Abweichung liegt deutlich über der Referenz.",
-        "insight.highNegative": "Aktuelle Abweichung liegt deutlich unter der Referenz.",
-        "insight.negative": "Aktuelle Abweichung liegt unter der Referenz.",
-        "insight.noTrend": "Seit 1991 ist kein klarer Trend erkennbar.",
-        "insight.trendUp": "Seit 1991 zeigt sich ein Erwärmungstrend ({trend} °C/Dekade).",
-        "insight.highTrendUp": "Seit 1991 zeigt sich ein klarer Erwärmungstrend ({trend} °C/Dekade).",
-        "insight.highTrendDown": "Seit 1991 zeigt sich ein klarer Abkühlungstrend ({trend} °C/Dekade).",
-        "insight.trendDown": "Seit 1991 zeigt sich ein Abkühlungstrend ({trend} °C/Dekade).",
-        "insight.completeness": "Daten bis {month} {year}."
+        "baseline": "Abweichungen zum Referenzzeitraum 1961–1990: Positive Werte bedeuten wärmer, negative kälter. Seit 1991 waren {shareAbove0}% der Monate wärmer als der Referenzzeitraum; in den letzten fünf Jahren lagen {shareAbove15}% der Monate bei ≥ +1,5°C. Hinweis: Über Land erwärmt sich die Luft schneller als über dem Meer, weil Wasser Wärme langsamer aufnimmt und abgibt. Dadurch können regionale Unterschiede entstehen.",
+        "insight.recordWarm": "{month} {year} setzt einen neuen Rekord bei der positiven Abweichung.",
+        "insight.recordCold": "{month} {year} setzt einen neuen Rekord bei der negativen Abweichung.",
+        "insight.percentileWarm": "{month} {year} liegt im oberen {percentile}% der Abweichungen für diesen Monat.",
+        "insight.percentileCold": "{month} {year} liegt im unteren {percentile}% der Abweichungen für diesen Monat.",
+        "insight.streakAbove": "Zuletzt gab es {count} Monate in Folge mit positiver Abweichung.",
+        "insight.streakBelow": "Zuletzt gab es {count} Monate in Folge mit negativer Abweichung.",
+        "insight.streakAboveRange": "Positive Abweichung durchgehend von {start} bis {end} ({count} Monate).",
+        "insight.streakBelowRange": "Negative Abweichung durchgehend von {start} bis {end} ({count} Monate).",
+        "insight.completeness": "Daten bis {month} {year}.",
+        "conclusion.warmRegime": "Die Anzeichen deuten auf ein anhaltend wärmeres Regime hin.",
+        "conclusion.coldRegime": "Die Anzeichen deuten auf ein anhaltend kälteres Regime hin.",
+        "conclusion.mixedRegime": "Die Signale sind gemischt; deutliche Abweichungen treten punktuell auf."
     },
     "plots.monthlyTemps": {
-        "title": "Monatliche Temperaturen in {city}",
-        "baseline": "Durchschnittliche Monatstemperaturen im Jahresverlauf; Vergleich mit 1961–1990.",
-        "insight.noAnomaly": "Der aktuelle Monat liegt im Referenzzeitraum.",
-        "insight.positive": "Der aktuelle Monat liegt über dem Referenzzeitraum.",
-        "insight.highPositive": "Der aktuelle Monat liegt deutlich über dem Referenzzeitraum.",
-        "insight.highNegative": "Der aktuelle Monat liegt deutlich unter dem Referenzzeitraum.",
-        "insight.negative": "Der aktuelle Monat liegt unter dem Referenzzeitraum.",
-        "insight.trendUp": "Monatsmittel steigen seit 1991 an ({trend} °C/Dekade).",
-        "insight.highTrendUp": "Monatsmittel steigen seit 1991 stark an ({trend} °C/Dekade).",
-        "insight.highTrendDown": "Monatsmittel fallen seit 1991 stark ({trend} °C/Dekade).",
-        "insight.trendDown": "Monatsmittel fallen seit 1991 ({trend} °C/Dekade).",
+        "title": "Monatliche Höchsttemperaturen in {city}",
+        "baseline": "Wie heiß fühlten sich die Monate an? Vergleich von Monaten und Jahreszeiten mit dem langjährigen Klimamittel.",
+        "insight.warmMonthPercentile": "{month} liegt in den oberen {percentile}% der Temperaturwerte für diesen Kalendermonat.",
+        "insight.coldMonthPercentile": "{month} liegt in den unteren {percentile}% der Temperaturwerte für diesen Kalendermonat.",
+        "insight.seasonalDeviation": "Die Jahreszeit {season} weicht um {diff}°C vom langjährigen Mittel ab.",
         "insight.completeness": "Daten bis {month} {year}."
+    },
+    "season": {
+        "djf": "Winter",
+        "mam": "Frühling",
+        "jja": "Sommer",
+        "son": "Herbst"
     }
 }

@@ -112,7 +112,7 @@ export const usePlotData = (): IMonthsInYearsPlotData => {
             }
         }
 
-        // Compute stats for description
+        // Compute stats for description (maxima-focused percentile and seasonal deviation)
         const referenceMonthlyMeans = computeMeansOfMonthsOverYears(monthlyMeans, REFERENCE_START_YEAR, REFERENCE_END_YEAR);
         const completenessMonths = currentYearCompletedMonths?.size ?? 0;
         const currentMonthIndex = completenessMonths > 0 ? Math.max(...Array.from(currentYearCompletedMonths)) : null;
@@ -122,21 +122,50 @@ export const usePlotData = (): IMonthsInYearsPlotData => {
             ? currentMonthMean - referenceMonthMean
             : null;
 
-        // Recent trend since 1991 using annual monthly-means averages
-        const yearsFrom1991 = allYears.filter(y => y >= 1991);
-        const annualMeans: number[] = [];
-        const xs: number[] = [];
-        for (const y of yearsFrom1991) {
-            const vals = monthlyMeans[y];
-            if (!vals) continue;
-            const finite = vals.filter(v => typeof v === 'number') as number[];
-            if (!finite.length) continue;
-            const avg = finite.reduce((s, v) => s + v, 0) / finite.length;
-            xs.push(y);
-            annualMeans.push(avg);
+        // Percentile of current month vs long-term month distribution
+        let currentMonthPercentile: number | null = null;
+        if (currentMonthIndex != null && typeof currentMonthMean === 'number') {
+            const dist: number[] = [];
+            for (let y = REFERENCE_START_YEAR; y <= REFERENCE_END_YEAR; y++) {
+                const v = monthlyMeans[y]?.[currentMonthIndex];
+                if (typeof v === 'number') dist.push(v);
+            }
+            dist.sort((a, b) => a - b);
+            if (dist.length) {
+                const pos = dist.findIndex(v => v >= (currentMonthMean as number));
+                const rank = pos === -1 ? dist.length : pos + 1;
+                currentMonthPercentile = (rank / dist.length) * 100;
+            }
         }
-        const slopePerYear = theilSenSlope(xs, annualMeans);
-        const recentTrendPerDecade1991Plus = (slopePerYear == null) ? null : slopePerYear * 10;
+
+        // Seasonal deviation for current year vs long-term mean
+        const seasons: Record<'DJF' | 'MAM' | 'JJA' | 'SON', number[]> = {
+            DJF: [11, 0, 1],
+            MAM: [2, 3, 4],
+            JJA: [5, 6, 7],
+            SON: [8, 9, 10],
+        };
+        let seasonalDeviationThisYear: { season: 'DJF' | 'MAM' | 'JJA' | 'SON'; diff: number } | null = null;
+        // Choose the season containing the last completed month (context stability)
+        const seasonForMonth = (m: number | null): 'DJF' | 'MAM' | 'JJA' | 'SON' | null => {
+            if (m == null) return null;
+            if (m === 11 || m === 0 || m === 1) return 'DJF';
+            if (m === 2 || m === 3 || m === 4) return 'MAM';
+            if (m === 5 || m === 6 || m === 7) return 'JJA';
+            if (m === 8 || m === 9 || m === 10) return 'SON';
+            return null;
+        };
+        const targetSeason = seasonForMonth(currentMonthIndex);
+        if (targetSeason) {
+            const months = seasons[targetSeason];
+            const yVals = months.map((m: number) => currentYearMeans?.[m]).filter((v: unknown) => typeof v === 'number') as number[];
+            const cVals = months.map((m: number) => referenceMonthlyMeans?.[m]).filter((v: unknown) => typeof v === 'number') as number[];
+            if (yVals.length === months.length && cVals.length === months.length) {
+                const yMean = yVals.reduce((s, v) => s + v, 0) / yVals.length;
+                const cMean = cVals.reduce((s, v) => s + v, 0) / cVals.length;
+                seasonalDeviationThisYear = { season: targetSeason, diff: yMean - cMean };
+            }
+        }
 
         return {
             stationId,
@@ -152,7 +181,8 @@ export const usePlotData = (): IMonthsInYearsPlotData => {
                 ...(currentMonthMean != null ? { currentMonthMean } : {}),
                 ...(referenceMonthMean != null ? { referenceMonthMean } : {}),
                 ...(currentMonthAnomaly != null ? { currentMonthAnomaly } : {}),
-                ...(recentTrendPerDecade1991Plus != null ? { recentTrendPerDecade1991Plus } : {}),
+                ...(currentMonthPercentile != null ? { warmestMonthThisYear: { index: currentMonthIndex!, year: currentYear, percentile: currentMonthPercentile } } : {}),
+                ...(seasonalDeviationThisYear ? { seasonalDeviationThisYear } : {}),
             },
         };
     }, [stationId, data, dailyRecords]);

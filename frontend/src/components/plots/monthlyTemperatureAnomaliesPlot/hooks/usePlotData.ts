@@ -145,22 +145,95 @@ export const usePlotData = (): IMonthsInYearsPlotData => {
             ? currentMonthMean - referenceMonthMean
             : null;
 
-        // Recent trend since 1991: annual average anomalies per year
-        const yearsFrom1991 = allYears.filter(y => y >= 1991);
-        const annualAnomalyMeans: number[] = [];
-        const xs: number[] = [];
-        for (const y of yearsFrom1991) {
+        // Build ordered anomaly series (year, month)
+        const orderedAnomalies: { year: number; month: number; value: number }[] = [];
+        for (const y of allYears) {
             const vals = monthlyMeans[y];
             if (!vals) continue;
             const anomalies = toAnomalies(vals, referenceMonthlyMeans);
-            const finite = anomalies.filter(v => typeof v === 'number') as number[];
-            if (!finite.length) continue;
-            const avg = finite.reduce((s, v) => s + v, 0) / finite.length;
-            xs.push(y);
-            annualAnomalyMeans.push(avg);
+            anomalies.forEach((v, m) => {
+                if (typeof v === 'number') orderedAnomalies.push({ year: y, month: m, value: v });
+            });
         }
-        const slopePerYear = theilSenSlope(xs, annualAnomalyMeans);
-        const recentTrendPerDecade1991Plus = (slopePerYear == null) ? null : slopePerYear * 10;
+        orderedAnomalies.sort((a, b) => (a.year - b.year) || (a.month - b.month));
+
+        // Shares for baseline: since 1991 and last 5 years
+        const anomaliesSince1991 = orderedAnomalies.filter(p => p.year >= 1991).map(p => p.value);
+        const shareAbove0Since1991 = anomaliesSince1991.length
+            ? (anomaliesSince1991.filter(v => v > 0).length / anomaliesSince1991.length) * 100
+            : null;
+        const maxYear = orderedAnomalies.length ? (orderedAnomalies[orderedAnomalies.length - 1]?.year ?? currentYear) : currentYear;
+        const last5yStart = maxYear - 4;
+        const anomaliesLast5y = orderedAnomalies.filter(p => p.year >= last5yStart).map(p => p.value);
+        const shareAbove15Last5y = anomaliesLast5y.length
+            ? (anomaliesLast5y.filter(v => v >= 1.5).length / anomaliesLast5y.length) * 100
+            : null;
+
+        // Streaks: consecutive anomalies >0 or <0 ending at last completed month
+        const lastCompletedIdx = currentMonthIndex ?? null;
+        const lastCompletedYear = currentYear;
+        // Build recent sequence up to last completed
+        const recentSeq: number[] = [];
+        for (let y = maxYear; y >= REFERENCE_START_YEAR; y--) {
+            const vals = monthlyMeans[y];
+            if (!vals) continue;
+            const anomalies = toAnomalies(vals, referenceMonthlyMeans);
+            for (let m = 11; m >= 0; m--) {
+                const cutoff = (y === lastCompletedYear && lastCompletedIdx != null) ? lastCompletedIdx : 11;
+                if (y === lastCompletedYear && m > cutoff) continue;
+                const v = anomalies[m];
+                if (typeof v === 'number') recentSeq.push(v);
+            }
+        }
+        // Compute streaks that END at the last completed month
+        // recentSeq[0] corresponds to the last completed month, increasing offsets go backwards in time
+        let streakAbove = 0;
+        for (let i = 0; i < recentSeq.length; i++) {
+            const v = recentSeq[i] as number | undefined;
+            if (typeof v !== 'number') break;
+            if (v > 0) {
+                streakAbove++;
+            } else {
+                break;
+            }
+        }
+
+        // Helper to convert offset to year/month from lastCompleted
+        const indexToYearMonth = (offset: number | null): { year: number; month: number } | null => {
+            if (offset == null || lastCompletedIdx == null) return null;
+            // Build linear list of year-month from lastCompleted backwards
+            const seqYM: { year: number; month: number }[] = [];
+            for (let y = maxYear; y >= REFERENCE_START_YEAR; y--) {
+                const cutoff = (y === lastCompletedYear && lastCompletedIdx != null) ? lastCompletedIdx : 11;
+                for (let m = cutoff; m >= 0; m--) {
+                    seqYM.push({ year: y, month: m });
+                }
+            }
+            return seqYM[offset] ?? null;
+        };
+        const streakAboveRange = (streakAbove >= 2)
+            ? { start: indexToYearMonth(streakAbove - 1), end: indexToYearMonth(0) }
+            : null;
+        const streakBelowRange = null;
+
+        // Percentile for last completed month anomaly within that month's distribution
+        let currentMonthAnomalyPercentile: number | null = null;
+        let isRecordWarmForMonth = false;
+        let isRecordColdForMonth = false;
+        if (lastCompletedIdx != null) {
+            const dist = orderedAnomalies.filter(p => p.month === lastCompletedIdx).map(p => p.value).sort((a, b) => a - b);
+            const curr = orderedAnomalies.find(p => p.year === lastCompletedYear && p.month === lastCompletedIdx)?.value ?? null;
+            if (curr != null && dist.length) {
+                // percentile rank (mid-rank)
+                const pos = dist.findIndex(v => v >= curr);
+                const rank = pos === -1 ? dist.length : pos + 1;
+                currentMonthAnomalyPercentile = (rank / dist.length) * 100;
+                const lastVal = dist[dist.length - 1] as number | undefined;
+                const firstVal = dist[0] as number | undefined;
+                if (lastVal != null) isRecordWarmForMonth = curr >= lastVal;
+                if (firstVal != null) isRecordColdForMonth = curr <= firstVal;
+            }
+        }
 
         return {
             stationId,
@@ -177,7 +250,15 @@ export const usePlotData = (): IMonthsInYearsPlotData => {
                 ...(currentMonthMean != null ? { currentMonthMean } : {}),
                 ...(referenceMonthMean != null ? { referenceMonthMean } : {}),
                 ...(currentMonthAnomaly != null ? { currentMonthAnomaly } : {}),
-                ...(recentTrendPerDecade1991Plus != null ? { recentTrendPerDecade1991Plus } : {}),
+                ...(shareAbove0Since1991 != null ? { shareAbove0Since1991 } : {}),
+                ...(shareAbove15Last5y != null ? { shareAbove15Last5y } : {}),
+                ...(streakAbove ? { streakMonthsAboveAnomaly0: streakAbove } : {}),
+                // remove below-0 streak reporting per new spec
+                ...(streakAboveRange ? { streakMonthsAboveAnomaly0Range: streakAboveRange } : {}),
+                ...(streakBelowRange ? { streakMonthsBelowAnomaly0Range: streakBelowRange } : {}),
+                ...(currentMonthAnomalyPercentile != null ? { currentMonthAnomalyPercentile } : {}),
+                ...(isRecordWarmForMonth ? { isRecordWarmForMonth } : {}),
+                ...(isRecordColdForMonth ? { isRecordColdForMonth } : {}),
             },
         };
     }, [stationId, data, dailyRecords]);
