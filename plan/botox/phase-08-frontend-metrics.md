@@ -44,10 +44,10 @@ This phase implements the climate metrics display cards that show key statistics
 - **CON-P8-003**: Must use design-system tokens for all styling
 
 ### Patterns to Follow
-- **PAT-001**: Use `createDataSlice` factory for Redux state management
-- **PAT-002**: Use service layer pattern for metrics fetching
-- **PAT-003**: Extend existing StatCard component pattern
-- **PAT-004**: Follow existing responsive layout patterns using useBreakpoint
+- **PAT-P8-001**: Use `createDataSlice` factory for Redux state management
+- **PAT-P8-002**: Use service layer pattern for metrics fetching
+- **PAT-P8-003**: Extend existing StatCard component pattern
+- **PAT-P8-004**: Follow existing responsive layout patterns using useBreakpoint
 
 ## 2. Implementation Steps
 
@@ -57,12 +57,12 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-800 | Add `labelTilt` prop to StatCardProps interface | | |
-| TASK-801 | Implement CSS transform rotation for title element | | |
-| TASK-802 | Add `valueSize` prop for configurable value font size | | |
-| TASK-803 | Add `accentColor` prop for value color customization | | |
-| TASK-804 | Update getTitleStyle to include rotation transform | | |
-| TASK-805 | Write tests for new StatCard props | | |
+| TASK-P8-001 | Add `labelTilt` prop to StatCardProps interface | | |
+| TASK-P8-002 | Implement CSS transform rotation for title element | | |
+| TASK-P8-003 | Add `valueSize` prop for configurable value font size | | |
+| TASK-P8-004 | Add `accentColor` prop for value color customization | | |
+| TASK-P8-005 | Update getTitleStyle to include rotation transform | | |
+| TASK-P8-006 | Write tests for new StatCard props | | |
 
 **Completion Criteria:**
 - StatCard renders with tilted title when `labelTilt` prop provided
@@ -77,13 +77,13 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-806 | Create `frontend/src/components/metrics/MetricsRow.tsx` container component | | |
-| TASK-807 | Implement flexbox layout with wrap for responsive behavior | | |
-| TASK-808 | Configure desktop: 6 cards in row | | |
-| TASK-809 | Configure tablet: 3×2 grid (breakpoint < 992px) | | |
-| TASK-810 | Configure mobile: single column stack (breakpoint < 576px) | | |
-| TASK-811 | Add gap spacing between cards using design tokens | | |
-| TASK-812 | Write tests for MetricsRow responsive behavior | | |
+| TASK-P8-007 | Create `frontend/src/components/metrics/MetricsRow.tsx` container component | | |
+| TASK-P8-008 | Implement flexbox layout with wrap for responsive behavior | | |
+| TASK-P8-009 | Configure desktop: 6 cards in row | | |
+| TASK-P8-010 | Configure tablet: 3×2 grid (breakpoint < 992px) | | |
+| TASK-P8-011 | Configure mobile: single column stack (breakpoint < 576px) | | |
+| TASK-P8-012 | Add gap spacing between cards using design tokens | | |
+| TASK-P8-013 | Write tests for MetricsRow responsive behavior | | |
 
 **Completion Criteria:**
 - 6 cards display in row on desktop (>992px)
@@ -99,14 +99,14 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-813 | Create `frontend/src/types/metrics.ts` with metric interfaces | | |
-| TASK-814 | Define `FiveYearAnomalyMetric` interface | | |
-| TASK-815 | Define `WarmingRateMetric` interface | | |
-| TASK-816 | Define `RecordDaysMetric` interface | | |
-| TASK-817 | Define `WinterWarmingMetric` interface | | |
-| TASK-818 | Define `SnowDaysLostMetric` interface | | |
-| TASK-819 | Define `ComfortableDaysMetric` interface | | |
-| TASK-820 | Define `LocationMetrics` combined interface | | |
+| TASK-P8-014 | Create `frontend/src/types/metrics.ts` with metric interfaces | | |
+| TASK-P8-015 | Define `FiveYearAnomalyMetric` interface | | |
+| TASK-P8-016 | Define `WarmingRateMetric` interface | | |
+| TASK-P8-017 | Define `RecordDaysMetric` interface | | |
+| TASK-P8-018 | Define `WinterWarmingMetric` interface | | |
+| TASK-P8-019 | Define `SnowDaysLostMetric` interface | | |
+| TASK-P8-020 | Define `ComfortableDaysMetric` interface | | |
+| TASK-P8-021 | Define `LocationMetrics` combined interface | | |
 
 **Completion Criteria:**
 - All metric interfaces defined with JSDoc documentation
@@ -120,13 +120,13 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-821 | Create `frontend/src/services/MetricsService.ts` | | |
-| TASK-822 | Implement `fetchMetricsForLocation(locationId)` function | | |
-| TASK-823 | Implement `fetchNationalMetrics()` for Germany-wide data | | |
-| TASK-824 | Add URL construction using buildUrl utility | | |
-| TASK-825 | Implement JSON parsing with validation | | |
-| TASK-826 | Add error handling for missing/malformed data | | |
-| TASK-827 | Write unit tests for MetricsService | | |
+| TASK-P8-022 | Create `frontend/src/services/MetricsService.ts` | | |
+| TASK-P8-023 | Implement `fetchMetricsForLocation(locationId)` function | | |
+| TASK-P8-024 | Implement `fetchNationalMetrics()` for Germany-wide data | | |
+| TASK-P8-025 | Add URL construction using buildUrl utility | | |
+| TASK-P8-026 | Implement JSON parsing with validation | | |
+| TASK-P8-027 | Add error handling for missing/malformed data | | |
+| TASK-P8-028 | Write unit tests for MetricsService | | |
 
 **Completion Criteria:**
 - Service fetches and parses metrics JSON correctly
@@ -141,13 +141,13 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-828 | Create `frontend/src/store/slices/metricsSlice.ts` using createDataSlice | | |
-| TASK-829 | Configure 'keyed' state shape for caching per location | | |
-| TASK-830 | Create fetchMetrics async thunk | | |
-| TASK-831 | Create selectors for each metric type | | |
-| TASK-832 | Create selectMetricsForCurrentCity derived selector | | |
-| TASK-833 | Register metricsSlice in store/index.ts | | |
-| TASK-834 | Write unit tests for metricsSlice | | |
+| TASK-P8-029 | Create `frontend/src/store/slices/metricsSlice.ts` using createDataSlice | | |
+| TASK-P8-030 | Configure 'keyed' state shape for caching per location | | |
+| TASK-P8-031 | Create fetchMetrics async thunk | | |
+| TASK-P8-032 | Create selectors for each metric type | | |
+| TASK-P8-033 | Create selectMetricsForCurrentCity derived selector | | |
+| TASK-P8-034 | Register metricsSlice in store/index.ts | | |
+| TASK-P8-035 | Write unit tests for metricsSlice | | |
 
 **Completion Criteria:**
 - Metrics cached per location ID
@@ -162,15 +162,15 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-835 | Create `frontend/src/components/metrics/cards/FiveYearAnomalyCard.tsx` | | |
-| TASK-836 | Create `frontend/src/components/metrics/cards/WarmingRateCard.tsx` | | |
-| TASK-837 | Create `frontend/src/components/metrics/cards/RecordDaysCard.tsx` | | |
-| TASK-838 | Create `frontend/src/components/metrics/cards/WinterWarmingCard.tsx` | | |
-| TASK-839 | Create `frontend/src/components/metrics/cards/SnowDaysLostCard.tsx` | | |
-| TASK-840 | Create `frontend/src/components/metrics/cards/ComfortableDaysCard.tsx` | | |
-| TASK-841 | Add info text tooltips with methodology for each card | | |
-| TASK-842 | Implement value formatting (decimals, ± signs, units) | | |
-| TASK-843 | Write tests for each card component | | |
+| TASK-P8-036 | Create `frontend/src/components/metrics/cards/FiveYearAnomalyCard.tsx` | | |
+| TASK-P8-037 | Create `frontend/src/components/metrics/cards/WarmingRateCard.tsx` | | |
+| TASK-P8-038 | Create `frontend/src/components/metrics/cards/RecordDaysCard.tsx` | | |
+| TASK-P8-039 | Create `frontend/src/components/metrics/cards/WinterWarmingCard.tsx` | | |
+| TASK-P8-040 | Create `frontend/src/components/metrics/cards/SnowDaysLostCard.tsx` | | |
+| TASK-P8-041 | Create `frontend/src/components/metrics/cards/ComfortableDaysCard.tsx` | | |
+| TASK-P8-042 | Add info text tooltips with methodology for each card | | |
+| TASK-P8-043 | Implement value formatting (decimals, ± signs, units) | | |
+| TASK-P8-044 | Write tests for each card component | | |
 
 **Completion Criteria:**
 - All 6 cards render with correct data binding
@@ -185,12 +185,12 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-844 | Create `frontend/src/hooks/useMetrics.ts` hook | | |
-| TASK-845 | Auto-fetch metrics on city selection change | | |
-| TASK-846 | Return loading/error/data states for all 6 metrics | | |
-| TASK-847 | Create barrel export `frontend/src/components/metrics/index.ts` | | |
-| TASK-848 | Integrate MetricsRow into main page layout | | |
-| TASK-849 | Write E2E tests for metric loading flow | | |
+| TASK-P8-045 | Create `frontend/src/hooks/useMetrics.ts` hook | | |
+| TASK-P8-046 | Auto-fetch metrics on city selection change | | |
+| TASK-P8-047 | Return loading/error/data states for all 6 metrics | | |
+| TASK-P8-048 | Create barrel export `frontend/src/components/metrics/index.ts` | | |
+| TASK-P8-049 | Integrate MetricsRow into main page layout | | |
+| TASK-P8-050 | Write E2E tests for metric loading flow | | |
 
 **Completion Criteria:**
 - Metrics auto-load when city changes

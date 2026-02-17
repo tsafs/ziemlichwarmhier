@@ -57,10 +57,10 @@ This phase implements the narrative plot section that tells the climate story th
 - **CON-P9-004**: Follow existing PlotView and dark mode patterns
 
 ### Patterns to Follow
-- **PAT-001**: Use createDataSlice factory for data state
-- **PAT-002**: Follow existing iceAndHotDays plot component structure
-- **PAT-003**: Use design-system tokens and theme for styling
-- **PAT-004**: Use createStackedPlotView factory for two-panel layouts
+- **PAT-P9-001**: Use createDataSlice factory for data state
+- **PAT-P9-002**: Follow existing iceAndHotDays plot component structure
+- **PAT-P9-003**: Use design-system tokens and theme for styling
+- **PAT-P9-004**: Use createStackedPlotView factory for two-panel layouts
 
 ## 2. Implementation Steps
 
@@ -70,12 +70,12 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-900 | Create `frontend/src/components/plots/narrative/NarrativeSection.tsx` container | | |
-| TASK-901 | Create `frontend/src/components/plots/narrative/TabNavigation.tsx` tab bar | | |
-| TASK-902 | Implement tab state management (local or Redux) | | |
-| TASK-903 | Create tab transition animations (CSS transitions) | | |
-| TASK-904 | Implement mobile accordion variant | | |
-| TASK-905 | Write tests for NarrativeSection and TabNavigation | | |
+| Task-P9-000 | Create `frontend/src/components/plots/narrative/NarrativeSection.tsx` container | | |
+| Task-P9-001 | Create `frontend/src/components/plots/narrative/TabNavigation.tsx` tab bar | | |
+| Task-P9-002 | Implement tab state management (local or Redux) | | |
+| Task-P9-003 | Create tab transition animations (CSS transitions) | | |
+| Task-P9-004 | Implement mobile accordion variant | | |
+| Task-P9-005 | Write tests for NarrativeSection and TabNavigation | | |
 
 **Completion Criteria:**
 - 3 tabs display with correct labels
@@ -91,11 +91,11 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-906 | Create `frontend/src/components/common/ExpandableText.tsx` | | |
-| TASK-907 | Implement collapsed state with "Read more" link | | |
-| TASK-908 | Implement expanded state with full text and "Read less" | | |
-| TASK-909 | Add smooth expand/collapse animation | | |
-| TASK-910 | Write tests for ExpandableText | | |
+| Task-P9-006 | Create `frontend/src/components/common/ExpandableText.tsx` | | |
+| Task-P9-007 | Implement collapsed state with "Read more" link | | |
+| Task-P9-008 | Implement expanded state with full text and "Read less" | | |
+| Task-P9-009 | Add smooth expand/collapse animation | | |
+| Task-P9-010 | Write tests for ExpandableText | | |
 
 **Completion Criteria:**
 - Component shows truncated text by default
@@ -110,16 +110,16 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-911 | Create `frontend/src/types/plotData.ts` with interfaces | | |
-| TASK-912 | Create `frontend/src/services/NarrativePlotService.ts` | | |
-| TASK-913 | Implement `fetchTemperatureEvolutionData(locationId)` | | |
-| TASK-914 | Implement `fetchSeasonalWarmingData(locationId)` | | |
-| TASK-915 | Implement `fetchMonthlyDistributionData(locationId)` | | |
-| TASK-916 | Implement `fetchExtremesData(locationId)` | | |
-| TASK-917 | Implement `fetchComfortCalendarData(locationId)` | | |
-| TASK-918 | Implement `fetchTropicalNightsData(locationId)` | | |
-| TASK-919 | Implement `fetchVegetationStressData(locationId)` | | |
-| TASK-920 | Write unit tests for NarrativePlotService | | |
+| Task-P9-011 | Create `frontend/src/types/plotData.ts` with interfaces | | |
+| Task-P9-012 | Create `frontend/src/services/NarrativePlotService.ts` | | |
+| Task-P9-013 | Implement `fetchTemperatureEvolutionData(locationId)` | | |
+| Task-P9-014 | Implement `fetchSeasonalWarmingData(locationId)` | | |
+| Task-P9-015 | Implement `fetchMonthlyDistributionData(locationId)` | | |
+| Task-P9-016 | Implement `fetchExtremesData(locationId)` | | |
+| Task-P9-017 | Implement `fetchComfortCalendarData(locationId)` | | |
+| Task-P9-018 | Implement `fetchTropicalNightsData(locationId)` | | |
+| Task-P9-019 | Implement `fetchVegetationStressData(locationId)` | | |
+| Task-P9-020 | Write unit tests for NarrativePlotService | | |
 
 **Completion Criteria:**
 - All 7 data fetchers implemented
@@ -134,12 +134,12 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-921 | Create `frontend/src/store/slices/narrativePlotSlice.ts` | | |
-| TASK-922 | Configure keyed cache by location + plot type | | |
-| TASK-923 | Create selectors for each plot data type (7 total) | | |
-| TASK-924 | Create combined fetcher for all plots on location change | | |
-| TASK-925 | Register slice in store/index.ts | | |
-| TASK-926 | Write tests for narrativePlotSlice | | |
+| Task-P9-021 | Create `frontend/src/store/slices/narrativePlotSlice.ts` | | |
+| Task-P9-022 | Configure keyed cache by location + plot type | | |
+| Task-P9-023 | Create selectors for each plot data type (7 total) | | |
+| Task-P9-024 | Create combined fetcher for all plots on location change | | |
+| Task-P9-025 | Register slice in store/index.ts | | |
+| Task-P9-026 | Write tests for narrativePlotSlice | | |
 
 **Completion Criteria:**
 - Plot data cached by location
@@ -154,13 +154,13 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-927 | Create `frontend/src/components/plots/narrative/recognition/TemperatureEvolution.tsx` | | |
-| TASK-928 | Render scatter plot of yearly temperatures using Observable Plot | | |
-| TASK-929 | Add LOWESS or rolling average trend line | | |
-| TASK-930 | Color code points by anomaly (warm = red, cool = blue) | | |
-| TASK-931 | Add axis labels and title | | |
-| TASK-932 | Include ExpandableText with methodology | | |
-| TASK-933 | Write tests for TemperatureEvolution | | |
+| Task-P9-027 | Create `frontend/src/components/plots/narrative/recognition/TemperatureEvolution.tsx` | | |
+| Task-P9-028 | Render scatter plot of yearly temperatures using Observable Plot | | |
+| Task-P9-029 | Add LOWESS or rolling average trend line | | |
+| Task-P9-030 | Color code points by anomaly (warm = red, cool = blue) | | |
+| Task-P9-031 | Add axis labels and title | | |
+| Task-P9-032 | Include ExpandableText with methodology | | |
+| Task-P9-033 | Write tests for TemperatureEvolution | | |
 
 **Completion Criteria:**
 - Scatter plot renders all years
@@ -176,13 +176,13 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-934 | Create `frontend/src/components/plots/narrative/recognition/SeasonalWarming.tsx` | | |
-| TASK-935 | Render multi-line chart (4 lines for seasons) | | |
-| TASK-936 | X-axis: years, Y-axis: temperature anomaly | | |
-| TASK-937 | Add legend for season colors | | |
-| TASK-938 | Highlight fastest-warming season | | |
-| TASK-939 | Include ExpandableText with methodology | | |
-| TASK-940 | Write tests for SeasonalWarming | | |
+| Task-P9-034 | Create `frontend/src/components/plots/narrative/recognition/SeasonalWarming.tsx` | | |
+| Task-P9-035 | Render multi-line chart (4 lines for seasons) | | |
+| Task-P9-036 | X-axis: years, Y-axis: temperature anomaly | | |
+| Task-P9-037 | Add legend for season colors | | |
+| Task-P9-038 | Highlight fastest-warming season | | |
+| Task-P9-039 | Include ExpandableText with methodology | | |
+| Task-P9-040 | Write tests for SeasonalWarming | | |
 
 **Completion Criteria:**
 - 4 season lines visible
@@ -198,13 +198,13 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-941 | Create `frontend/src/components/plots/narrative/understanding/MonthlyDistribution.tsx` | | |
-| TASK-942 | Render box plots for each month using Observable Plot | | |
-| TASK-943 | Show reference period vs. recent decade comparison | | |
-| TASK-944 | Color code by temperature (cool months blue, warm red) | | |
-| TASK-945 | Add axis labels (months, temperature) | | |
-| TASK-946 | Include ExpandableText with methodology | | |
-| TASK-947 | Write tests for MonthlyDistribution | | |
+| Task-P9-041 | Create `frontend/src/components/plots/narrative/understanding/MonthlyDistribution.tsx` | | |
+| Task-P9-042 | Render box plots for each month using Observable Plot | | |
+| Task-P9-043 | Show reference period vs. recent decade comparison | | |
+| Task-P9-044 | Color code by temperature (cool months blue, warm red) | | |
+| Task-P9-045 | Add axis labels (months, temperature) | | |
+| Task-P9-046 | Include ExpandableText with methodology | | |
+| Task-P9-047 | Write tests for MonthlyDistribution | | |
 
 **Completion Criteria:**
 - 12 box plots rendered (one per month)
@@ -220,14 +220,14 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-948 | Create `frontend/src/components/plots/narrative/understanding/ExtremesInverted.tsx` | | |
-| TASK-949 | Render diverging bar chart with 4 metrics: ice days, hot days, dry spells, extreme rain | | |
-| TASK-950 | Ice days (Tmax ≤0°C) and dry spells point left/down (disappearing extremes) | | |
-| TASK-951 | Hot days (Tmax ≥30°C) and extreme rain (≥25mm) point right/up (emerging extremes) | | |
-| TASK-952 | Color code (blue for cold/dry, red/teal for hot/rain) | | |
-| TASK-953 | Add reference lines for historical averages | | |
-| TASK-954 | Include ExpandableText with methodology | | |
-| TASK-955 | Write tests for ExtremesInverted | | |
+| Task-P9-048 | Create `frontend/src/components/plots/narrative/understanding/ExtremesInverted.tsx` | | |
+| Task-P9-049 | Render diverging bar chart with 4 metrics: ice days, hot days, dry spells, extreme rain | | |
+| Task-P9-050 | Ice days (Tmax ≤0°C) and dry spells point left/down (disappearing extremes) | | |
+| Task-P9-051 | Hot days (Tmax ≥30°C) and extreme rain (≥25mm) point right/up (emerging extremes) | | |
+| Task-P9-052 | Color code (blue for cold/dry, red/teal for hot/rain) | | |
+| Task-P9-053 | Add reference lines for historical averages | | |
+| Task-P9-054 | Include ExpandableText with methodology | | |
+| Task-P9-055 | Write tests for ExtremesInverted | | |
 
 **Narrative text:**
 - Intro: *"In a stable climate, extremes balance. Not anymore."*
@@ -247,13 +247,13 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-956 | Create `frontend/src/components/plots/narrative/understanding/RecordBreakingReality.tsx` | | |
-| TASK-957 | Render stacked area chart (hot records red, cold records blue) | | |
-| TASK-958 | X-axis: years (1951-2026), Y-axis: record-breaking days per year | | |
-| TASK-959 | Add ratio annotation ("1960s: 1.1 hot per cold" vs "2020s: 12.3 hot per cold") | | |
-| TASK-960 | Add reference line showing expected 1:1 ratio in stable climate | | |
-| TASK-961 | Include ExpandableText with methodology | | |
-| TASK-962 | Write tests for RecordBreakingReality | | |
+| Task-P9-056 | Create `frontend/src/components/plots/narrative/understanding/RecordBreakingReality.tsx` | | |
+| Task-P9-057 | Render stacked area chart (hot records red, cold records blue) | | |
+| Task-P9-058 | X-axis: years (1951-2026), Y-axis: record-breaking days per year | | |
+| Task-P9-059 | Add ratio annotation ("1960s: 1.1 hot per cold" vs "2020s: 12.3 hot per cold") | | |
+| Task-P9-060 | Add reference line showing expected 1:1 ratio in stable climate | | |
+| Task-P9-061 | Include ExpandableText with methodology | | |
+| Task-P9-062 | Write tests for RecordBreakingReality | | |
 
 **Narrative text:**
 - Intro: *"In a stable climate, record-breaking temperatures would be rare and balanced."*
@@ -273,13 +273,13 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-963 | Create `frontend/src/components/plots/narrative/understanding/WinterForgotToCome.tsx` | | |
-| TASK-964 | Render dual-axis line chart with area fill | | |
-| TASK-965 | Blue line: snow days (precip >0.1mm AND Tmean ≤0°C), 5-year moving average | | |
-| TASK-966 | Gray area: transition rain days (precip >0.1mm AND Tmean 0-2°C) | | |
-| TASK-967 | Add annotations showing snow days lost (reference vs current) | | |
-| TASK-968 | Include ExpandableText with methodology | | |
-| TASK-969 | Write tests for WinterForgotToCome | | |
+| Task-P9-063 | Create `frontend/src/components/plots/narrative/understanding/WinterForgotToCome.tsx` | | |
+| Task-P9-064 | Render dual-axis line chart with area fill | | |
+| Task-P9-065 | Blue line: snow days (precip >0.1mm AND Tmean ≤0°C), 5-year moving average | | |
+| Task-P9-066 | Gray area: transition rain days (precip >0.1mm AND Tmean 0-2°C) | | |
+| Task-P9-067 | Add annotations showing snow days lost (reference vs current) | | |
+| Task-P9-068 | Include ExpandableText with methodology | | |
+| Task-P9-069 | Write tests for WinterForgotToCome | | |
 
 **Narrative text:**
 - Intro: *"Snow days are becoming rain days."*

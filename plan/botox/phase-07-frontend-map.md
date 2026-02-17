@@ -39,16 +39,16 @@ This phase implements the interactive climate map visualization using MapLibre G
 - **REQ-P7-006**: Map performance must maintain 60fps on mobile during pan/zoom
 
 ### Technical Constraints
-- **CON-001**: MapLibre GL JS requires WebGL support (90%+ browser coverage)
-- **CON-002**: Tile size is 256×256 WebP images
-- **CON-003**: Tile URL pattern: `{baseUrl}/{year}/{month:02d}/{z}/{x}/{y}.webp`
+- **CON-P7-001**: MapLibre GL JS requires WebGL support (90%+ browser coverage)
+- **CON-P7-002**: Tile size is 256×256 WebP images
+- **CON-P7-003**: Tile URL pattern: `{baseUrl}/{year}/{month:02d}/{z}/{x}/{y}.webp`
 
 ### Patterns to Follow
-- **PAT-001**: Use `createDataSlice` factory for Redux state management
-- **PAT-002**: Use service layer pattern for tile URL generation  
-- **PAT-003**: Follow PlotView component pattern for layout containers
-- **PAT-004**: Follow existing StationSearch pattern for city interaction
-- **PAT-005**: Use design-system tokens for all styling
+- **PAT-P7-001**: Use `createDataSlice` factory for Redux state management
+- **PAT-P7-002**: Use service layer pattern for tile URL generation  
+- **PAT-P7-003**: Follow PlotView component pattern for layout containers
+- **PAT-P7-004**: Follow existing StationSearch pattern for city interaction
+- **PAT-P7-005**: Use design-system tokens for all styling
 
 ## 2. Implementation Steps
 
@@ -58,10 +58,10 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-700 | Install `maplibre-gl` and `@types/maplibre-gl` via npm | | |
-| TASK-701 | Add MapLibre CSS import to App.tsx or index.tsx | | |
-| TASK-702 | Create `frontend/src/constants/mapConfig.ts` with Germany bounds, zoom levels, tile URL pattern | | |
-| TASK-703 | Write type definitions for map state in `frontend/src/types/map.ts` | | |
+| TASK-P7-001 | Install `maplibre-gl` and `@types/maplibre-gl` via npm | | |
+| TASK-P7-002 | Add MapLibre CSS import to App.tsx or index.tsx | | |
+| TASK-P7-003 | Create `frontend/src/constants/mapConfig.ts` with Germany bounds, zoom levels, tile URL pattern | | |
+| TASK-P7-004 | Write type definitions for map state in `frontend/src/types/map.ts` | | |
 
 **Completion Criteria:**
 - `npm run build` succeeds with MapLibre imports
@@ -76,12 +76,12 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-704 | Create `frontend/src/store/slices/mapSlice.ts` using createDataSlice pattern | | |
-| TASK-705 | Define map state interface: viewport, selectedYear, selectedMonth | | |
-| TASK-706 | Create actions: setViewport, setSelectedDate, resetMapView | | |
-| TASK-707 | Create selectors: selectMapViewport, selectSelectedDate, selectTileUrl | | |
-| TASK-708 | Register mapSlice in store/index.ts | | |
-| TASK-709 | Write unit tests for mapSlice reducers and selectors | | |
+| TASK-P7-005 | Create `frontend/src/store/slices/mapSlice.ts` using createDataSlice pattern | | |
+| TASK-P7-006 | Define map state interface: viewport, selectedYear, selectedMonth | | |
+| TASK-P7-007 | Create actions: setViewport, setSelectedDate, resetMapView | | |
+| TASK-P7-008 | Create selectors: selectMapViewport, selectSelectedDate, selectTileUrl | | |
+| TASK-P7-009 | Register mapSlice in store/index.ts | | |
+| TASK-P7-010 | Write unit tests for mapSlice reducers and selectors | | |
 
 **Completion Criteria:**
 - Map state stored in Redux
@@ -96,11 +96,11 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-710 | Create `frontend/src/services/TileService.ts` with URL builder functions | | |
-| TASK-711 | Implement `getTileUrl(year, month, z, x, y)` function | | |
-| TASK-712 | Implement `getAvailableMonths()` to return valid date range | | |
-| TASK-713 | Add tile URL validation and error handling | | |
-| TASK-714 | Write unit tests for TileService | | |
+| TASK-P7-011 | Create `frontend/src/services/TileService.ts` with URL builder functions | | |
+| TASK-P7-012 | Implement `getTileUrl(year, month, z, x, y)` function | | |
+| TASK-P7-013 | Implement `getAvailableMonths()` to return valid date range | | |
+| TASK-P7-014 | Add tile URL validation and error handling | | |
+| TASK-P7-015 | Write unit tests for TileService | | |
 
 **Completion Criteria:**
 - Tile URLs generated correctly for all zoom levels
@@ -115,13 +115,13 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-715 | Create `frontend/src/components/maps/ClimateMap/ClimateMap.tsx` base component | | |
-| TASK-716 | Initialize MapLibre GL map with OpenStreetMap base layer | | |
-| TASK-717 | Implement Germany bounds constraint using `maxBounds` | | |
-| TASK-718 | Configure zoom constraints (min: 6, max: 10) | | |
-| TASK-719 | Add map load and error event handlers | | |
-| TASK-720 | Implement responsive container sizing | | |
-| TASK-721 | Write integration tests for ClimateMap rendering | | |
+| TASK-P7-016 | Create `frontend/src/components/maps/ClimateMap/ClimateMap.tsx` base component | | |
+| TASK-P7-017 | Initialize MapLibre GL map with OpenStreetMap base layer | | |
+| TASK-P7-018 | Implement Germany bounds constraint using `maxBounds` | | |
+| TASK-P7-019 | Configure zoom constraints (min: 6, max: 10) | | |
+| TASK-P7-020 | Add map load and error event handlers | | |
+| TASK-P7-021 | Implement responsive container sizing | | |
+| TASK-P7-022 | Write integration tests for ClimateMap rendering | | |
 
 **Completion Criteria:**
 - Map renders centered on Germany
@@ -136,13 +136,13 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-722 | Create `frontend/src/components/maps/ClimateMap/TileLayer.tsx` | | |
-| TASK-723 | Add raster tile source to MapLibre map | | |
-| TASK-724 | Configure tile source URL template from TileService | | |
-| TASK-725 | Implement source update on date change | | |
-| TASK-726 | Add tile loading state indicator | | |
-| TASK-727 | Handle tile load errors gracefully | | |
-| TASK-728 | Write tests for tile layer behavior | | |
+| TASK-P7-023 | Create `frontend/src/components/maps/ClimateMap/TileLayer.tsx` | | |
+| TASK-P7-024 | Add raster tile source to MapLibre map | | |
+| TASK-P7-025 | Configure tile source URL template from TileService | | |
+| TASK-P7-026 | Implement source update on date change | | |
+| TASK-P7-027 | Add tile loading state indicator | | |
+| TASK-P7-028 | Handle tile load errors gracefully | | |
+| TASK-P7-029 | Write tests for tile layer behavior | | |
 
 **Completion Criteria:**
 - Anomaly tiles visible over base map
@@ -157,13 +157,13 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-729 | Create `frontend/src/components/maps/ClimateMap/CityMarkers.tsx` | | |
-| TASK-730 | Render city markers from cityData Redux state | | |
-| TASK-731 | Implement marker click handler to dispatch selectCity | | |
-| TASK-732 | Style selected city marker differently (highlight) | | |
-| TASK-733 | Add city name labels on hover/click | | |
-| TASK-734 | Implement marker clustering for zoomed-out views | | |
-| TASK-735 | Write tests for marker interaction | | |
+| TASK-P7-030 | Create `frontend/src/components/maps/ClimateMap/CityMarkers.tsx` | | |
+| TASK-P7-031 | Render city markers from cityData Redux state | | |
+| TASK-P7-032 | Implement marker click handler to dispatch selectCity | | |
+| TASK-P7-033 | Style selected city marker differently (highlight) | | |
+| TASK-P7-034 | Add city name labels on hover/click | | |
+| TASK-P7-035 | Implement marker clustering for zoomed-out views | | |
+| TASK-P7-036 | Write tests for marker interaction | | |
 
 **Completion Criteria:**
 - City markers visible on map
@@ -178,12 +178,12 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-736 | Create `frontend/src/components/maps/ClimateMap/Legend.tsx` | | |
-| TASK-737 | Render gradient bar with diverging color scale | | |
-| TASK-738 | Add tick marks and labels (-3, -2, -1, 0, +1, +2, +3 °C) | | |
-| TASK-739 | Position legend in bottom-right corner of map | | |
-| TASK-740 | Make legend collapsible on mobile | | |
-| TASK-741 | Write tests for Legend component | | |
+| TASK-P7-037 | Create `frontend/src/components/maps/ClimateMap/Legend.tsx` | | |
+| TASK-P7-038 | Render gradient bar with diverging color scale | | |
+| TASK-P7-039 | Add tick marks and labels (-3, -2, -1, 0, +1, +2, +3 °C) | | |
+| TASK-P7-040 | Position legend in bottom-right corner of map | | |
+| TASK-P7-041 | Make legend collapsible on mobile | | |
+| TASK-P7-042 | Write tests for Legend component | | |
 
 **Completion Criteria:**
 - Legend displays correct color gradient
@@ -198,13 +198,13 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-742 | Create `frontend/src/components/maps/ClimateMap/DateSelector.tsx` | | |
-| TASK-743 | Implement month selector dropdown | | |
-| TASK-744 | Implement year selector dropdown | | |
-| TASK-745 | Connect to mapSlice via setSelectedDate action | | |
-| TASK-746 | Disable future dates beyond available data | | |
-| TASK-747 | Add "Latest" button for quick navigation to most recent | | |
-| TASK-748 | Write tests for DateSelector | | |
+| TASK-P7-043 | Create `frontend/src/components/maps/ClimateMap/DateSelector.tsx` | | |
+| TASK-P7-044 | Implement month selector dropdown | | |
+| TASK-P7-045 | Implement year selector dropdown | | |
+| TASK-P7-046 | Connect to mapSlice via setSelectedDate action | | |
+| TASK-P7-047 | Disable future dates beyond available data | | |
+| TASK-P7-048 | Add "Latest" button for quick navigation to most recent | | |
+| TASK-P7-049 | Write tests for DateSelector | | |
 
 **Completion Criteria:**
 - Month/year selection updates Redux state
@@ -219,11 +219,11 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-749 | Create `frontend/src/hooks/useMapTiles.ts` hook | | |
-| TASK-750 | Combine map state selectors and city data | | |
-| TASK-751 | Create `frontend/src/components/maps/ClimateMap/index.ts` barrel export | | |
-| TASK-752 | Integrate ClimateMap into main page layout | | |
-| TASK-753 | Write E2E tests for map interaction flow | | |
+| TASK-P7-050 | Create `frontend/src/hooks/useMapTiles.ts` hook | | |
+| TASK-P7-051 | Combine map state selectors and city data | | |
+| TASK-P7-052 | Create `frontend/src/components/maps/ClimateMap/index.ts` barrel export | | |
+| TASK-P7-053 | Integrate ClimateMap into main page layout | | |
+| TASK-P7-054 | Write E2E tests for map interaction flow | | |
 
 **Completion Criteria:**
 - useMapTiles provides all data needed by map
@@ -334,9 +334,9 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 ### Execution Order
 **Parallel tasks (can run simultaneously):**
-- TASK-700 to TASK-703 (Setup) - independent of other tasks
-- TASK-704 to TASK-709 (State) - independent of other tasks
-- TASK-710 to TASK-714 (Service) - independent of other tasks
+- TASK-P7-001 to TASK-P7-004 (Setup) - independent of other tasks
+- TASK-P7-005 to TASK-P7-010 (State) - independent of other tasks
+- TASK-P7-011 to TASK-P7-015 (Service) - independent of other tasks
 
 **Sequential dependencies:**
 - Phase 7.4 (ClimateMap) requires Phase 7.1 (Setup)

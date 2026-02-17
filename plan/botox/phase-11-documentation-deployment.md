@@ -31,40 +31,40 @@ Phase 11 completes the ERA5 Germany Climate Visualization project by establishin
 
 ### Functional Requirements
 
-- **REQ-001**: All public APIs and data formats must be documented
-- **REQ-002**: E2E tests must cover city selection, date navigation, and metric loading
-- **REQ-003**: Production deployment must support zero-downtime updates
-- **REQ-004**: Operations runbook must cover tile regeneration and rollback procedures
-- **REQ-005**: Documentation must be sufficient for new contributors to onboard
+- **REQ-P11-001**: All public APIs and data formats must be documented
+- **REQ-P11-002**: E2E tests must cover city selection, date navigation, and metric loading
+- **REQ-P11-003**: Production deployment must support zero-downtime updates
+- **REQ-P11-004**: Operations runbook must cover tile regeneration and rollback procedures
+- **REQ-P11-005**: Documentation must be sufficient for new contributors to onboard
 
 ### Non-Functional Requirements
 
-- **NFR-001**: E2E tests complete in < 5 minutes in CI
-- **NFR-002**: Lighthouse performance score ≥ 90
-- **NFR-003**: Documentation generates without errors (if using doc generator)
-- **NFR-004**: Production uptime ≥ 99.5%
-- **NFR-005**: Deployment from commit to live < 10 minutes
+- **NFR-P11-001**: E2E tests complete in < 5 minutes in CI
+- **NFR-P11-002**: Lighthouse performance score ≥ 90
+- **NFR-P11-003**: Documentation generates without errors (if using doc generator)
+- **NFR-P11-004**: Production uptime ≥ 99.5%
+- **NFR-P11-005**: Deployment from commit to live < 10 minutes
 
 ### Constraints
 
-- **CON-001**: Cloudflare Pages free tier: 500 builds/month, 100GB bandwidth/month
-- **CON-002**: E2E tests must work in GitHub Actions (headless browser)
-- **CON-003**: No budget for external monitoring services (use free tiers only)
-- **CON-004**: Documentation must be in Markdown (no proprietary formats)
+- **CON-P11-001**: Cloudflare Pages free tier: 500 builds/month, 100GB bandwidth/month
+- **CON-P11-002**: E2E tests must work in GitHub Actions (headless browser)
+- **CON-P11-003**: No budget for external monitoring services (use free tiers only)
+- **CON-P11-004**: Documentation must be in Markdown (no proprietary formats)
 
 ### Guidelines
 
-- **GUD-001**: Follow existing documentation patterns (YAML frontmatter, process docs)
-- **GUD-002**: E2E tests use existing Vitest patterns where applicable
-- **GUD-003**: Deployment automation follows existing GitHub Actions patterns
-- **GUD-004**: Use existing Cloudflare CDN integration (don't create new)
+- **GUD-P11-001**: Follow existing documentation patterns (YAML frontmatter, process docs)
+- **GUD-P11-002**: E2E tests use existing Vitest patterns where applicable
+- **GUD-P11-003**: Deployment automation follows existing GitHub Actions patterns
+- **GUD-P11-004**: Use existing Cloudflare CDN integration (don't create new)
 
 ### Patterns to Follow
 
-- **PAT-001**: GitHub Actions workflow structure (see Code Reference 10.1)
-- **PAT-002**: Documentation YAML frontmatter pattern (see Code Reference 10.2)
-- **PAT-003**: Vitest test structure (describe/it/expect) (see Code Reference 10.3)
-- **PAT-004**: Process documentation format (see Code Reference 10.4)
+- **PAT-P11-001**: GitHub Actions workflow structure (see Code Reference 10.1)
+- **PAT-P11-002**: Documentation YAML frontmatter pattern (see Code Reference 10.2)
+- **PAT-P11-003**: Vitest test structure (describe/it/expect) (see Code Reference 10.3)
+- **PAT-P11-004**: Process documentation format (see Code Reference 10.4)
 
 ---
 

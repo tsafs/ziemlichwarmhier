@@ -28,7 +28,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Requirements (from Master Plan)
 
-- **REQ-INF-001**: ERA5 tiles must be publicly accessible via HTTPS
+- **REQ-P2-001**: ERA5 tiles must be publicly accessible via HTTPS
 - **REQ-INF-002**: Storage must support S3-compatible API (boto3)
 - **REQ-INF-003**: Free or near-zero egress costs (Hetzner: free outbound)
 - **REQ-INF-004**: EU-based storage for GDPR compliance
@@ -37,36 +37,36 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Non-Functional Requirements
 
-- **NFR-001**: Monthly costs ≤ €5 for storage (Hetzner: €0.0052/GB)
-- **NFR-002**: Tile requests < 500ms latency (with CDN)
-- **NFR-003**: 99.9% availability for tile serving
+- **NFR-P2-001**: Monthly costs ≤ €5 for storage (Hetzner: €0.0052/GB)
+- **NFR-P2-002**: Tile requests < 500ms latency (with CDN)
+- **NFR-P2-003**: 99.9% availability for tile serving
 
 ### Constraints
 
-- **CON-001**: Hetzner Object Storage uses S3-compatible API
-- **CON-002**: Hetzner endpoint format: `https://<bucket>.<location>.your-objectstorage.com`
-- **CON-003**: Supported locations: fsn1 (Falkenstein), nbg1 (Nuremberg), hel1 (Helsinki)
-- **CON-004**: Maximum object size: 5TB, no bucket size limit
-- **CON-005**: Must use existing Cloudflare setup (domain: esistwarm.jetzt)
+- **CON-P2-001**: Hetzner Object Storage uses S3-compatible API
+- **CON-P2-002**: Hetzner endpoint format: `https://<bucket>.<location>.your-objectstorage.com`
+- **CON-P2-003**: Supported locations: fsn1 (Falkenstein), nbg1 (Nuremberg), hel1 (Helsinki)
+- **CON-P2-004**: Maximum object size: 5TB, no bucket size limit
+- **CON-P2-005**: Must use existing Cloudflare setup (domain: esistwarm.jetzt)
 
 ### Security Requirements
 
-- **SEC-001**: Credentials stored only in environment variables / GitHub Secrets
-- **SEC-002**: No hardcoded credentials in any committed file
-- **SEC-003**: Public read access limited to `/tiles/` prefix only
-- **SEC-004**: Write access restricted to pipeline service accounts
+- **SEC-P2-001**: Credentials stored only in environment variables / GitHub Secrets
+- **SEC-P2-002**: No hardcoded credentials in any committed file
+- **SEC-P2-003**: Public read access limited to `/tiles/` prefix only
+- **SEC-P2-004**: Write access restricted to pipeline service accounts
 
 ### Guidelines
 
-- **GUD-001**: Follow existing S3 utility patterns (upload_to_s3.py, download_from_s3.py)
-- **GUD-002**: Validate environment variables at script startup
-- **GUD-003**: Use consistent naming conventions with existing infrastructure
+- **GUD-P2-001**: Follow existing S3 utility patterns (upload_to_s3.py, download_from_s3.py)
+- **GUD-P2-002**: Validate environment variables at script startup
+- **GUD-P2-003**: Use consistent naming conventions with existing infrastructure
 
 ### Patterns
 
-- **PAT-001**: Environment variable pattern: `ACCESS_KEY`, `SECRET_KEY`, `BUCKET_NAME`, `ENDPOINT_URL`, `REGION`
-- **PAT-002**: boto3 client initialization with `endpoint_url` parameter
-- **PAT-003**: CORS configuration via JSON file (infrastructure/bucket/)
+- **PAT-P2-001**: Environment variable pattern: `ACCESS_KEY`, `SECRET_KEY`, `BUCKET_NAME`, `ENDPOINT_URL`, `REGION`
+- **PAT-P2-002**: boto3 client initialization with `endpoint_url` parameter
+- **PAT-P2-003**: CORS configuration via JSON file (infrastructure/bucket/)
 
 ## 2. Implementation Steps
 

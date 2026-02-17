@@ -44,10 +44,10 @@ This phase implements the city search and selection functionality that connects 
 - **CON-P10-004**: Must not break existing station-based city selection
 
 ### Patterns to Follow
-- **PAT-001**: Follow existing StationSearch component structure
-- **PAT-002**: Use React Router for URL parameter handling
-- **PAT-003**: Use Redux for centralized city selection state
-- **PAT-004**: Use kebab-case for URL slugs (e.g., `bad-wuennenberg`)
+- **PAT-P10-001**: Follow existing StationSearch component structure
+- **PAT-P10-002**: Use React Router for URL parameter handling
+- **PAT-P10-003**: Use Redux for centralized city selection state
+- **PAT-P10-004**: Use kebab-case for URL slugs (e.g., `bad-wuennenberg`)
 
 ## 2. Implementation Steps
 
@@ -57,11 +57,11 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1000 | Create `frontend/src/utils/citySlugUtils.ts` with slug generation | | |
-| TASK-1001 | Implement `cityNameToSlug(name)` - handle umlauts, spaces, special chars | | |
-| TASK-1002 | Implement `slugToCityName(slug)` - reverse mapping (best effort) | | |
-| TASK-1003 | Create slug lookup map for exact city matching | | |
-| TASK-1004 | Write unit tests for slug utilities | | |
+| TASK-P10-001 | Create `frontend/src/utils/citySlugUtils.ts` with slug generation | | |
+| TASK-P10-002 | Implement `cityNameToSlug(name)` - handle umlauts, spaces, special chars | | |
+| TASK-P10-003 | Implement `slugToCityName(slug)` - reverse mapping (best effort) | | |
+| TASK-P10-004 | Create slug lookup map for exact city matching | | |
+| TASK-P10-005 | Write unit tests for slug utilities | | |
 
 **Completion Criteria:**
 - "München" → "muenchen"
@@ -76,12 +76,12 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1005 | Create `frontend/src/hooks/useCityUrlParam.ts` hook | | |
-| TASK-1006 | Read `city` query parameter on initial page load | | |
-| TASK-1007 | Update URL when city selection changes (without page reload) | | |
-| TASK-1008 | Handle invalid/unknown city parameters gracefully | | |
-| TASK-1009 | Sync URL parameter with Redux selectedCity state | | |
-| TASK-1010 | Write tests for URL parameter handling | | |
+| TASK-P10-006 | Create `frontend/src/hooks/useCityUrlParam.ts` hook | | |
+| TASK-P10-007 | Read `city` query parameter on initial page load | | |
+| TASK-P10-008 | Update URL when city selection changes (without page reload) | | |
+| TASK-P10-009 | Handle invalid/unknown city parameters gracefully | | |
+| TASK-P10-010 | Sync URL parameter with Redux selectedCity state | | |
+| TASK-P10-011 | Write tests for URL parameter handling | | |
 
 **Completion Criteria:**
 - `?city=berlin` selects Berlin on page load
@@ -96,14 +96,14 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1011 | Create `frontend/src/components/search/CitySearch.tsx` | | |
-| TASK-1012 | Implement search input with debounced filtering | | |
-| TASK-1013 | Implement dropdown with filtered/sorted results | | |
-| TASK-1014 | Implement keyboard navigation (arrow keys, enter, escape) | | |
-| TASK-1015 | Implement click-outside-to-close behavior | | |
-| TASK-1016 | Add clear button to reset search | | |
-| TASK-1017 | Add mobile-friendly styling and touch support | | |
-| TASK-1018 | Write component tests for CitySearch | | |
+| TASK-P10-012 | Create `frontend/src/components/search/CitySearch.tsx` | | |
+| TASK-P10-013 | Implement search input with debounced filtering | | |
+| TASK-P10-014 | Implement dropdown with filtered/sorted results | | |
+| TASK-P10-015 | Implement keyboard navigation (arrow keys, enter, escape) | | |
+| TASK-P10-016 | Implement click-outside-to-close behavior | | |
+| TASK-P10-017 | Add clear button to reset search | | |
+| TASK-P10-018 | Add mobile-friendly styling and touch support | | |
+| TASK-P10-019 | Write component tests for CitySearch | | |
 
 **Completion Criteria:**
 - Search filters as user types
@@ -119,12 +119,12 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1019 | Create `frontend/src/utils/citySearchUtils.ts` | | |
-| TASK-1020 | Implement scoring: exact match (100), prefix (80), contains (60) | | |
-| TASK-1021 | Add bonus for shorter names (prefer "Berlin" over "Berlin-Mitte") | | |
-| TASK-1022 | Add length penalty to avoid generic substring matches | | |
-| TASK-1023 | Implement case-insensitive matching | | |
-| TASK-1024 | Write tests for search scoring | | |
+| TASK-P10-020 | Create `frontend/src/utils/citySearchUtils.ts` | | |
+| TASK-P10-021 | Implement scoring: exact match (100), prefix (80), contains (60) | | |
+| TASK-P10-022 | Add bonus for shorter names (prefer "Berlin" over "Berlin-Mitte") | | |
+| TASK-P10-023 | Add length penalty to avoid generic substring matches | | |
+| TASK-P10-024 | Implement case-insensitive matching | | |
+| TASK-P10-025 | Write tests for search scoring | | |
 
 **Completion Criteria:**
 - "berlin" search shows "Berlin" first
@@ -139,13 +139,13 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1025 | Create `analysis/cities/correlate_cities_to_grid.py` | | |
-| TASK-1026 | Load Germany city list from `german_cities_p5000.csv` | | |
-| TASK-1027 | Define ERA5 grid (0.1° resolution) | | |
-| TASK-1028 | Calculate nearest grid cell for each city | | |
-| TASK-1029 | Output correlation data as JSON (`city_grid_correlation.json`) | | |
-| TASK-1030 | Include city slug in output for URL matching | | |
-| TASK-1031 | Write pytest tests for correlation script | | |
+| TASK-P10-026 | Create `analysis/cities/correlate_cities_to_grid.py` | | |
+| TASK-P10-027 | Load Germany city list from `german_cities_p5000.csv` | | |
+| TASK-P10-028 | Define ERA5 grid (0.1° resolution) | | |
+| TASK-P10-029 | Calculate nearest grid cell for each city | | |
+| TASK-P10-030 | Output correlation data as JSON (`city_grid_correlation.json`) | | |
+| TASK-P10-031 | Include city slug in output for URL matching | | |
+| TASK-P10-032 | Write pytest tests for correlation script | | |
 
 **Completion Criteria:**
 - All 2,949 cities mapped to grid cells
@@ -160,12 +160,12 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1032 | Update `frontend/src/types/city.ts` with grid correlation fields | | |
-| TASK-1033 | Create/update `frontend/src/services/CityCorrelationService.ts` | | |
-| TASK-1034 | Load correlation JSON on app init | | |
-| TASK-1035 | Merge correlation data with existing city data | | |
-| TASK-1036 | Create derived selectors for grid-correlated city lookup | | |
-| TASK-1037 | Write tests for city data enhancement | | |
+| TASK-P10-033 | Update `frontend/src/types/city.ts` with grid correlation fields | | |
+| TASK-P10-034 | Create/update `frontend/src/services/CityCorrelationService.ts` | | |
+| TASK-P10-035 | Load correlation JSON on app init | | |
+| TASK-P10-036 | Merge correlation data with existing city data | | |
+| TASK-P10-037 | Create derived selectors for grid-correlated city lookup | | |
+| TASK-P10-038 | Write tests for city data enhancement | | |
 
 **Completion Criteria:**
 - City objects include grid_i, grid_j, slug
@@ -180,12 +180,12 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1038 | Update `frontend/src/store/slices/selectedCitySlice.ts` | | |
-| TASK-1039 | Add `selectCityBySlug(slug)` action | | |
-| TASK-1040 | Add `selectCitySelector` by slug | | |
-| TASK-1041 | Ensure backward compatibility with ID-based selection | | |
-| TASK-1042 | Add analytics-friendly city name to state | | |
-| TASK-1043 | Write tests for updated slice | | |
+| TASK-P10-039 | Update `frontend/src/store/slices/selectedCitySlice.ts` | | |
+| TASK-P10-040 | Add `selectCityBySlug(slug)` action | | |
+| TASK-P10-041 | Add `selectCitySelector` by slug | | |
+| TASK-P10-042 | Ensure backward compatibility with ID-based selection | | |
+| TASK-P10-043 | Add analytics-friendly city name to state | | |
+| TASK-P10-044 | Write tests for updated slice | | |
 
 **Completion Criteria:**
 - `selectCityBySlug('berlin')` works
@@ -200,12 +200,12 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1044 | Update ClimateMap to respond to city selection (zoom/pan to city) | | |
-| TASK-1045 | Verify MetricsRow loads correct city metrics | | |
-| TASK-1046 | Verify NarrativeSection loads correct city plot data | | |
-| TASK-1047 | Add global loading indicator during city data fetch | | |
-| TASK-1048 | Handle city selection error states | | |
-| TASK-1049 | Write integration tests for full selection flow | | |
+| TASK-P10-045 | Update ClimateMap to respond to city selection (zoom/pan to city) | | |
+| TASK-P10-046 | Verify MetricsRow loads correct city metrics | | |
+| TASK-P10-047 | Verify NarrativeSection loads correct city plot data | | |
+| TASK-P10-048 | Add global loading indicator during city data fetch | | |
+| TASK-P10-049 | Handle city selection error states | | |
+| TASK-P10-050 | Write integration tests for full selection flow | | |
 
 **Completion Criteria:**
 - City selection updates all components
@@ -220,12 +220,12 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1050 | Create `frontend/src/components/common/ShareButton.tsx` | | |
-| TASK-1051 | Implement copy-to-clipboard for current URL | | |
-| TASK-1052 | Add social share links (Twitter, Facebook, WhatsApp) | | |
-| TASK-1053 | Update document title based on selected city | | |
-| TASK-1054 | Ensure proper Open Graph meta tags for shared links | | |
-| TASK-1055 | Write tests for share functionality | | |
+| TASK-P10-051 | Create `frontend/src/components/common/ShareButton.tsx` | | |
+| TASK-P10-052 | Implement copy-to-clipboard for current URL | | |
+| TASK-P10-053 | Add social share links (Twitter, Facebook, WhatsApp) | | |
+| TASK-P10-054 | Update document title based on selected city | | |
+| TASK-P10-055 | Ensure proper Open Graph meta tags for shared links | | |
+| TASK-P10-056 | Write tests for share functionality | | |
 
 **Completion Criteria:**
 - Share button copies URL with city parameter
@@ -240,12 +240,12 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-1056 | Create E2E test: Load page with city URL → all components show city data | | |
-| TASK-1057 | Create E2E test: Search city → select → URL updates → components update | | |
-| TASK-1058 | Create E2E test: Invalid city URL → fallback to national | | |
-| TASK-1059 | Performance test: Search responsiveness under 100ms | | |
-| TASK-1060 | Accessibility audit for search component | | |
-| TASK-1061 | Create barrel export for search components | | |
+| TASK-P10-057 | Create E2E test: Load page with city URL → all components show city data | | |
+| TASK-P10-058 | Create E2E test: Search city → select → URL updates → components update | | |
+| TASK-P10-059 | Create E2E test: Invalid city URL → fallback to national | | |
+| TASK-P10-060 | Performance test: Search responsiveness under 100ms | | |
+| TASK-P10-061 | Accessibility audit for search component | | |
+| TASK-P10-062 | Create barrel export for search components | | |
 
 **Completion Criteria:**
 - All E2E tests pass
