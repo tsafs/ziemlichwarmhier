@@ -1,8 +1,8 @@
 ---
 goal: Phase 6 - Nightly Job Orchestration Implementation
-version: 1.0
+version: 1.1
 date_created: 2026-02-16
-last_updated: 2026-02-16
+last_updated: 2026-02-17
 owner: Sebastian
 status: 'Planned'
 tags: [phase-6, jobs, docker, github-actions, automation, pipeline]
@@ -17,7 +17,7 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 **Key outputs:**
 - Daily job: Check for new ERA5 data and process new months
 - Monthly job: Regenerate all tiles for the completed month
-- Yearly job: Recalculate all metrics for the completed year
+- Yearly job: Recalculate all metrics (five-year anomaly, warming rate, winter warming, record days, snow days lost, comfortable days)
 - GitHub Actions workflows for scheduling
 - Failure notification system
 - Runbook for manual operations
@@ -34,7 +34,13 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 
 - **REQ-P6-001**: Daily job checks for new ERA5 data and processes if available
 - **REQ-P6-002**: Monthly job regenerates tiles for previous complete month on 1st
-- **REQ-P6-003**: Yearly job recalculates all metrics on January 15
+- **REQ-P6-003**: Yearly job recalculates all 6 metrics on January 15:
+  - Five-year temperature anomaly (2021-2025 vs 1961-1990)
+  - Warming rate (1995-2025 trend)
+  - Winter warming (DJF anomaly)
+  - Record-breaking days (hot vs cold records)
+  - Snow days lost (vs reference period)
+  - Comfortable days (15-25°C)
 - **REQ-P6-004**: All jobs must be runnable locally via Docker for debugging
 - **REQ-P6-005**: Jobs must validate environment variables before processing
 - **REQ-P6-006**: Automatic failure notification via GitHub Issues
@@ -717,6 +723,7 @@ if __name__ == '__main__':
 ERA5 Yearly Pipeline Orchestrator.
 
 Recalculates all metrics for the completed year and exports to JSON.
+Updated to use correct metric names per narrative spec.
 """
 
 import logging
@@ -727,10 +734,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from metrics.calculate_annual_anomaly import calculate_annual_anomaly, calculate_reference_climatology
+from metrics.calculate_five_year_anomaly import calculate_five_year_anomaly
 from metrics.calculate_warming_rate import calculate_warming_rate
-from metrics.calculate_seasonal_warming import calculate_seasonal_warming
-from metrics.calculate_threshold_days import calculate_threshold_days
+from metrics.calculate_winter_warming import calculate_winter_warming
+from metrics.calculate_record_days import calculate_record_days
+from metrics.calculate_snow_days_lost import calculate_snow_days_lost
 from metrics.calculate_comfortable_days import calculate_comfortable_days
 from metrics.aggregate_metrics import load_city_list, aggregate_to_cities, aggregate_to_country
 from metrics.export_metrics import export_germany_metrics, export_all_city_metrics
@@ -749,11 +757,12 @@ def get_target_year():
     return today.year - 1
 
 
-def calculate_all_metrics(ds, year: int) -> dict:
-    """Calculate all metrics for a year.
+def calculate_all_metrics(ds, ds_precip, year: int) -> dict:
+    """Calculate all 6 metrics.
     
     Args:
-        ds: Dataset with temperature data
+        ds: Dataset with temperature data (includes daily Tmin/Tmax)
+        ds_precip: Dataset with precipitation data
         year: Target year
         
     Returns:
@@ -762,37 +771,31 @@ def calculate_all_metrics(ds, year: int) -> dict:
     calculated_at = datetime.utcnow().isoformat() + 'Z'
     
     # Calculate each metric
-    logger.info("  Calculating annual anomaly...")
-    annual_anomaly = calculate_annual_anomaly(ds, year)
+    logger.info("  Calculating five-year anomaly (2021-2025)...")
+    five_year_anomaly = calculate_five_year_anomaly(ds)
     
-    logger.info("  Calculating warming rate...")
+    logger.info("  Calculating warming rate (1995-2025)...")
     warming_rate = calculate_warming_rate(ds)
     
-    logger.info("  Calculating seasonal warming...")
-    seasonal_warming = calculate_seasonal_warming(ds, year)
+    logger.info("  Calculating winter warming (DJF)...")
+    winter_warming = calculate_winter_warming(ds)
     
-    logger.info("  Calculating threshold days...")
-    threshold_days = calculate_threshold_days(ds, year)
+    logger.info("  Calculating record-breaking days...")
+    record_days = calculate_record_days(ds, year)
+    
+    logger.info("  Calculating snow days lost...")
+    snow_days_lost = calculate_snow_days_lost(ds, ds_precip)
     
     logger.info("  Calculating comfortable days...")
-    comfortable_days = calculate_comfortable_days(ds, year)
-    
-    # Record days would need daily records database
-    # Placeholder for now
-    record_days = {
-        'total': 0,
-        'hot': 0,
-        'cold': 0,
-        'year': year,
-    }
+    comfortable_days = calculate_comfortable_days(ds)
     
     return {
         'calculatedAt': calculated_at,
-        'annualAnomaly': annual_anomaly,
+        'fiveYearAnomaly': five_year_anomaly,
         'warmingRate': warming_rate,
         'recordDays': record_days,
-        'seasonalWarming': seasonal_warming,
-        'thresholdDays': threshold_days,
+        'winterWarming': winter_warming,
+        'snowDaysLost': snow_days_lost,
         'comfortableDays': comfortable_days,
     }
 
@@ -806,13 +809,12 @@ def run_yearly_pipeline(year: int):
     
     # Load historical data (all years)
     logger.info(f"Loading ERA5 data for metrics calculation...")
-    # In production, this would load from a consolidated data file
-    # For now, placeholder
     ds = xr.open_dataset(base_dir / 'historical' / 'era5_land_germany.nc')
+    ds_precip = xr.open_dataset(base_dir / 'historical' / 'era5_land_precip_germany.nc')
     
     # Calculate Germany-level metrics
     logger.info("Calculating Germany-level metrics...")
-    germany_metrics = calculate_all_metrics(ds, year)
+    germany_metrics = calculate_all_metrics(ds, ds_precip, year)
     
     # Export Germany metrics
     logger.info("Exporting Germany metrics...")
@@ -831,7 +833,12 @@ def run_yearly_pipeline(year: int):
                 longitude=city['longitude'],
                 method='nearest'
             )
-            city_metrics[city['name']] = calculate_all_metrics(city_ds, year)
+            city_ds_precip = ds_precip.sel(
+                latitude=city['latitude'],
+                longitude=city['longitude'],
+                method='nearest'
+            )
+            city_metrics[city['name']] = calculate_all_metrics(city_ds, city_ds_precip, year)
         except Exception as e:
             logger.warning(f"Failed to calculate metrics for {city['name']}: {e}")
     

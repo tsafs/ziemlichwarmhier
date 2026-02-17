@@ -1,8 +1,8 @@
 ---
 goal: Phase 8 - Frontend Static Metrics Cards with Redux Integration
-version: 1.0
+version: 1.1
 date_created: 2026-02-16
-last_updated: 2026-02-16
+last_updated: 2026-02-17
 owner: Sebastian
 status: 'Planned'
 tags: [phase-8, frontend, metrics, cards, redux]
@@ -17,7 +17,7 @@ This phase implements the climate metrics display cards that show key statistics
 **Key deliverables:**
 - Extended `StatCard` with `labelTilt` prop for tilted titles
 - `MetricsRow` container component with responsive 6-card layout
-- 6 metric card components (Annual Anomaly, Warming Rate, Record Days, Seasonal Warming, Threshold Days, Comfortable Days)
+- 6 metric card components (Five-Year Anomaly, Warming Rate, Record Days, Winter Warming, Snow Days Lost, Comfortable Days)
 - `MetricsService` for fetching pre-calculated metrics JSON
 - `metricsSlice` using createDataSlice factory for state management
 - City-specific metric loading on selection
@@ -100,11 +100,11 @@ This phase implements the climate metrics display cards that show key statistics
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
 | TASK-813 | Create `frontend/src/types/metrics.ts` with metric interfaces | | |
-| TASK-814 | Define `AnnualAnomalyMetric` interface | | |
+| TASK-814 | Define `FiveYearAnomalyMetric` interface | | |
 | TASK-815 | Define `WarmingRateMetric` interface | | |
 | TASK-816 | Define `RecordDaysMetric` interface | | |
-| TASK-817 | Define `SeasonalWarmingMetric` interface | | |
-| TASK-818 | Define `ThresholdDaysMetric` interface | | |
+| TASK-817 | Define `WinterWarmingMetric` interface | | |
+| TASK-818 | Define `SnowDaysLostMetric` interface | | |
 | TASK-819 | Define `ComfortableDaysMetric` interface | | |
 | TASK-820 | Define `LocationMetrics` combined interface | | |
 
@@ -162,11 +162,11 @@ This phase implements the climate metrics display cards that show key statistics
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-835 | Create `frontend/src/components/metrics/cards/AnnualAnomalyCard.tsx` | | |
+| TASK-835 | Create `frontend/src/components/metrics/cards/FiveYearAnomalyCard.tsx` | | |
 | TASK-836 | Create `frontend/src/components/metrics/cards/WarmingRateCard.tsx` | | |
 | TASK-837 | Create `frontend/src/components/metrics/cards/RecordDaysCard.tsx` | | |
-| TASK-838 | Create `frontend/src/components/metrics/cards/SeasonalWarmingCard.tsx` | | |
-| TASK-839 | Create `frontend/src/components/metrics/cards/ThresholdDaysCard.tsx` | | |
+| TASK-838 | Create `frontend/src/components/metrics/cards/WinterWarmingCard.tsx` | | |
+| TASK-839 | Create `frontend/src/components/metrics/cards/SnowDaysLostCard.tsx` | | |
 | TASK-840 | Create `frontend/src/components/metrics/cards/ComfortableDaysCard.tsx` | | |
 | TASK-841 | Add info text tooltips with methodology for each card | | |
 | TASK-842 | Implement value formatting (decimals, ± signs, units) | | |
@@ -228,11 +228,11 @@ This phase implements the climate metrics display cards that show key statistics
 
 ### New Files
 - **FILE-P8-001**: `frontend/src/components/metrics/MetricsRow.tsx` - NEW - Row container
-- **FILE-P8-002**: `frontend/src/components/metrics/cards/AnnualAnomalyCard.tsx` - NEW
+- **FILE-P8-002**: `frontend/src/components/metrics/cards/FiveYearAnomalyCard.tsx` - NEW
 - **FILE-P8-003**: `frontend/src/components/metrics/cards/WarmingRateCard.tsx` - NEW
 - **FILE-P8-004**: `frontend/src/components/metrics/cards/RecordDaysCard.tsx` - NEW
-- **FILE-P8-005**: `frontend/src/components/metrics/cards/SeasonalWarmingCard.tsx` - NEW
-- **FILE-P8-006**: `frontend/src/components/metrics/cards/ThresholdDaysCard.tsx` - NEW
+- **FILE-P8-005**: `frontend/src/components/metrics/cards/WinterWarmingCard.tsx` - NEW
+- **FILE-P8-006**: `frontend/src/components/metrics/cards/SnowDaysLostCard.tsx` - NEW
 - **FILE-P8-007**: `frontend/src/components/metrics/cards/ComfortableDaysCard.tsx` - NEW
 - **FILE-P8-008**: `frontend/src/components/metrics/index.ts` - NEW - Barrel export
 - **FILE-P8-009**: `frontend/src/services/MetricsService.ts` - NEW
@@ -246,7 +246,7 @@ This phase implements the climate metrics display cards that show key statistics
 
 ### Test Files
 - **FILE-P8-015**: `frontend/src/components/metrics/__tests__/MetricsRow.test.tsx` - NEW
-- **FILE-P8-016**: `frontend/src/components/metrics/cards/__tests__/AnnualAnomalyCard.test.tsx` - NEW
+- **FILE-P8-016**: `frontend/src/components/metrics/cards/__tests__/FiveYearAnomalyCard.test.tsx` - NEW
 - **FILE-P8-017**: `frontend/src/store/slices/__tests__/metricsSlice.test.ts` - NEW
 - **FILE-P8-018**: `frontend/src/services/__tests__/MetricsService.test.ts` - NEW
 - **FILE-P8-019**: `frontend/src/hooks/__tests__/useMetrics.test.ts` - NEW
@@ -342,17 +342,20 @@ Provide these files for agent execution:
  * Metrics Type Definitions
  * 
  * Interfaces for climate metrics returned by the metrics API.
+ * Updated to match narrative spec metric names.
  */
 
-/** Annual temperature anomaly relative to reference period */
-export interface AnnualAnomalyMetric {
+/** Five-year temperature anomaly (2021-2025 vs 1961-1990) */
+export interface FiveYearAnomalyMetric {
     /** Temperature anomaly in °C (positive = warmer) */
     value: number;
-    /** Year this anomaly is for */
-    year: number;
-    /** Reference period start year */
+    /** Period start year (e.g., 2021) */
+    periodStart: number;
+    /** Period end year (e.g., 2025) */
+    periodEnd: number;
+    /** Reference period start year (1961) */
     referenceStart: number;
-    /** Reference period end year */
+    /** Reference period end year (1990) */
     referenceEnd: number;
     /** Methodology description for info tooltip */
     methodology: string;
@@ -362,9 +365,9 @@ export interface AnnualAnomalyMetric {
 export interface WarmingRateMetric {
     /** Warming rate in °C per decade */
     value: number;
-    /** Start year of trend calculation */
+    /** Start year of trend calculation (1995) */
     startYear: number;
-    /** End year of trend calculation */
+    /** End year of trend calculation (2025) */
     endYear: number;
     /** Statistical confidence (0-1) */
     confidence: number;
@@ -390,58 +393,45 @@ export interface RecordDaysMetric {
     methodology: string;
 }
 
-/** Season-by-season warming */
-export interface SeasonalWarmingMetric {
-    /** Winter (DJF) anomaly in °C */
-    winter: number;
-    /** Spring (MAM) anomaly in °C */
-    spring: number;
-    /** Summer (JJA) anomaly in °C */
-    summer: number;
-    /** Fall (SON) anomaly in °C */
-    fall: number;
-    /** Year for these values */
-    year: number;
-    /** Reference period */
+/** Winter (DJF) temperature anomaly */
+export interface WinterWarmingMetric {
+    /** Winter anomaly in °C */
+    value: number;
+    /** Period start year (2021) */
+    periodStart: number;
+    /** Period end year (2025) */
+    periodEnd: number;
+    /** Reference period start (1961) */
     referenceStart: number;
+    /** Reference period end (1990) */
     referenceEnd: number;
     /** Methodology description */
     methodology: string;
 }
 
-/** Count of temperature threshold days */
-export interface ThresholdDaysMetric {
-    /** Days with max temp ≥ 25°C (Sommertage) */
-    summerDays: number;
-    /** Days with max temp ≥ 30°C (Heiße Tage) */
-    hotDays: number;
-    /** Days with max temp < 0°C (Eistage) */
-    iceDays: number;
-    /** Days with min temp < 0°C (Frosttage) */
-    frostDays: number;
-    /** Nights with min temp ≥ 20°C (Tropennächte) */
-    tropicalNights: number;
-    /** Year for these counts */
-    year: number;
-    /** Average values from reference period for comparison */
-    reference: {
-        summerDays: number;
-        hotDays: number;
-        iceDays: number;
-        frostDays: number;
-        tropicalNights: number;
-    };
+/** Snow days lost vs reference period */
+export interface SnowDaysLostMetric {
+    /** Difference in snow days (negative = days lost) */
+    value: number;
+    /** Current period average snow days */
+    currentAverage: number;
+    /** Reference period average snow days */
+    referenceAverage: number;
+    /** Period start year */
+    periodStart: number;
+    /** Period end year */
+    periodEnd: number;
     /** Methodology description */
     methodology: string;
 }
 
-/** Count of comfortable temperature days */
+/** Count of comfortable temperature days (15-25°C) */
 export interface ComfortableDaysMetric {
-    /** Days with max temp 18-25°C */
+    /** Days with mean temp 15-25°C */
     count: number;
-    /** Year for this count */
-    year: number;
-    /** Average from reference period */
+    /** Average per year (2021-2025) */
+    average: number;
+    /** Reference period average */
     referenceAverage: number;
     /** Methodology description */
     methodology: string;
@@ -456,11 +446,11 @@ export interface LocationMetrics {
     /** Data timestamp (ISO string) */
     generatedAt: string;
     /** Individual metrics */
-    annualAnomaly: AnnualAnomalyMetric;
+    fiveYearAnomaly: FiveYearAnomalyMetric;
     warmingRate: WarmingRateMetric;
     recordDays: RecordDaysMetric;
-    seasonalWarming: SeasonalWarmingMetric;
-    thresholdDays: ThresholdDaysMetric;
+    winterWarming: WinterWarmingMetric;
+    snowDaysLost: SnowDaysLostMetric;
     comfortableDays: ComfortableDaysMetric;
 }
 

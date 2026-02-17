@@ -1,8 +1,8 @@
 ---
 goal: Phase 3 - ERA5 Data Pipeline Core Implementation
-version: 1.0
+version: 1.1
 date_created: 2026-02-16
-last_updated: 2026-02-16
+last_updated: 2026-02-17
 owner: Sebastian
 status: 'Planned'
 tags: [phase-3, era5, data-pipeline, python, xarray, cdsapi]
@@ -16,11 +16,14 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 
 **Key outputs:**
 - CDS API client setup with authentication
-- ERA5-Land monthly temperature data download
+- ERA5-Land monthly AND daily temperature data download
+- Daily Tmin/Tmax extraction for threshold calculations
+- Precipitation data download for snow/rain metrics
 - Germany bounding box extraction
 - Interpolation from 0.1° (~9km) to 1km grid
 - Natural Earth land mask (1:10m resolution)
 - Monthly anomaly calculation vs 1961-1990 baseline
+- Daily threshold detection (30°C, 35°C, 20°C, 0°C)
 
 ## 1. Requirements & Constraints
 
@@ -33,13 +36,16 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 
 ### Phase-Specific Requirements
 
-- **REQ-P3-001**: Fetch ERA5-Land monthly 2m temperature from CDS API
+- **REQ-P3-001**: Fetch ERA5-Land monthly AND daily 2m temperature from CDS API
 - **REQ-P3-002**: Subset data to Germany bounds (47.2°N–55.1°N, 5.8°E–15.1°E)
 - **REQ-P3-003**: Interpolate from native 0.1° to ~1km using bicubic interpolation
 - **REQ-P3-004**: Apply land mask including all German islands (Sylt, Rügen, Helgoland, Borkum, etc.)
 - **REQ-P3-005**: Calculate anomalies relative to 1961-1990 climatology
 - **REQ-P3-006**: Handle edge cases (missing data, partial months, API timeouts)
 - **REQ-P3-007**: Output data in GeoTIFF format for tile generation (Phase 4)
+- **REQ-P3-008**: Extract daily Tmin and Tmax from hourly ERA5-Land data
+- **REQ-P3-009**: Fetch total precipitation (tp) for snow/rain day calculations
+- **REQ-P3-010**: Detect snow days: precipitation > 0.1mm AND Tmean ≤ 0°C
 
 ### Constraints
 
@@ -124,6 +130,49 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 | TASK-P3-031 | Add pytest fixtures for common test data | | |
 | TASK-P3-032 | Document module usage in docstrings and README | | |
 
+### Implementation Phase 3.7: Daily Data Extraction
+
+- GOAL-P3-007: Extract daily Tmin/Tmax from ERA5-Land hourly data
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-P3-033 | Create `analysis/era5/fetch_daily_data.py` module | | |
+| TASK-P3-034 | Implement hourly ERA5-Land download for Germany | | |
+| TASK-P3-035 | Extract daily Tmax from hourly maxima | | |
+| TASK-P3-036 | Extract daily Tmin from hourly minima | | |
+| TASK-P3-037 | Calculate daily Tmean from hourly average | | |
+| TASK-P3-038 | Store daily values in NetCDF format | | |
+| TASK-P3-039 | Write unit tests for daily extraction | | |
+
+### Implementation Phase 3.8: Precipitation Data
+
+- GOAL-P3-008: Fetch and process precipitation data for snow/rain metrics
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-P3-040 | Create `analysis/era5/fetch_precipitation.py` module | | |
+| TASK-P3-041 | Implement daily `tp` (total precipitation) download | | |
+| TASK-P3-042 | Convert precipitation from meters to mm | | |
+| TASK-P3-043 | Calculate snow days: precip > 0.1mm AND Tmean ≤ 0°C | | |
+| TASK-P3-044 | Calculate dry spell lengths (consecutive days < 1mm) | | |
+| TASK-P3-045 | Calculate extreme rain days (precip ≥ 25mm) | | |
+| TASK-P3-046 | Write unit tests for precipitation calculations | | |
+
+### Implementation Phase 3.9: Threshold Detection
+
+- GOAL-P3-009: Detect temperature threshold exceedances for metrics
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-P3-047 | Create `analysis/era5/detect_thresholds.py` module | | |
+| TASK-P3-048 | Implement hot day detection: Tmax ≥ 30°C (DWD Heißer Tag) | | |
+| TASK-P3-049 | Implement extreme heat detection: Tmax ≥ 35°C | | |
+| TASK-P3-050 | Implement tropical night detection: Tmin > 20°C (DWD Tropennacht) | | |
+| TASK-P3-051 | Implement ice day detection: Tmax ≤ 0°C (DWD Eistag) | | |
+| TASK-P3-052 | Implement frost day detection: Tmin < 0°C (DWD Frosttag) | | |
+| TASK-P3-053 | Count threshold days per month and store | | |
+| TASK-P3-054 | Write unit tests for threshold detection | | |
+
 ## 3. Alternatives
 
 - **ALT-P3-001**: **Use ERA5 instead of ERA5-Land**
@@ -186,12 +235,18 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 | FILE-P3-013 | `analysis/era5/tests/test_anomalies.py` | NEW | Anomaly tests |
 | FILE-P3-014 | `analysis/era5/tests/test_integration.py` | NEW | Integration tests |
 | FILE-P3-015 | `analysis/era5/fixtures/` | NEW | Test data directory |
+| FILE-P3-016 | `analysis/era5/fetch_daily_data.py` | NEW | Daily Tmin/Tmax extraction |
+| FILE-P3-017 | `analysis/era5/fetch_precipitation.py` | NEW | Precipitation download |
+| FILE-P3-018 | `analysis/era5/detect_thresholds.py` | NEW | Temperature threshold detection |
+| FILE-P3-019 | `analysis/era5/tests/test_daily_data.py` | NEW | Daily extraction tests |
+| FILE-P3-020 | `analysis/era5/tests/test_precipitation.py` | NEW | Precipitation tests |
+| FILE-P3-021 | `analysis/era5/tests/test_thresholds.py` | NEW | Threshold tests |
 
 ### Modified Files
 
 | File ID | Path | Action | Description |
 |---------|------|--------|-------------|
-| FILE-P3-016 | `pyproject.toml` | MODIFY | Add new dependencies |
+| FILE-P3-022 | `pyproject.toml` | MODIFY | Add new dependencies |
 
 ## 6. Testing
 
@@ -286,6 +341,9 @@ Each agent session needs:
 - **After Phase 3.4**: Land mask PNG shows Germany with islands, no ocean
 - **After Phase 3.5**: GeoTIFF opens in QGIS with valid anomaly values
 - **After Phase 3.6**: `pytest analysis/era5/tests/ -v` passes all tests
+- **After Phase 3.7**: Daily Tmin/Tmax NetCDF files exist with valid ranges
+- **After Phase 3.8**: Precipitation data in mm, snow day counts calculated
+- **After Phase 3.9**: Threshold counts match manual spot-checks
 
 ## 9. Related Specifications / Further Reading
 
@@ -332,13 +390,31 @@ ERA5_VARIABLES = {
     't2m': {
         'cds_name': '2m_temperature',
         'unit': 'K',  # Kelvin, convert to Celsius
-        'description': '2-meter air temperature',
+        'description': '2-meter air temperature (mean)',
+    },
+    't2m_max': {
+        'cds_name': '2m_temperature',
+        'unit': 'K',
+        'description': 'Daily maximum 2-meter temperature (derived from hourly)',
+        'derived': True,
+    },
+    't2m_min': {
+        'cds_name': '2m_temperature',
+        'unit': 'K',
+        'description': 'Daily minimum 2-meter temperature (derived from hourly)',
+        'derived': True,
     },
     'tp': {
         'cds_name': 'total_precipitation',
         'unit': 'm',  # meters, convert to mm
-        'description': 'Total precipitation (for vegetation stress metrics)',
-    }
+        'description': 'Total precipitation for snow/rain metrics',
+    },
+}
+
+# CDS datasets
+CDS_DATASETS = {
+    'monthly': 'reanalysis-era5-land-monthly-means',
+    'hourly': 'reanalysis-era5-land',  # For daily Tmin/Tmax derivation
 }
 
 # Reference period for anomaly calculation (WMO standard)
@@ -346,6 +422,26 @@ REFERENCE_PERIOD = {
     'start_year': 1961,
     'end_year': 1990,
 }
+
+# Temperature thresholds (DWD standards)
+# Note: 32°C is NOT a DWD standard - removed per ALT-007
+TEMPERATURE_THRESHOLDS = {
+    'hot_day': 30.0,           # Tmax >= 30°C (DWD: Heißer Tag)
+    'extreme_heat': 35.0,      # Tmax >= 35°C (extreme heat, vegetation damage)
+    'tropical_night': 20.0,    # Tmin > 20°C (DWD: Tropennacht)
+    'ice_day': 0.0,            # Tmax <= 0°C (DWD: Eistag)
+    'frost_day': 0.0,          # Tmin < 0°C (DWD: Frosttag)
+}
+
+# Precipitation thresholds
+PRECIPITATION_THRESHOLDS = {
+    'dry_day': 1.0,            # Precip < 1mm (for dry spell calculation)
+    'extreme_rain': 25.0,      # Precip >= 25mm (flooding risk)
+    'snow_precip_min': 0.1,    # Precip > 0.1mm for snow day detection
+}
+
+# Snow day detection: precip > 0.1mm AND Tmean <= 0°C
+SNOW_DAY_TEMP_THRESHOLD = 0.0  # °C
 
 # Output grid configuration
 OUTPUT_GRID = {

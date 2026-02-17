@@ -1,8 +1,8 @@
 ---
 goal: Phase 5 - Metrics Calculation Pipeline Implementation
-version: 1.0
+version: 1.1
 date_created: 2026-02-16
-last_updated: 2026-02-16
+last_updated: 2026-02-17
 owner: Sebastian
 status: 'Planned'
 tags: [phase-5, metrics, climate-stats, statistics, python, json]
@@ -12,14 +12,14 @@ tags: [phase-5, metrics, climate-stats, statistics, python, json]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the climate metrics calculation pipeline that processes ERA5 data to generate statistical indicators for frontend display. The metrics include annual temperature anomalies, warming rates, record-breaking days, seasonal patterns, thermal threshold days, and comfortable temperature days.
+This phase implements the climate metrics calculation pipeline that processes ERA5 data to generate statistical indicators for frontend display. The metrics include five-year temperature anomalies, warming rates, record-breaking days, winter warming, snow days lost, and comfortable temperature days.
 
 **Key outputs:**
-- Annual temperature anomaly calculation
-- Warming rate (linear regression trend)
+- Five-year temperature anomaly calculation (2021-2025 vs 1961-1990)
+- Warming rate (linear regression trend since 1995)
 - Record-breaking days counter
-- Seasonal warming analysis
-- Thermal threshold days (hot days, ice days, frost days, tropical nights)
+- Winter warming analysis (DJF specifically)
+- Snow days lost vs reference period
 - Comfortable temperature days (15-25°C mean)
 - Aggregation to city and country levels
 - JSON export conforming to frontend schema
@@ -33,15 +33,13 @@ This phase implements the climate metrics calculation pipeline that processes ER
 
 ### Phase-Specific Requirements
 
-- **REQ-P5-001**: Calculate annual temperature anomaly versus 1961-1990 baseline
-- **REQ-P5-002**: Calculate warming rate using linear regression over selected period
+- **REQ-P5-001**: Calculate five-year temperature anomaly (2021-2025 mean) versus 1961-1990 baseline
+- **REQ-P5-002**: Calculate warming rate using linear regression over 1995-2025 period
 - **REQ-P5-003**: Count record-breaking days (new daily temperature records)
-- **REQ-P5-004**: Calculate seasonal warming per season (DJF, MAM, JJA, SON)
-- **REQ-P5-005**: Count thermal threshold days per year:
-  - Hot days: Tmax ≥ 30°C
-  - Tropical nights: Tmin > 20°C
-  - Ice days: Tmax ≤ 0°C
-  - Frost days: Tmin < 0°C
+- **REQ-P5-004**: Calculate winter warming (DJF anomaly for 2021-2025 vs 1961-1990)
+- **REQ-P5-005**: Calculate snow days lost:
+  - Snow day: precipitation > 0.1mm AND Tmean ≤ 0°C
+  - Compare 2021-2025 average to 1961-1990 average
 - **REQ-P5-006**: Count comfortable temperature days (daily mean 15-25°C)
 - **REQ-P5-007**: Aggregate metrics from grid cells to city and country level
 - **REQ-P5-008**: Export to JSON conforming to frontend LocationMetrics schema
@@ -67,15 +65,15 @@ This phase implements the climate metrics calculation pipeline that processes ER
 | TASK-P5-003 | Create `analysis/metrics/types.py` with metric data structures | | |
 | TASK-P5-004 | Write unit tests for configuration validation | | |
 
-### Implementation Phase 5.2: Annual Anomaly Calculation
+### Implementation Phase 5.2: Five-Year Anomaly Calculation
 
-- GOAL-P5-002: Calculate annual temperature anomaly
+- GOAL-P5-002: Calculate five-year temperature anomaly (2021-2025)
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P5-005 | Create `analysis/metrics/calculate_annual_anomaly.py` | | |
+| TASK-P5-005 | Create `analysis/metrics/calculate_five_year_anomaly.py` | | |
 | TASK-P5-006 | Implement per-grid-cell annual mean calculation | | |
-| TASK-P5-007 | Implement anomaly vs reference period | | |
+| TASK-P5-007 | Implement 5-year mean anomaly vs reference period | | |
 | TASK-P5-008 | Write unit tests with known test values | | |
 
 ### Implementation Phase 5.3: Warming Rate Calculation
@@ -102,30 +100,30 @@ This phase implements the climate metrics calculation pipeline that processes ER
 | TASK-P5-017 | Count new cold records (Tmin < historical min) | | |
 | TASK-P5-018 | Write unit tests with edge cases | | |
 
-### Implementation Phase 5.5: Seasonal Warming
+### Implementation Phase 5.5: Winter Warming
 
-- GOAL-P5-005: Calculate per-season temperature anomalies
-
-| Task | Description | Completed | Date |
-| -------- | --------------------- | --------- | ---- |
-| TASK-P5-019 | Create `analysis/metrics/calculate_seasonal_warming.py` | | |
-| TASK-P5-020 | Implement seasonal grouping (DJF, MAM, JJA, SON) | | |
-| TASK-P5-021 | Calculate per-season anomaly vs baseline | | |
-| TASK-P5-022 | Identify fastest-warming season | | |
-| TASK-P5-023 | Write unit tests for seasonal calculations | | |
-
-### Implementation Phase 5.6: Threshold Days
-
-- GOAL-P5-006: Count thermal threshold exceedance days
+- GOAL-P5-005: Calculate winter (DJF) temperature anomaly
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P5-024 | Create `analysis/metrics/calculate_threshold_days.py` | | |
-| TASK-P5-025 | Implement hot days counter (Tmax ≥ 30°C) | | |
-| TASK-P5-026 | Implement tropical nights counter (Tmin > 20°C) | | |
-| TASK-P5-027 | Implement ice days counter (Tmax ≤ 0°C) | | |
-| TASK-P5-028 | Implement frost days counter (Tmin < 0°C) | | |
-| TASK-P5-029 | Write unit tests covering all thresholds | | |
+| TASK-P5-019 | Create `analysis/metrics/calculate_winter_warming.py` | | |
+| TASK-P5-020 | Implement winter (DJF) aggregation | | |
+| TASK-P5-021 | Calculate DJF anomaly for 2021-2025 vs 1961-1990 baseline | | |
+| TASK-P5-022 | Calculate warming rate for winter specifically | | |
+| TASK-P5-023 | Write unit tests for winter calculations | | |
+
+### Implementation Phase 5.6: Snow Days Lost
+
+- GOAL-P5-006: Calculate snow days lost vs reference period
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-P5-024 | Create `analysis/metrics/calculate_snow_days_lost.py` | | |
+| TASK-P5-025 | Implement snow day detection: precip > 0.1mm AND Tmean ≤ 0°C | | |
+| TASK-P5-026 | Calculate reference period (1961-1990) average snow days | | |
+| TASK-P5-027 | Calculate current period (2021-2025) average snow days | | |
+| TASK-P5-028 | Calculate difference (snow days lost) | | |
+| TASK-P5-029 | Write unit tests covering edge cases | | |
 
 ### Implementation Phase 5.7: Comfortable Days
 
@@ -228,20 +226,20 @@ This phase implements the climate metrics calculation pipeline that processes ER
 | FILE-P5-001 | `analysis/metrics/__init__.py` | NEW | Module exports |
 | FILE-P5-002 | `analysis/metrics/config.py` | NEW | Configuration |
 | FILE-P5-003 | `analysis/metrics/types.py` | NEW | Data structures |
-| FILE-P5-004 | `analysis/metrics/calculate_annual_anomaly.py` | NEW | Annual anomaly |
+| FILE-P5-004 | `analysis/metrics/calculate_five_year_anomaly.py` | NEW | Five-year anomaly |
 | FILE-P5-005 | `analysis/metrics/calculate_warming_rate.py` | NEW | Warming trend |
 | FILE-P5-006 | `analysis/metrics/calculate_record_days.py` | NEW | Record days |
-| FILE-P5-007 | `analysis/metrics/calculate_seasonal_warming.py` | NEW | Seasonal stats |
-| FILE-P5-008 | `analysis/metrics/calculate_threshold_days.py` | NEW | Threshold days |
+| FILE-P5-007 | `analysis/metrics/calculate_winter_warming.py` | NEW | Winter warming |
+| FILE-P5-008 | `analysis/metrics/calculate_snow_days_lost.py` | NEW | Snow days lost |
 | FILE-P5-009 | `analysis/metrics/calculate_comfortable_days.py` | NEW | Comfortable days |
 | FILE-P5-010 | `analysis/metrics/calculate_decadal_aggregates.py` | NEW | Decadal aggregation for narrative plots |
 | FILE-P5-011 | `analysis/metrics/aggregate_metrics.py` | NEW | Aggregation |
 | FILE-P5-012 | `analysis/metrics/export_metrics.py` | NEW | JSON export |
 | FILE-P5-013 | `analysis/metrics/tests/__init__.py` | NEW | Test module |
 | FILE-P5-014 | `analysis/metrics/tests/conftest.py` | NEW | Fixtures |
-| FILE-P5-015 | `analysis/metrics/tests/test_annual_anomaly.py` | NEW | Anomaly tests |
+| FILE-P5-015 | `analysis/metrics/tests/test_five_year_anomaly.py` | NEW | Anomaly tests |
 | FILE-P5-016 | `analysis/metrics/tests/test_warming_rate.py` | NEW | Trend tests |
-| FILE-P5-017 | `analysis/metrics/tests/test_threshold_days.py` | NEW | Threshold tests |
+| FILE-P5-017 | `analysis/metrics/tests/test_snow_days_lost.py` | NEW | Snow days tests |
 | FILE-P5-018 | `analysis/metrics/tests/test_decadal_aggregates.py` | NEW | Decadal aggregation tests |
 | FILE-P5-019 | `analysis/metrics/tests/test_integration.py` | NEW | Integration tests |
 
@@ -259,14 +257,14 @@ This phase implements the climate metrics calculation pipeline that processes ER
 
 | Test ID | Description | File |
 |---------|-------------|------|
-| TEST-P5-001 | Annual anomaly correct for known values | `test_annual_anomaly.py` |
-| TEST-P5-002 | Anomaly = 0 when current equals baseline | `test_annual_anomaly.py` |
+| TEST-P5-001 | Five-year anomaly correct for known values | `test_five_year_anomaly.py` |
+| TEST-P5-002 | Anomaly = 0 when current equals baseline | `test_five_year_anomaly.py` |
 | TEST-P5-003 | Linear regression slope correct for synthetic data | `test_warming_rate.py` |
 | TEST-P5-004 | R² = 1 for perfect linear data | `test_warming_rate.py` |
 | TEST-P5-005 | R² < 1 for noisy data | `test_warming_rate.py` |
-| TEST-P5-006 | Hot days count correct at boundary (29.9°C vs 30°C) | `test_threshold_days.py` |
-| TEST-P5-007 | Ice days count correct at boundary (0°C vs -0.1°C) | `test_threshold_days.py` |
-| TEST-P5-008 | Seasonal grouping assigns JJA correctly | `test_seasonal.py` |
+| TEST-P5-006 | Snow day detection correct at boundary (0°C, 0.1mm) | `test_snow_days_lost.py` |
+| TEST-P5-007 | Snow days lost calculation matches manual check | `test_snow_days_lost.py` |
+| TEST-P5-008 | Winter grouping assigns DJF correctly | `test_winter_warming.py` |
 | TEST-P5-009 | Record days identifies new maximum | `test_record_days.py` |
 | TEST-P5-010 | Comfortable days range inclusive (15°C and 25°C count) | `test_comfortable_days.py` |
 
@@ -372,22 +370,25 @@ REFERENCE_PERIOD = {
 
 # Warming rate calculation period
 WARMING_RATE_PERIOD = {
-    'start_year': 1991,
-    'end_year': 2024,
+    'start_year': 1995,
+    'end_year': 2025,
 }
 
-# Thermal threshold definitions (°C)
-# Based on German Weather Service (DWD) definitions
+# Five-year anomaly calculation period
+FIVE_YEAR_ANOMALY_PERIOD = {
+    'start_year': 2021,
+    'end_year': 2025,
+}
+
+# Temperature thresholds (DWD standards)
+# Note: 32°C is NOT a DWD standard - excluded per ALT-007
 THRESHOLDS = {
     'hot_day': 30.0,           # Tmax >= 30°C (Heißer Tag)
     'summer_day': 25.0,         # Tmax >= 25°C (Sommertag)
     'tropical_night': 20.0,     # Tmin > 20°C (Tropennacht)
-    'heat_stress_day': 32.0,    # Tmax >= 32°C (health risk threshold)
     'extreme_heat_day': 35.0,   # Tmax >= 35°C (vegetation/health damage)
     'frost_day': 0.0,           # Tmin < 0°C (Frosttag)
     'ice_day': 0.0,             # Tmax <= 0°C (Eistag)
-    'late_frost': -2.0,         # Tmin <= -2°C after Apr 15 (growing season frost)
-    'cold_day': -10.0,          # Tmin <= -10°C (Kalter Tag)
 }
 
 # Comfortable temperature range (°C)
@@ -472,19 +473,20 @@ Matches the frontend LocationMetrics schema from master plan Section 10.10.
 from typing import TypedDict, Literal
 
 
-class AnnualAnomaly(TypedDict):
-    """Annual temperature anomaly metric."""
+class FiveYearAnomaly(TypedDict):
+    """Five-year temperature anomaly metric (2021-2025 vs 1961-1990)."""
     value: float           # °C deviation from reference
-    year: int              # Year of measurement
-    referenceStart: int    # Reference period start (e.g., 1961)
-    referenceEnd: int      # Reference period end (e.g., 1990)
+    periodStart: int       # Period start (e.g., 2021)
+    periodEnd: int         # Period end (e.g., 2025)
+    referenceStart: int    # Reference period start (1961)
+    referenceEnd: int      # Reference period end (1990)
 
 
 class WarmingRate(TypedDict):
     """Linear warming trend metric."""
     value: float           # °C per decade
-    startYear: int         # Trend calculation start
-    endYear: int           # Trend calculation end
+    startYear: int         # Trend calculation start (1995)
+    endYear: int           # Trend calculation end (2025)
     confidence: float      # R² value (0-1)
 
 
@@ -496,38 +498,38 @@ class RecordDays(TypedDict):
     year: int              # Year of count
 
 
-class SeasonalWarming(TypedDict):
-    """Seasonal temperature anomalies."""
-    winter: float          # DJF anomaly (°C)
-    spring: float          # MAM anomaly (°C)
-    summer: float          # JJA anomaly (°C)
-    fall: float            # SON anomaly (°C)
-    fastestSeason: Literal['winter', 'spring', 'summer', 'fall']
+class WinterWarming(TypedDict):
+    """Winter (DJF) temperature anomaly."""
+    value: float           # DJF anomaly (°C)
+    periodStart: int       # Period start (2021)
+    periodEnd: int         # Period end (2025)
+    referenceStart: int    # Reference period start (1961)
+    referenceEnd: int      # Reference period end (1990)
 
 
-class ThresholdDays(TypedDict):
-    """Thermal threshold day counts."""
-    hotDays: int           # Tmax >= 30°C
-    tropicalNights: int    # Tmin > 20°C
-    iceDays: int           # Tmax <= 0°C
-    frostDays: int         # Tmin < 0°C
-    year: int
+class SnowDaysLost(TypedDict):
+    """Snow days lost vs reference period."""
+    value: int             # Difference (negative = days lost)
+    currentAverage: float  # 2021-2025 average snow days
+    referenceAverage: float # 1961-1990 average snow days
+    periodStart: int       # Current period start
+    periodEnd: int         # Current period end
 
 
 class ComfortableDays(TypedDict):
-    """Comfortable temperature days."""
+    """Comfortable temperature days (15-25°C mean)."""
     count: int             # Days with 15-25°C mean
-    year: int
+    average: float         # Average per year (2021-2025)
 
 
 class LocationMetrics(TypedDict):
     """Complete metrics for a location (city or country)."""
     calculatedAt: str                   # ISO timestamp
-    annualAnomaly: AnnualAnomaly
+    fiveYearAnomaly: FiveYearAnomaly
     warmingRate: WarmingRate
     recordDays: RecordDays
-    seasonalWarming: SeasonalWarming
-    thresholdDays: ThresholdDays
+    winterWarming: WinterWarming
+    snowDaysLost: SnowDaysLost
     comfortableDays: ComfortableDays
 
 
@@ -540,16 +542,16 @@ class MetricsFile(TypedDict):
     data: LocationMetrics
 ```
 
-### 10.3 Annual Anomaly Calculation
+### 10.3 Five-Year Anomaly Calculation
 
-**File**: `analysis/metrics/calculate_annual_anomaly.py`
+**File**: `analysis/metrics/calculate_five_year_anomaly.py`
 
 ```python
 #!/usr/bin/env python3
 """
-Calculate annual temperature anomaly versus reference period.
+Calculate five-year temperature anomaly versus reference period.
 
-Computes the difference between current year's mean temperature
+Computes the mean difference between 2021-2025 mean temperature
 and the 1961-1990 climatological mean.
 """
 
@@ -559,34 +561,37 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 
-from .config import REFERENCE_PERIOD
-from .types import AnnualAnomaly
+from .config import REFERENCE_PERIOD, FIVE_YEAR_ANOMALY_PERIOD
+from .types import FiveYearAnomaly
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
-def calculate_annual_mean(ds: xr.Dataset, year: int, variable: str = 't2m') -> np.ndarray:
-    """Calculate annual mean temperature for a year.
+def calculate_five_year_mean(ds: xr.Dataset, variable: str = 't2m') -> np.ndarray:
+    """Calculate five-year (2021-2025) mean temperature.
     
     Args:
         ds: Dataset with temperature data
-        year: Year to calculate
         variable: Temperature variable name
         
     Returns:
-        2D array of annual mean temperatures
+        2D array of five-year mean temperatures
     """
-    # Select year
-    year_data = ds[variable].sel(time=ds['time'].dt.year == year)
+    start_year = FIVE_YEAR_ANOMALY_PERIOD['start_year']
+    end_year = FIVE_YEAR_ANOMALY_PERIOD['end_year']
     
-    if len(year_data.time) == 0:
-        raise ValueError(f"No data for year {year}")
+    # Select years
+    mask = (ds['time'].dt.year >= start_year) & (ds['time'].dt.year <= end_year)
+    period_data = ds[variable].where(mask, drop=True)
     
-    # Calculate annual mean
-    annual_mean = year_data.mean(dim='time').values
+    if len(period_data.time) == 0:
+        raise ValueError(f"No data for period {start_year}-{end_year}")
     
-    return annual_mean
+    # Calculate mean
+    period_mean = period_data.mean(dim='time').values
+    
+    return period_mean
 
 
 def calculate_reference_climatology(
@@ -602,7 +607,6 @@ def calculate_reference_climatology(
     Returns:
         2D array of climatological mean temperatures
     """
-    # Select reference period
     start_year = REFERENCE_PERIOD['start_year']
     end_year = REFERENCE_PERIOD['end_year']
     
@@ -620,32 +624,30 @@ def calculate_reference_climatology(
     return climatology
 
 
-def calculate_annual_anomaly(
+def calculate_five_year_anomaly(
     ds: xr.Dataset,
-    year: int,
     climatology: np.ndarray = None,
     variable: str = 't2m',
-) -> AnnualAnomaly:
-    """Calculate annual temperature anomaly for a specific year.
+) -> FiveYearAnomaly:
+    """Calculate five-year temperature anomaly.
     
     Args:
         ds: Dataset with temperature data
-        year: Year to calculate anomaly for
         climatology: Pre-computed reference climatology (optional)
         variable: Temperature variable name
         
     Returns:
-        AnnualAnomaly dictionary
+        FiveYearAnomaly dictionary
     """
-    # Calculate annual mean for target year
-    annual_mean = calculate_annual_mean(ds, year, variable)
+    # Calculate five-year mean
+    five_year_mean = calculate_five_year_mean(ds, variable)
     
     # Get or calculate climatology
     if climatology is None:
         climatology = calculate_reference_climatology(ds, variable)
     
     # Calculate anomaly (spatial average)
-    anomaly_grid = annual_mean - climatology
+    anomaly_grid = five_year_mean - climatology
     anomaly_value = float(np.nanmean(anomaly_grid))
     
     logger.info(f"Annual anomaly for {year}: {anomaly_value:+.2f}°C")

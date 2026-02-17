@@ -1,11 +1,12 @@
 ---
 goal: Phase 9 - Frontend Narrative Plots with Tab Navigation
-version: 1.1
+version: 1.2
 date_created: 2026-02-16
-last_updated: 2026-02-16
+last_updated: 2026-02-17
 owner: Sebastian
 status: 'Planned'
 tags: [phase-9, frontend, plots, narrative, visualization, d3, observable-plot]
+---
 ---
 
 # Introduction
@@ -17,14 +18,20 @@ This phase implements the narrative plot section that tells the climate story th
 **Key deliverables:**
 - `NarrativeSection` container with tab navigation
 - Tab components for Recognition, Understanding, Response
-- 7 plot components:
-  - Recognition: Temperature Evolution, Seasonal Warming
-  - Understanding: Monthly Distribution, Extremes Inverted
-  - Response: Comfort Calendar, Tropical Nights, Vegetation Stress
+- 9 plot components:
+  - Recognition (2): Temperature Evolution, Seasonal Warming
+  - Understanding (4): Monthly Distribution, Extremes Inverted, Record-Breaking Reality, Winter Forgot to Come
+  - Response (3): Comfort Calendar, Tropical Nights, Vegetation Stress
 - Plot data services and Redux state management
 - `ExpandableText` component for "Read more" methodology descriptions
 - Animations and transitions between tabs
 - City-specific plot updates on selection
+
+**Temperature Thresholds (DWD Standards):**
+- Hot days: Tmax ≥ 30°C (DWD: Heißer Tag)
+- Extreme heat: Tmax ≥ 35°C (vegetation/health damage)
+- Tropical nights: Tmin ≥ 20°C (DWD: Tropennacht)
+- Ice days: Tmax ≤ 0°C (DWD: Eistag)
 
 ## 1. Requirements & Constraints
 
@@ -36,8 +43,8 @@ This phase implements the narrative plot section that tells the climate story th
 ### Phase-Specific Requirements
 - **REQ-P9-001**: Display 3 narrative tabs with smooth transitions
 - **REQ-P9-002**: Recognition tab: Temperature Evolution scatter + Seasonal Warming multi-line chart
-- **REQ-P9-003**: Understanding tab: Monthly Distribution box plots + Extremes diverging bars
-- **REQ-P9-004**: Response tab: Comfort Calendar heatmap + Tropical Nights chart + Vegetation Stress chart
+- **REQ-P9-003**: Understanding tab: Monthly Distribution box plots + Extremes diverging bars (4 metrics) + Record-Breaking Reality + Winter Snow Loss
+- **REQ-P9-004**: Response tab: Comfort Calendar heatmap + Tropical Nights chart (hot days ≥30°C) + Vegetation Stress chart (extreme heat ≥35°C)
 - **REQ-P9-005**: Each plot must include methodology info via ExpandableText
 - **REQ-P9-006**: Plots update on city selection
 - **REQ-P9-007**: Mobile: tabs become accordion-style collapsible sections
@@ -209,22 +216,78 @@ This phase implements the narrative plot section that tells the climate story th
 
 ### Implementation Phase 9.8: Extremes Plot
 
-- GOAL-P9-008: Implement Understanding plot 2 - Extremes/Inverted
+- GOAL-P9-008: Implement Understanding plot 2 - Extremes/Inverted (4 metrics)
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
 | TASK-948 | Create `frontend/src/components/plots/narrative/understanding/ExtremesInverted.tsx` | | |
-| TASK-949 | Render diverging bar chart (hot days right, cold days left) | | |
-| TASK-950 | Y-axis: years, X-axis: days count | | |
-| TASK-951 | Color code (red for hot, blue for cold) | | |
-| TASK-952 | Add reference line for average | | |
-| TASK-953 | Include ExpandableText with methodology | | |
-| TASK-954 | Write tests for ExtremesInverted | | |
+| TASK-949 | Render diverging bar chart with 4 metrics: ice days, hot days, dry spells, extreme rain | | |
+| TASK-950 | Ice days (Tmax ≤0°C) and dry spells point left/down (disappearing extremes) | | |
+| TASK-951 | Hot days (Tmax ≥30°C) and extreme rain (≥25mm) point right/up (emerging extremes) | | |
+| TASK-952 | Color code (blue for cold/dry, red/teal for hot/rain) | | |
+| TASK-953 | Add reference lines for historical averages | | |
+| TASK-954 | Include ExpandableText with methodology | | |
+| TASK-955 | Write tests for ExtremesInverted | | |
+
+**Narrative text:**
+- Intro: *"In a stable climate, extremes balance. Not anymore."*
+- Key insight: *"Cold extremes down, hot extremes up. Steady rain down, deluge rain up."*
 
 **Completion Criteria:**
-- Diverging bars render correctly
-- Hot days on right (red), cold on left (blue)
+- Diverging bars show all 4 metrics
+- Clear visual symmetry between disappearing and emerging extremes
+- Reference lines visible
+- Responsive sizing
+
+---
+
+### Implementation Phase 9.8b: Record-Breaking Reality Plot
+
+- GOAL-P9-008b: Implement Understanding plot 3 - Record-Breaking Reality
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-956 | Create `frontend/src/components/plots/narrative/understanding/RecordBreakingReality.tsx` | | |
+| TASK-957 | Render stacked area chart (hot records red, cold records blue) | | |
+| TASK-958 | X-axis: years (1951-2026), Y-axis: record-breaking days per year | | |
+| TASK-959 | Add ratio annotation ("1960s: 1.1 hot per cold" vs "2020s: 12.3 hot per cold") | | |
+| TASK-960 | Add reference line showing expected 1:1 ratio in stable climate | | |
+| TASK-961 | Include ExpandableText with methodology | | |
+| TASK-962 | Write tests for RecordBreakingReality | | |
+
+**Narrative text:**
+- Intro: *"In a stable climate, record-breaking temperatures would be rare and balanced."*
+- Key insight: *"For every one cold record broken, ten hot records fall. The record books are being rewritten in real-time."*
+
+**Completion Criteria:**
+- Stacked areas show hot vs cold records per year
+- Ratio shift clearly visible (1:1 in 1960s → 12:1 in 2020s)
 - Reference line visible
+- Responsive sizing
+
+---
+
+### Implementation Phase 9.8c: Winter Snow Loss Plot
+
+- GOAL-P9-008c: Implement Understanding plot 4 - When Winter Forgot to Come
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-963 | Create `frontend/src/components/plots/narrative/understanding/WinterForgotToCome.tsx` | | |
+| TASK-964 | Render dual-axis line chart with area fill | | |
+| TASK-965 | Blue line: snow days (precip >0.1mm AND Tmean ≤0°C), 5-year moving average | | |
+| TASK-966 | Gray area: transition rain days (precip >0.1mm AND Tmean 0-2°C) | | |
+| TASK-967 | Add annotations showing snow days lost (reference vs current) | | |
+| TASK-968 | Include ExpandableText with methodology | | |
+| TASK-969 | Write tests for WinterForgotToCome | | |
+
+**Narrative text:**
+- Intro: *"Snow days are becoming rain days."*
+- Key insight: *"What used to fall as snow now falls as cold rain—or doesn't fall at all."*
+
+**Completion Criteria:**
+- Dual-axis chart shows declining snow days and increasing transition rain
+- Clear trend visible
 - Responsive sizing
 
 ---
@@ -253,22 +316,25 @@ This phase implements the narrative plot section that tells the climate story th
 
 ### Implementation Phase 9.10: Tropical Nights Plot
 
-- GOAL-P9-010: Implement Response plot 2 - Sleep Interrupted (Tropical Nights + Heat Stress)
+- GOAL-P9-010: Implement Response plot 2 - Sleep Interrupted (Tropical Nights + Hot Days)
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-962 | Create `frontend/src/components/plots/narrative/response/TropicalNights.tsx` | | |
-| TASK-963 | Render combined bar + line chart | | |
-| TASK-964 | Bars: tropical nights (Tmin ≥ 20°C) per year | | |
-| TASK-965 | Line: heat stress days (Tmax ≥ 32°C) per year | | |
-| TASK-966 | Color bars by intensity (yellow to red gradient) | | |
-| TASK-967 | Add reference annotations for historical averages | | |
-| TASK-968 | Include ExpandableText with methodology | | |
-| TASK-969 | Write tests for TropicalNights | | |
+| TASK-974 | Create `frontend/src/components/plots/narrative/response/TropicalNights.tsx` | | |
+| TASK-975 | Render combined bar + line chart | | |
+| TASK-976 | Bars: tropical nights (Tmin ≥ 20°C) per year | | |
+| TASK-977 | Line: hot days (Tmax ≥ 30°C) per year | | |
+| TASK-978 | Color bars by intensity (yellow to red gradient) | | |
+| TASK-979 | Add reference annotations for historical averages | | |
+| TASK-980 | Include ExpandableText with methodology | | |
+| TASK-981 | Write tests for TropicalNights | | |
+
+**Narrative text:**
+- Key insight: *"Sleepless summer nights are no longer rare events."*
 
 **Completion Criteria:**
 - Bar chart shows tropical nights trend
-- Line overlay shows heat stress days
+- Line overlay shows hot days (DWD standard: ≥30°C)
 - Historical reference annotations visible
 - Responsive sizing
 
@@ -289,6 +355,10 @@ This phase implements the narrative plot section that tells the climate story th
 | TASK-976 | Include ExpandableText with methodology | | |
 | TASK-977 | Write tests for VegetationStress | | |
 
+**Narrative text:**
+- Intro: *"Plants face a triple threat: drought, heat waves, and late frost."*
+- Key insight: *"Agriculture and ecosystems are being squeezed from multiple directions."*
+
 **Completion Criteria:**
 - Stacked areas show cumulative stress burden
 - Three stress types distinguishable by color
@@ -303,9 +373,9 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-978 | Create `frontend/src/components/plots/narrative/tabs/RecognitionTab.tsx` | | |
-| TASK-979 | Create `frontend/src/components/plots/narrative/tabs/UnderstandingTab.tsx` | | |
-| TASK-980 | Create `frontend/src/components/plots/narrative/tabs/ResponseTab.tsx` with 3 Response plots | | |
+| TASK-978 | Create `frontend/src/components/plots/narrative/tabs/RecognitionTab.tsx` with 2 plots | | |
+| TASK-979 | Create `frontend/src/components/plots/narrative/tabs/UnderstandingTab.tsx` with 4 plots | | |
+| TASK-980 | Create `frontend/src/components/plots/narrative/tabs/ResponseTab.tsx` with 3 plots | | |
 | TASK-981 | Connect tabs to NarrativeSection container | | |
 | TASK-982 | Implement lazy loading for inactive tabs | | |
 | TASK-983 | Write integration tests for full narrative flow | | |
