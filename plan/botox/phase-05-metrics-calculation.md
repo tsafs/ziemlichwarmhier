@@ -29,7 +29,7 @@ This phase implements the climate metrics calculation pipeline that processes ER
 ### From Master Plan
 
 - **REQ-003**: Display 4-6 static climate metrics (temperature anomaly, warming rate, record days, etc.)
-- **REQ-004**: Support city selection with city-specific metrics and visualizations
+- **REQ-004**: Support city selection with tile-based metrics (cities map to grid tiles; multiple cities can share one tile's data)
 
 ### Phase-Specific Requirements
 
@@ -147,7 +147,7 @@ This phase implements the climate metrics calculation pipeline that processes ER
 | TASK-P5-036 | Aggregate threshold days by decade × month for Comfort Calendar | | |
 | TASK-P5-037 | Aggregate tropical nights by decade for Sleep Interrupted plot | | |
 | TASK-P5-038 | Aggregate hot/dry days by year for Vegetation Stress (requires `tp` precip) | | |
-| TASK-P5-039 | Export decadal aggregates to JSON: `{city}_decadal_metrics.json` | | |
+| TASK-P5-039 | Export decadal aggregates to JSON per tile: `{grid_i}_{grid_j}_decadal_metrics.json` | | |
 | TASK-P5-040 | Write unit tests for decadal aggregation | | |
 
 ### Implementation Phase 5.9: Aggregation & Export
@@ -248,7 +248,7 @@ This phase implements the climate metrics calculation pipeline that processes ER
 | Path | Description |
 |------|-------------|
 | `data/metrics/germany.json` | Country-level aggregated metrics |
-| `data/metrics/cities/{city_id}.json` | Per-city metrics |
+| `data/metrics/tiles/{grid_i}_{grid_j}.json` | Per-tile metrics (multiple cities map to same tile) |
 | `data/metrics/grid/metrics_{year}.nc` | Per-grid-cell metrics (NetCDF) |
 
 ## 6. Testing
@@ -385,7 +385,7 @@ FIVE_YEAR_ANOMALY_PERIOD = {
 THRESHOLDS = {
     'hot_day': 30.0,           # Tmax >= 30°C (Heißer Tag)
     'summer_day': 25.0,         # Tmax >= 25°C (Sommertag)
-    'tropical_night': 20.0,     # Tmin > 20°C (Tropennacht)
+    'tropical_night': 20.0,     # Tmin >= 20°C (Tropennacht)
     'extreme_heat_day': 35.0,   # Tmax >= 35°C (vegetation/health damage)
     'frost_day': 0.0,           # Tmin < 0°C (Frosttag)
     'ice_day': 0.0,             # Tmax <= 0°C (Eistag)
@@ -936,7 +936,7 @@ Calculate thermal threshold day counts.
 
 Counts days exceeding or falling below temperature thresholds:
 - Hot days (Tmax >= 30°C)
-- Tropical nights (Tmin > 20°C)
+- Tropical nights (Tmin ≥ 20°C)
 - Ice days (Tmax <= 0°C)
 - Frost days (Tmin < 0°C)
 """
@@ -1417,34 +1417,33 @@ def export_metrics_json(
     return output_path
 
 
-def export_all_city_metrics(
-    city_metrics: Dict[str, LocationMetrics],
+def export_all_tile_metrics(
+    tile_metrics: Dict[str, LocationMetrics],
     output_dir: Path,
     source: str = 'era5-land',
 ) -> Dict[str, Path]:
-    """Export metrics for all cities.
+    """Export metrics for all tiles (grid cells).
     
     Args:
-        city_metrics: Dictionary mapping city_id to metrics
+        tile_metrics: Dictionary mapping tile_id (grid_i_grid_j) to metrics
         output_dir: Directory for output files
         source: Data source identifier
         
     Returns:
-        Dictionary mapping city_id to output path
+        Dictionary mapping tile_id to output path
     """
-    output_dir = Path(output_dir) / 'cities'
+    output_dir = Path(output_dir) / 'tiles'
     output_dir.mkdir(parents=True, exist_ok=True)
     
     paths = {}
     
-    for city_id, metrics in city_metrics.items():
-        # Create safe filename
-        safe_name = city_id.lower().replace(' ', '_').replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue')
-        output_path = output_dir / f"{safe_name}.json"
+    for tile_id, metrics in tile_metrics.items():
+        # tile_id format: "{grid_i}_{grid_j}"
+        output_path = output_dir / f"{tile_id}.json"
         
-        paths[city_id] = export_metrics_json(metrics, output_path, source=source)
+        paths[tile_id] = export_metrics_json(metrics, output_path, source=source)
     
-    logger.info(f"Exported metrics for {len(paths)} cities to {output_dir}")
+    logger.info(f"Exported metrics for {len(paths)} tiles to {output_dir}")
     return paths
 
 

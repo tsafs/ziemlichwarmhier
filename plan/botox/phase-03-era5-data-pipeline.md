@@ -167,7 +167,7 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 | TASK-P3-047 | Create `analysis/era5/detect_thresholds.py` module | | |
 | TASK-P3-048 | Implement hot day detection: Tmax ≥ 30°C (DWD Heißer Tag) | | |
 | TASK-P3-049 | Implement extreme heat detection: Tmax ≥ 35°C | | |
-| TASK-P3-050 | Implement tropical night detection: Tmin > 20°C (DWD Tropennacht) | | |
+| TASK-P3-050 | Implement tropical night detection: Tmin ≥ 20°C (DWD Tropennacht) | | |
 | TASK-P3-051 | Implement ice day detection: Tmax ≤ 0°C (DWD Eistag) | | |
 | TASK-P3-052 | Implement frost day detection: Tmin < 0°C (DWD Frosttag) | | |
 | TASK-P3-053 | Count threshold days per month and store | | |
@@ -428,7 +428,7 @@ REFERENCE_PERIOD = {
 TEMPERATURE_THRESHOLDS = {
     'hot_day': 30.0,           # Tmax >= 30°C (DWD: Heißer Tag)
     'extreme_heat': 35.0,      # Tmax >= 35°C (extreme heat, vegetation damage)
-    'tropical_night': 20.0,    # Tmin > 20°C (DWD: Tropennacht)
+    'tropical_night': 20.0,    # Tmin >= 20°C (DWD: Tropennacht)
     'ice_day': 0.0,            # Tmax <= 0°C (DWD: Eistag)
     'frost_day': 0.0,          # Tmin < 0°C (DWD: Frosttag)
 }

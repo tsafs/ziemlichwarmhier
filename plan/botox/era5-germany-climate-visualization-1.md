@@ -31,7 +31,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - **REQ-001**: Display temperature anomaly maps for Germany using ERA5 data at 1km visual resolution
 - **REQ-002**: Support rolling 12-month anomaly visualization (globe/map equivalent)
 - **REQ-003**: Display 6 static climate metrics: Five-Year Temperature Anomaly, Warming Rate, Winter Warming, Record-Breaking Days, Snow Days Lost, Comfortable Days
-- **REQ-004**: Support city selection with city-specific metrics and visualizations
+- **REQ-004**: Support city selection with tile-based metrics (cities map to grid tiles; multiple cities can share one tile's data)
 - **REQ-005**: Implement narrative sections with 9 interactive plots across 3 tabs:
   - Recognition (2 plots): Temperature Evolution, Seasonal Warming
   - Understanding (4 plots): Monthly Distribution, Extremes Inverted, Record-Breaking Reality, Winter Snow Loss
@@ -104,54 +104,82 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ---
 
-### Implementation Phase 2: ERA5 Data Pipeline - Core
+### Implementation Phase 2: Infrastructure Setup
 
-**GOAL-002**: Build the core ERA5 data download and processing pipeline
+**GOAL-P2-001**: Configure Hetzner Object Storage and CDN for tile serving
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-007 | Create `analysis/era5/fetch_era5_data.py` - download ERA5/ERA5-Land NetCDF from CDS | | |
-| TASK-008 | Create `analysis/era5/config.py` - centralized configuration (bounds, resolution, variables) | | |
-| TASK-009 | Create `analysis/era5/interpolate_to_grid.py` - interpolate ERA5 to 1km grid using scipy/xarray | | |
-| TASK-010 | Create `analysis/era5/apply_land_mask.py` - filter to land-only using Natural Earth data | | |
-| TASK-011 | Create `analysis/era5/calculate_anomalies.py` - compute anomalies vs 1961-1990 reference | | |
-| TASK-012 | Create `analysis/era5/types.py` - Python dataclasses for pipeline data structures | | |
-| TASK-013 | Write unit tests for all ERA5 processing modules | | |
-| TASK-014 | Create integration test with sample ERA5 data subset | | |
+| TASK-P2-001 | Create Hetzner Object Storage bucket `era5-tiles` in fsn1 region | | |
+| TASK-P2-002 | Configure CORS for browser-based tile loading | | |
+| TASK-P2-003 | Create `analysis/utilities/hetzner_storage.py` - S3-compatible upload utilities | | |
+| TASK-P2-004 | Create `.env.example` with all environment variables | | |
+| TASK-P2-005 | Configure Cloudflare CDN caching rules for tile subdomain | | |
+| TASK-P2-006 | Create `scripts/validate-env.py` for environment validation | | |
+| TASK-P2-007 | Write unit tests for storage utilities | | |
+
+**Completion Criteria:**
+- Hetzner bucket accessible via S3-compatible API
+- CORS headers allow browser tile requests
+- Environment variables documented and validated
+- Integration test verifies upload/download cycle
+
+**See detailed plan**: [phase-02-infrastructure.md](phase-02-infrastructure.md)
+
+---
+
+### Implementation Phase 3: ERA5 Data Pipeline - Core
+
+**GOAL-P3-001**: Build the core ERA5 data download and processing pipeline
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-P3-001 | Create `analysis/era5/fetch_era5_data.py` - download ERA5/ERA5-Land NetCDF from CDS | | |
+| TASK-P3-002 | Create `analysis/era5/config.py` - centralized configuration (bounds, resolution, variables) | | |
+| TASK-P3-003 | Create `analysis/era5/interpolate_to_grid.py` - interpolate ERA5 to 1km grid using scipy/xarray | | |
+| TASK-P3-004 | Create `analysis/era5/apply_land_mask.py` - filter to land-only using Natural Earth data | | |
+| TASK-P3-005 | Create `analysis/era5/calculate_anomalies.py` - compute anomalies vs 1961-1990 reference | | |
+| TASK-P3-006 | Create `analysis/era5/types.py` - Python dataclasses for pipeline data structures | | |
+| TASK-P3-007 | Write unit tests for all ERA5 processing modules | | |
+| TASK-P3-008 | Create integration test with sample ERA5 data subset | | |
 
 **Completion Criteria:**
 - Pipeline can download, interpolate, and calculate anomalies for one month
 - Land mask correctly excludes ocean, includes German islands (Sylt, Rügen, etc.)
 - All tests pass
 
+**See detailed plan**: [phase-03-era5-data-pipeline.md](phase-03-era5-data-pipeline.md)
+
 ---
 
-### Implementation Phase 3: Tile Generation Pipeline
+### Implementation Phase 4: Tile Generation Pipeline
 
-**GOAL-003**: Generate WebP map tiles from processed ERA5 data
+**GOAL-P4-001**: Generate WebP map tiles from processed ERA5 data
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-015 | Create `analysis/tiles/generate_tiles.py` - convert GeoTIFF to WebP tile pyramid | | |
-| TASK-016 | Create `analysis/tiles/color_ramps.py` - define color scales (diverging blue-red for anomalies) | | |
-| TASK-017 | Create `analysis/tiles/tile_config.py` - zoom levels, tile size, coordinate system config | | |
-| TASK-018 | Create `analysis/tiles/upload_tiles.py` - upload tiles to R2 with content-type headers | | |
-| TASK-019 | Implement tile naming convention: `/{year}/{month}/{z}/{x}/{y}.webp` | | |
-| TASK-020 | Add transparency support for land boundaries (alpha channel) | | |
-| TASK-021 | Write unit tests for tile generation | | |
-| TASK-022 | Create validation script to verify tile coverage and integrity | | |
+| TASK-P4-001 | Create `analysis/tiles/generate_tiles.py` - convert GeoTIFF to WebP tile pyramid | | |
+| TASK-P4-002 | Create `analysis/tiles/color_ramps.py` - define color scales (diverging blue-red for anomalies) | | |
+| TASK-P4-003 | Create `analysis/tiles/tile_config.py` - zoom levels, tile size, coordinate system config | | |
+| TASK-P4-004 | Create `analysis/tiles/upload_tiles.py` - upload tiles to Hetzner with content-type headers | | |
+| TASK-P4-005 | Implement tile naming convention: `/{year}/{month}/{z}/{x}/{y}.webp` | | |
+| TASK-P4-006 | Add transparency support for land boundaries (alpha channel) | | |
+| TASK-P4-007 | Write unit tests for tile generation | | |
+| TASK-P4-008 | Create validation script to verify tile coverage and integrity | | |
 
 **Completion Criteria:**
 - Tiles generated at zoom levels 6-10 for Germany
 - Color ramp matches specification (-2°C to +3°C diverging)
 - Tiles have transparent background (land only visible)
-- All tiles accessible via R2 URL pattern
+- All tiles accessible via Hetzner Object Storage URL pattern
+
+**See detailed plan**: [phase-04-tile-generation.md](phase-04-tile-generation.md)
 
 ---
 
-### Implementation Phase 4: Metrics Calculation Pipeline
+### Implementation Phase 5: Metrics Calculation Pipeline
 
-**GOAL-004**: Calculate static climate metrics and plot data per grid cell
+**GOAL-P5-001**: Calculate static climate metrics and plot data per grid cell
 
 **Temperature Thresholds (DWD Standards + Scientific):**
 - Ice day: Tmax ≤ 0°C (DWD: Eistag)
@@ -167,35 +195,35 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-023 | Create `analysis/metrics/calculate_five_year_anomaly.py` - mean annual anomalies 2021-2025 vs 1961-1990 | | |
-| TASK-024 | Create `analysis/metrics/calculate_warming_rate.py` - linear regression trend 1995-2025 (°C/decade) | | |
-| TASK-025 | Create `analysis/metrics/calculate_winter_warming.py` - DJF anomaly 2021-2025 vs 1961-1990 | | |
-| TASK-026 | Create `analysis/metrics/calculate_record_days.py` - count daily Tmax/Tmin records broken per year | | |
-| TASK-027 | Create `analysis/metrics/calculate_snow_days_lost.py` - snow days difference (recent vs reference) | | |
-| TASK-028 | Create `analysis/metrics/calculate_comfortable_days.py` - days with Tmean 15-25°C | | |
+| TASK-P5-001 | Create `analysis/metrics/calculate_five_year_anomaly.py` - mean annual anomalies 2021-2025 vs 1961-1990 | | |
+| TASK-P5-002 | Create `analysis/metrics/calculate_warming_rate.py` - linear regression trend 1995-2025 (°C/decade) | | |
+| TASK-P5-003 | Create `analysis/metrics/calculate_winter_warming.py` - DJF anomaly 2021-2025 vs 1961-1990 | | |
+| TASK-P5-004 | Create `analysis/metrics/calculate_record_days.py` - count daily Tmax/Tmin records broken per year | | |
+| TASK-P5-005 | Create `analysis/metrics/calculate_snow_days_lost.py` - snow days difference (recent vs reference) | | |
+| TASK-P5-006 | Create `analysis/metrics/calculate_comfortable_days.py` - days with Tmean 15-25°C | | |
 
 **Plot Data Generation:**
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-029 | Create `analysis/plots/generate_temperature_evolution.py` - monthly anomalies with trend | | |
-| TASK-030 | Create `analysis/plots/generate_seasonal_warming.py` - seasonal anomalies (DJF, MAM, JJA, SON) | | |
-| TASK-031 | Create `analysis/plots/generate_monthly_distribution.py` - percentiles (p10, p25, p50, p75, p90) per month | | |
-| TASK-032 | Create `analysis/plots/generate_extremes.py` - ice days, hot days, dry spells, extreme rain days | | |
-| TASK-033 | Create `analysis/plots/generate_record_breaking.py` - hot vs cold daily records per year | | |
-| TASK-034 | Create `analysis/plots/generate_winter_snow.py` - snow days and transition rain days | | |
-| TASK-035 | Create `analysis/plots/generate_comfort_calendar.py` - comfortable days by decade × month | | |
-| TASK-036 | Create `analysis/plots/generate_tropical_nights.py` - tropical nights + hot days per year | | |
-| TASK-037 | Create `analysis/plots/generate_vegetation_stress.py` - hot & dry days, extreme heat, late frost | | |
+| TASK-P5-007 | Create `analysis/plots/generate_temperature_evolution.py` - monthly anomalies with trend | | |
+| TASK-P5-008 | Create `analysis/plots/generate_seasonal_warming.py` - seasonal anomalies (DJF, MAM, JJA, SON) | | |
+| TASK-P5-009 | Create `analysis/plots/generate_monthly_distribution.py` - percentiles (p10, p25, p50, p75, p90) per month | | |
+| TASK-P5-010 | Create `analysis/plots/generate_extremes.py` - ice days, hot days, dry spells, extreme rain days | | |
+| TASK-P5-011 | Create `analysis/plots/generate_record_breaking.py` - hot vs cold daily records per year | | |
+| TASK-P5-012 | Create `analysis/plots/generate_winter_snow.py` - snow days and transition rain days | | |
+| TASK-P5-013 | Create `analysis/plots/generate_comfort_calendar.py` - comfortable days by decade × month | | |
+| TASK-P5-014 | Create `analysis/plots/generate_tropical_nights.py` - tropical nights + hot days per year | | |
+| TASK-P5-015 | Create `analysis/plots/generate_vegetation_stress.py` - hot & dry days, extreme heat, late frost | | |
 
 **Aggregation & Export:**
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-038 | Create `analysis/metrics/aggregate_metrics.py` - aggregate to city/country level | | |
-| TASK-039 | Create `analysis/metrics/export_metrics.py` - export metrics to JSON for frontend | | |
-| TASK-040 | Create `analysis/plots/export_plot_data.py` - export plot CSVs per location | | |
-| TASK-041 | Write unit tests for all metric and plot calculations | | |
+| TASK-P5-016 | Create `analysis/metrics/aggregate_metrics.py` - aggregate to city/country level | | |
+| TASK-P5-017 | Create `analysis/metrics/export_metrics.py` - export metrics to JSON for frontend | | |
+| TASK-P5-018 | Create `analysis/plots/export_plot_data.py` - export plot CSVs per location | | |
+| TASK-P5-019 | Write unit tests for all metric and plot calculations | | |
 
 **Completion Criteria:**
 - All 6 static metrics calculated per grid cell and aggregated
@@ -203,23 +231,25 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - JSON/CSV output matches schemas expected by frontend
 - Metrics validated against HYRAS reference data where overlapping
 
+**See detailed plan**: [phase-05-metrics-calculation.md](phase-05-metrics-calculation.md)
+
 ---
 
-### Implementation Phase 5: Nightly Job Orchestration
+### Implementation Phase 6: Nightly Job Orchestration
 
-**GOAL-005**: Create Docker jobs and GitHub Actions for automated nightly processing
+**GOAL-P6-001**: Create Docker jobs and GitHub Actions for automated nightly processing
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-042 | Create `jobs/job-era5-daily/Dockerfile` - daily update job container | | |
-| TASK-043 | Create `jobs/job-era5-daily/entrypoint.sh` - validate env vars, run pipeline | | |
-| TASK-044 | Create `jobs/job-era5-daily/src/process_daily.py` - orchestrate daily pipeline | | |
-| TASK-045 | Create `jobs/job-era5-monthly/` - monthly tile regeneration job | | |
-| TASK-046 | Create `jobs/job-era5-yearly/` - yearly metrics recalculation job | | |
-| TASK-047 | Create `.github/workflows/era5-daily-pipeline.yml` - scheduled daily action | | |
-| TASK-048 | Create `.github/workflows/era5-monthly-pipeline.yml` - scheduled monthly action | | |
-| TASK-049 | Add monitoring/alerting for pipeline failures (GitHub Actions notifications) | | |
-| TASK-050 | Write integration tests for complete pipeline execution | | |
+| TASK-P6-001 | Create `jobs/job-era5-daily/Dockerfile` - daily update job container | | |
+| TASK-P6-002 | Create `jobs/job-era5-daily/entrypoint.sh` - validate env vars, run pipeline | | |
+| TASK-P6-003 | Create `jobs/job-era5-daily/src/process_daily.py` - orchestrate daily pipeline | | |
+| TASK-P6-004 | Create `jobs/job-era5-monthly/` - monthly tile regeneration job | | |
+| TASK-P6-005 | Create `jobs/job-era5-yearly/` - yearly metrics recalculation job | | |
+| TASK-P6-006 | Create `.github/workflows/era5-daily-pipeline.yml` - scheduled daily action | | |
+| TASK-P6-007 | Create `.github/workflows/era5-monthly-pipeline.yml` - scheduled monthly action | | |
+| TASK-P6-008 | Add monitoring/alerting for pipeline failures (GitHub Actions notifications) | | |
+| TASK-P6-009 | Write integration tests for complete pipeline execution | | |
 
 **Completion Criteria:**
 - Daily job runs successfully < 30 minutes
@@ -227,24 +257,26 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - Failure notifications sent via GitHub Actions
 - All jobs testable locally via Docker
 
+**See detailed plan**: [phase-06-nightly-jobs.md](phase-06-nightly-jobs.md)
+
 ---
 
-### Implementation Phase 6: Frontend - Map Visualization
+### Implementation Phase 7: Frontend - Map Visualization
 
-**GOAL-006**: Implement interactive map with tile overlay using MapLibre GL
+**GOAL-P7-001**: Implement interactive map with tile overlay using MapLibre GL
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-051 | Install MapLibre GL JS dependency and TypeScript types | | |
-| TASK-052 | Create `frontend/src/components/maps/ClimateMap/ClimateMap.tsx` - base map component | | |
-| TASK-053 | Create `frontend/src/components/maps/ClimateMap/TileLayer.tsx` - anomaly tile overlay | | |
-| TASK-054 | Create `frontend/src/components/maps/ClimateMap/CityMarkers.tsx` - clickable city markers | | |
-| TASK-055 | Create `frontend/src/components/maps/ClimateMap/Legend.tsx` - color scale legend | | |
-| TASK-056 | Create `frontend/src/components/maps/ClimateMap/DateSelector.tsx` - month/year picker | | |
-| TASK-057 | Create `frontend/src/store/slices/mapSlice.ts` - map state (view, selected month) | | |
-| TASK-058 | Create `frontend/src/hooks/useMapTiles.ts` - tile URL generation hook | | |
-| TASK-059 | Implement responsive behavior (pan, zoom, mobile gestures) | | |
-| TASK-060 | Write component tests for all map components | | |
+| TASK-P7-001 | Install MapLibre GL JS dependency and TypeScript types | | |
+| TASK-P7-002 | Create `frontend/src/components/maps/ClimateMap/ClimateMap.tsx` - base map component | | |
+| TASK-P7-003 | Create `frontend/src/components/maps/ClimateMap/TileLayer.tsx` - anomaly tile overlay | | |
+| TASK-P7-004 | Create `frontend/src/components/maps/ClimateMap/CityMarkers.tsx` - clickable city markers | | |
+| TASK-P7-005 | Create `frontend/src/components/maps/ClimateMap/Legend.tsx` - color scale legend | | |
+| TASK-P7-006 | Create `frontend/src/components/maps/ClimateMap/DateSelector.tsx` - month/year picker | | |
+| TASK-P7-007 | Create `frontend/src/store/slices/mapSlice.ts` - map state (view, selected month) | | |
+| TASK-P7-008 | Create `frontend/src/hooks/useMapTiles.ts` - tile URL generation hook | | |
+| TASK-P7-009 | Implement responsive behavior (pan, zoom, mobile gestures) | | |
+| TASK-P7-010 | Write component tests for all map components | | |
 
 **Completion Criteria:**
 - Map displays Germany with anomaly overlay
@@ -252,11 +284,13 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - Month/year selector updates displayed tiles
 - Smooth performance on mobile (60fps pan/zoom)
 
+**See detailed plan**: [phase-07-frontend-map.md](phase-07-frontend-map.md)
+
 ---
 
-### Implementation Phase 7: Frontend - Static Metrics Cards
+### Implementation Phase 8: Frontend - Static Metrics Cards
 
-**GOAL-007**: Implement 6 climate metrics display cards with city-specific updates
+**GOAL-P8-001**: Implement 6 climate metrics display cards with city-specific updates
 
 **The 6 Static Metrics:**
 1. **Five-Year Temperature Anomaly**: "+2.4°C warmer" (2021-2025 vs 1961-1990)
@@ -268,17 +302,17 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-061 | Create `frontend/src/services/MetricsService.ts` - fetch metrics JSON | | |
-| TASK-062 | Create `frontend/src/store/slices/metricsSlice.ts` - metrics state using createDataSlice | | |
-| TASK-063 | Create `frontend/src/components/metrics/MetricsRow.tsx` - horizontal metrics layout | | |
-| TASK-064 | Create `frontend/src/components/metrics/cards/FiveYearAnomalyCard.tsx` | | |
-| TASK-065 | Create `frontend/src/components/metrics/cards/WarmingRateCard.tsx` | | |
-| TASK-066 | Create `frontend/src/components/metrics/cards/WinterWarmingCard.tsx` | | |
-| TASK-067 | Create `frontend/src/components/metrics/cards/RecordDaysCard.tsx` | | |
-| TASK-068 | Create `frontend/src/components/metrics/cards/SnowDaysLostCard.tsx` | | |
-| TASK-069 | Create `frontend/src/components/metrics/cards/ComfortableDaysCard.tsx` | | |
-| TASK-070 | Implement city-specific metric loading on city selection | | |
-| TASK-071 | Write component tests for all metric cards | | |
+| TASK-P8-001 | Create `frontend/src/services/MetricsService.ts` - fetch metrics JSON | | |
+| TASK-P8-002 | Create `frontend/src/store/slices/metricsSlice.ts` - metrics state using createDataSlice | | |
+| TASK-P8-003 | Create `frontend/src/components/metrics/MetricsRow.tsx` - horizontal metrics layout | | |
+| TASK-P8-004 | Create `frontend/src/components/metrics/cards/FiveYearAnomalyCard.tsx` | | |
+| TASK-P8-005 | Create `frontend/src/components/metrics/cards/WarmingRateCard.tsx` | | |
+| TASK-P8-006 | Create `frontend/src/components/metrics/cards/WinterWarmingCard.tsx` | | |
+| TASK-P8-007 | Create `frontend/src/components/metrics/cards/RecordDaysCard.tsx` | | |
+| TASK-P8-008 | Create `frontend/src/components/metrics/cards/SnowDaysLostCard.tsx` | | |
+| TASK-P8-009 | Create `frontend/src/components/metrics/cards/ComfortableDaysCard.tsx` | | |
+| TASK-P8-010 | Implement city-specific metric loading on city selection | | |
+| TASK-P8-011 | Write component tests for all metric cards | | |
 
 **Completion Criteria:**
 - 6 metric cards display correctly with values and subtitles
@@ -286,11 +320,13 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - Loading/error states handled gracefully
 - Mobile responsive (vertical stack)
 
+**See detailed plan**: [phase-08-frontend-metrics.md](phase-08-frontend-metrics.md)
+
 ---
 
-### Implementation Phase 8: Frontend - Narrative Plots
+### Implementation Phase 9: Frontend - Narrative Plots
 
-**GOAL-008**: Implement narrative section with 9 interactive climate plots across 3 tabs
+**GOAL-P9-001**: Implement narrative section with 9 interactive climate plots across 3 tabs
 
 **Narrative Arc: Recognition → Understanding → Response**
 
@@ -298,9 +334,9 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-072 | Create `NarrativeSection.tsx` - tabbed container with German labels (Erkennen, Verstehen, Handeln) | | |
-| TASK-073 | Create `TemperatureEvolution.tsx` - scatter plot with LOWESS trend, color-coded anomalies | | |
-| TASK-074 | Create `SeasonalWarming.tsx` - 4-line chart (DJF, MAM, JJA, SON), highlight fastest-warming season | | |
+| TASK-P9-001 | Create `NarrativeSection.tsx` - tabbed container with German labels (Erkennen, Verstehen, Handeln) | | |
+| TASK-P9-002 | Create `TemperatureEvolution.tsx` - scatter plot with LOWESS trend, color-coded anomalies | | |
+| TASK-P9-003 | Create `SeasonalWarming.tsx` - 4-line chart (DJF, MAM, JJA, SON), highlight fastest-warming season | | |
 
 **Narrative text (inline):**
 - Plot 1.1 intro: *"Every point represents one month. Blue = cooler than 1961-1990 average. Red = warmer."*
@@ -312,10 +348,10 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-075 | Create `MonthlyDistribution.tsx` - 12-panel box plots (1961-1990 vs 2015-2025) | | |
-| TASK-076 | Create `ExtremesInverted.tsx` - diverging bars: ice days, hot days, dry spells, extreme rain | | |
-| TASK-077 | Create `RecordBreakingReality.tsx` - stacked area (hot vs cold records per year) | | |
-| TASK-078 | Create `WinterForgotToCome.tsx` - dual-axis: snow days + transition rain days | | |
+| TASK-P9-004 | Create `MonthlyDistribution.tsx` - 12-panel box plots (1961-1990 vs 2015-2025) | | |
+| TASK-P9-005 | Create `ExtremesInverted.tsx` - diverging bars: ice days, hot days, dry spells, extreme rain | | |
+| TASK-P9-006 | Create `RecordBreakingReality.tsx` - stacked area (hot vs cold records per year) | | |
+| TASK-P9-007 | Create `WinterForgotToCome.tsx` - dual-axis: snow days + transition rain days | | |
 
 **Narrative text (inline):**
 - Plot 2.1 intro: *"The calendar still says 'January' and 'July,' but what those months feel like has fundamentally changed."*
@@ -327,9 +363,9 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-079 | Create `ComfortCalendar.tsx` - heatmap (decades × months) of comfortable days | | |
-| TASK-080 | Create `TropicalNights.tsx` - bars (tropical nights) + line (hot days ≥30°C) per year | | |
-| TASK-081 | Create `VegetationStress.tsx` - stacked area (hot & dry, extreme heat ≥35°C, late frost) | | |
+| TASK-P9-008 | Create `ComfortCalendar.tsx` - heatmap (decades × months) of comfortable days | | |
+| TASK-P9-009 | Create `TropicalNights.tsx` - bars (tropical nights) + line (hot days ≥30°C) per year | | |
+| TASK-P9-010 | Create `VegetationStress.tsx` - stacked area (hot & dry, extreme heat ≥35°C, late frost) | | |
 
 **Narrative text (inline):**
 - Plot 3.1 intro: *"When is it comfortable to be outside?"*
@@ -340,11 +376,11 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-082 | Create `frontend/src/services/NarrativePlotService.ts` - fetch plot CSVs | | |
-| TASK-083 | Create `frontend/src/store/slices/narrativePlotSlice.ts` - plot data state | | |
-| TASK-084 | Create `frontend/src/components/common/ExpandableText.tsx` - methodology info toggle | | |
-| TASK-085 | Implement plot animations and tab transitions | | |
-| TASK-086 | Write integration tests for all 9 narrative plots | | |
+| TASK-P9-011 | Create `frontend/src/services/NarrativePlotService.ts` - fetch plot CSVs | | |
+| TASK-P9-012 | Create `frontend/src/store/slices/narrativePlotSlice.ts` - plot data state | | |
+| TASK-P9-013 | Create `frontend/src/components/common/ExpandableText.tsx` - methodology info toggle | | |
+| TASK-P9-014 | Implement plot animations and tab transitions | | |
+| TASK-P9-015 | Write integration tests for all 9 narrative plots | | |
 
 **Completion Criteria:**
 - All 9 narrative plots render correctly with Observable Plot
@@ -354,21 +390,23 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - Smooth tab transitions
 - Mobile: tabs become accordion
 
+**See detailed plan**: [phase-09-frontend-narrative.md](phase-09-frontend-narrative.md)
+
 ---
 
-### Implementation Phase 9: City Search and Selection
+### Implementation Phase 10: City Search and Selection
 
-**GOAL-009**: Implement city search functionality with station correlation
+**GOAL-P10-001**: Implement city search functionality with station correlation
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-087 | Create/update `frontend/src/services/CityService.ts` - extend for ERA5 grid correlation | | |
-| TASK-088 | Create `frontend/src/components/search/CitySearch.tsx` - autocomplete search | | |
-| TASK-089 | Create `frontend/src/store/slices/citySlice.ts` - city selection state | | |
-| TASK-090 | Create `analysis/cities/correlate_cities_to_grid.py` - map cities to nearest grid cell | | |
-| TASK-091 | Generate city correlation data (5000+ German cities) | | |
-| TASK-092 | Implement URL-based city selection (shareable links) | | |
-| TASK-093 | Write tests for search and selection | | |
+| TASK-P10-001 | Create/update `frontend/src/services/CityService.ts` - extend for ERA5 grid correlation | | |
+| TASK-P10-002 | Create `frontend/src/components/search/CitySearch.tsx` - autocomplete search | | |
+| TASK-P10-003 | Create `frontend/src/store/slices/citySlice.ts` - city selection state | | |
+| TASK-P10-004 | Create `analysis/cities/correlate_cities_to_grid.py` - map cities to nearest grid cell | | |
+| TASK-P10-005 | Generate city correlation data (German cities with population > 5000) | | |
+| TASK-P10-006 | Implement URL-based city selection (shareable links) | | |
+| TASK-P10-007 | Write tests for search and selection | | |
 
 **Completion Criteria:**
 - City search returns results < 100ms
@@ -376,51 +414,41 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - All components react to city selection
 - Works on mobile with touch keyboard
 
+**See detailed plan**: [phase-10-city-selection.md](phase-10-city-selection.md)
+
 ---
 
-### Implementation Phase 10: Documentation and Testing
+### Implementation Phase 11: Documentation, Testing and Deployment
 
-**GOAL-010**: Comprehensive documentation and test coverage
+**GOAL-P11-001**: Comprehensive documentation, E2E testing, and production deployment
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-094 | Create `documentation/architecture/era5-pipeline.md` - pipeline architecture docs | | |
-| TASK-095 | Create `documentation/architecture/frontend.md` - frontend architecture docs | | |
-| TASK-096 | Create `documentation/data-formats/` - schema documentation for all data formats | | |
-| TASK-097 | Create `documentation/deployment/` - deployment and operations guide | | |
-| TASK-098 | Create `documentation/api/` - internal API documentation | | |
-| TASK-099 | Add JSDoc comments to all TypeScript functions | | |
-| TASK-100 | Add docstrings to all Python functions | | |
-| TASK-101 | Set up coverage reporting in CI | | |
-| TASK-102 | Create end-to-end tests for critical user flows | | |
+| TASK-P11-001 | Create `documentation/architecture/era5-pipeline.md` - pipeline architecture docs | | |
+| TASK-P11-002 | Create `documentation/architecture/frontend.md` - frontend architecture docs | | |
+| TASK-P11-003 | Create `documentation/data-formats/` - schema documentation for all data formats | | |
+| TASK-P11-004 | Create `documentation/deployment/` - deployment and operations guide | | |
+| TASK-P11-005 | Add JSDoc comments to all TypeScript functions | | |
+| TASK-P11-006 | Add docstrings to all Python functions | | |
+| TASK-P11-007 | Set up coverage reporting in CI | | |
+| TASK-P11-008 | Create end-to-end tests for critical user flows | | |
+| TASK-P11-009 | Configure Cloudflare Pages deployment for frontend | | |
+| TASK-P11-010 | Set up custom domain and SSL | | |
+| TASK-P11-011 | Configure cache invalidation for tile updates | | |
+| TASK-P11-012 | Set up uptime monitoring | | |
+| TASK-P11-013 | Create runbook for common operations | | |
+| TASK-P11-014 | Performance testing and optimization | | |
 
 **Completion Criteria:**
 - All public functions documented
 - Test coverage > 80%
 - Documentation readable by new contributors
 - E2E tests pass in CI
-
----
-
-### Implementation Phase 11: Deployment and Operations
-
-**GOAL-011**: Production deployment with monitoring
-
-| Task | Description | Completed | Date |
-| -------- | --------------------- | --------- | ---- |
-| TASK-103 | Configure Cloudflare Pages deployment for frontend | | |
-| TASK-104 | Set up custom domain and SSL | | |
-| TASK-105 | Configure cache invalidation for tile updates | | |
-| TASK-106 | Set up uptime monitoring (Cloudflare or external) | | |
-| TASK-107 | Create runbook for common operations (tile regeneration, rollback) | | |
-| TASK-108 | Set up cost monitoring alerts | | |
-| TASK-109 | Performance testing and optimization | | |
-
-**Completion Criteria:**
 - Production site accessible and functional
 - SSL certificate valid
 - Monitoring operational
-- Cost tracking in place
+
+**See detailed plan**: [phase-11-documentation-deployment.md](phase-11-documentation-deployment.md)
 
 ## 3. Alternatives
 
@@ -434,7 +462,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 - **ALT-005**: **Keep HYRAS as data source** - Considered since HYRAS is already 1km and German-specific. Rejected because project goal is extensibility to other countries; ERA5 provides global coverage for future expansion.
 
-- **ALT-006**: **Hetzner Object Storage instead of Cloudflare R2** - Considered due to lower storage costs (€0.005/GB vs €0.014/GB). Rejected because Cloudflare R2 has free egress vs Hetzner's €1/TB; total cost with bandwidth favors R2.
+- **ALT-006**: **Cloudflare R2 instead of Hetzner Object Storage** - Considered due to free egress. Rejected because Hetzner Object Storage has free egress for EU traffic, lower storage costs (€0.0052/GB vs €0.015/GB), EU-based for GDPR compliance, and S3-compatible API works with existing boto3 patterns. **Hetzner chosen.**
 
 - **ALT-007**: **32°C "heat stress" threshold** - Considered adding 32°C threshold between hot days (30°C) and extreme heat (35°C). Rejected because: (1) 32°C is not a DWD-recognized threshold, (2) too similar to 30°C to be meaningful distinction, (3) adds complexity without clear user benefit. Use DWD standards: 30°C (Heißer Tag) and 35°C for extreme heat narratives.
 
@@ -800,9 +828,10 @@ export const fetchLiveData = async (): Promise<LiveDataResponse> => {
 };
 
 // For MetricsService.ts (TASK-050), adapt pattern for JSON:
-export const fetchMetrics = async (cityId?: string): Promise<MetricsData> => {
-    const url = cityId 
-        ? `/data/metrics/cities/${cityId}.json`
+// Data is stored per-tile, not per-city. Multiple cities can share the same tile.
+export const fetchMetrics = async (tileId?: string): Promise<MetricsData> => {
+    const url = tileId 
+        ? `/data/metrics/tiles/${tileId}.json`  // tileId format: "{grid_i}_{grid_j}"
         : `/data/metrics/germany.json`;
     const response = await fetch(buildUrl(url, true));
     if (!response.ok) throw new Error(`Failed to fetch metrics: ${response.status}`);
@@ -1255,10 +1284,10 @@ jobs:
       - name: Run ERA5 pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
           BUCKET_NAME: era5-climate-tiles
-          ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
         run: |
           python jobs/job-era5-daily/src/process_daily.py
           
@@ -1324,7 +1353,7 @@ interface LocationMetrics {
     /** Threshold day counts */
     thresholdDays: {
         hotDays: number;         // Tmax ≥ 30°C
-        tropicalNights: number;  // Tmin > 20°C
+        tropicalNights: number;  // Tmin ≥ 20°C
         iceDays: number;         // Tmax ≤ 0°C
         frostDays: number;       // Tmin < 0°C
         year: number;
@@ -1350,7 +1379,7 @@ interface MetricsFile {
 }
 
 // Example: /data/metrics/germany.json
-// Example: /data/metrics/cities/berlin.json
+// Example: /data/metrics/tiles/45_23.json (grid_i=45, grid_j=23)
 ```
 
-**Notes**: All metric calculation modules (TASK-023 to TASK-029) should output data conforming to this schema. The frontend MetricsService (TASK-050) will parse this format.
+**Notes**: All metric calculation modules (TASK-023 to TASK-029) should output data conforming to this schema. Data is stored per-tile; multiple cities can share the same tile. The frontend MetricsService (TASK-050) fetches tile data based on the selected city's `tile_id`.

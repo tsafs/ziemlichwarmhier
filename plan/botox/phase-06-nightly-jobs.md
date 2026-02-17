@@ -171,9 +171,9 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 | Secret Name | Description |
 |-------------|-------------|
 | `CDS_API_KEY` | Copernicus CDS API key |
-| `R2_ACCESS_KEY` | Hetzner Object Storage access key |
-| `R2_SECRET_KEY` | Hetzner Object Storage secret key |
-| `R2_ENDPOINT_URL` | Hetzner S3 endpoint URL |
+| `HETZNER_ACCESS_KEY` | Hetzner Object Storage access key |
+| `HETZNER_SECRET_KEY` | Hetzner Object Storage secret key |
+| `HETZNER_ENDPOINT_URL` | Hetzner S3 endpoint URL |
 | `BUCKET_NAME` | Target bucket name |
 
 ## 5. Files
@@ -740,8 +740,8 @@ from metrics.calculate_winter_warming import calculate_winter_warming
 from metrics.calculate_record_days import calculate_record_days
 from metrics.calculate_snow_days_lost import calculate_snow_days_lost
 from metrics.calculate_comfortable_days import calculate_comfortable_days
-from metrics.aggregate_metrics import load_city_list, aggregate_to_cities, aggregate_to_country
-from metrics.export_metrics import export_germany_metrics, export_all_city_metrics
+from metrics.aggregate_metrics import get_germany_grid_bounds, calculate_metrics_per_tile, aggregate_to_country
+from metrics.export_metrics import export_germany_metrics, export_all_tile_metrics
 from upload_to_s3 import upload_file
 
 logging.basicConfig(
@@ -820,33 +820,28 @@ def run_yearly_pipeline(year: int):
     logger.info("Exporting Germany metrics...")
     germany_path = export_germany_metrics(germany_metrics, output_dir)
     
-    # Calculate city-level metrics
-    logger.info("Calculating city-level metrics...")
-    cities = load_city_list(Path('frontend/public/german_cities_p5000.csv'))
+    # Calculate metrics for each tile (grid cell)
+    # Data is stored per-tile; cities map to tiles via tile_id
+    logger.info("Calculating per-tile metrics...")
     
-    city_metrics = {}
-    for _, city in cities.iterrows():
-        try:
-            # Select nearest grid point for city
-            city_ds = ds.sel(
-                latitude=city['latitude'],
-                longitude=city['longitude'],
-                method='nearest'
-            )
-            city_ds_precip = ds_precip.sel(
-                latitude=city['latitude'],
-                longitude=city['longitude'],
-                method='nearest'
-            )
-            city_metrics[city['name']] = calculate_all_metrics(city_ds, city_ds_precip, year)
-        except Exception as e:
-            logger.warning(f"Failed to calculate metrics for {city['name']}: {e}")
+    tile_metrics = {}
+    # Iterate over grid cells, not cities
+    for j, lat in enumerate(ds.latitude.values):
+        for i, lon in enumerate(ds.longitude.values):
+            tile_id = f"{i}_{j}"
+            try:
+                # Select grid point
+                cell_ds = ds.sel(latitude=lat, longitude=lon)
+                cell_ds_precip = ds_precip.sel(latitude=lat, longitude=lon)
+                tile_metrics[tile_id] = calculate_all_metrics(cell_ds, cell_ds_precip, year)
+            except Exception as e:
+                logger.warning(f"Failed to calculate metrics for tile {tile_id}: {e}")
     
-    logger.info(f"Calculated metrics for {len(city_metrics)} cities")
+    logger.info(f"Calculated metrics for {len(tile_metrics)} tiles")
     
-    # Export city metrics
-    logger.info("Exporting city metrics...")
-    city_paths = export_all_city_metrics(city_metrics, output_dir)
+    # Export tile metrics
+    logger.info("Exporting tile metrics...")
+    tile_paths = export_all_tile_metrics(tile_metrics, output_dir)
     
     # Upload to S3
     logger.info("Uploading metrics to S3...")
@@ -857,9 +852,9 @@ def run_yearly_pipeline(year: int):
     # Upload Germany
     upload_file(str(germany_path), bucket, region, endpoint, directory='metrics')
     
-    # Upload cities
-    for city_name, path in city_paths.items():
-        upload_file(str(path), bucket, region, endpoint, directory='metrics/cities')
+    # Upload tiles (data is per-tile, not per-city)
+    for tile_id, path in tile_paths.items():
+        upload_file(str(path), bucket, region, endpoint, directory='metrics/tiles')
     
     logger.info("Upload complete!")
 
@@ -936,10 +931,10 @@ jobs:
       - name: Run ERA5 daily pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
           BUCKET_NAME: ${{ vars.BUCKET_NAME || 'era5-climate-tiles' }}
-          ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
         run: |
           cd jobs/job-era5-daily
           python src/process_daily.py
@@ -1024,10 +1019,10 @@ jobs:
       - name: Run ERA5 monthly pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
           BUCKET_NAME: ${{ vars.BUCKET_NAME || 'era5-climate-tiles' }}
-          ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
           TARGET_YEAR: ${{ github.event.inputs.year || '' }}
           TARGET_MONTH: ${{ github.event.inputs.month || '' }}
         run: |
@@ -1090,10 +1085,10 @@ jobs:
       - name: Run ERA5 yearly pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
           BUCKET_NAME: ${{ vars.BUCKET_NAME || 'era5-climate-tiles' }}
-          ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
           TARGET_YEAR: ${{ github.event.inputs.year || '' }}
         run: |
           cd jobs/job-era5-yearly

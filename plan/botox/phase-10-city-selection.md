@@ -25,7 +25,7 @@ This phase implements the city search and selection functionality that connects 
 ## 1. Requirements & Constraints
 
 ### Functional Requirements (from Master Plan)
-- **REQ-004**: Support city selection with city-specific metrics and visualizations
+- **REQ-004**: Support city selection with tile-based metrics (cities map to grid tiles; multiple cities can share one tile's data)
 - **REQ-009**: Provide responsive design for mobile and desktop
 
 ### Phase-Specific Requirements
@@ -1022,6 +1022,7 @@ class CityCorrelation:
     grid_j: int  # Row index (lat)
     grid_lat: float  # Grid cell center lat
     grid_lon: float  # Grid cell center lon
+    tile_id: str  # Format: "{grid_i}_{grid_j}" - used to fetch per-tile data
 
 
 def city_name_to_slug(name: str) -> str:
@@ -1115,6 +1116,7 @@ def correlate_cities(cities: List[dict]) -> List[CityCorrelation]:
         seen_slugs.add(slug)
         
         i, j, grid_lat, grid_lon = lat_lon_to_grid_indices(city['lat'], city['lon'])
+        tile_id = f"{i}_{j}"  # Multiple cities can share the same tile_id
         
         correlations.append(CityCorrelation(
             name=city['name'],
@@ -1125,6 +1127,7 @@ def correlate_cities(cities: List[dict]) -> List[CityCorrelation]:
             grid_j=j,
             grid_lat=round(grid_lat, 4),
             grid_lon=round(grid_lon, 4),
+            tile_id=tile_id,
         ))
     
     return correlations
