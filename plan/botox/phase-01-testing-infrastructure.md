@@ -62,12 +62,12 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-001 | Install dev dependencies: @testing-library/react, @testing-library/jest-dom, jsdom, @vitest/coverage-v8 | | |
-| TASK-002 | Create `frontend/vitest.config.ts` with jsdom environment | | |
-| TASK-003 | Create `frontend/src/setupTests.ts` for global test setup | | |
-| TASK-004 | Update `frontend/tsconfig.json` to include test types | | |
-| TASK-005 | Add test scripts to `frontend/package.json` | | |
-| TASK-006 | Verify existing HardinessZoneUtils.test.ts passes with new config | | |
+| TASK-P1-001 | Install dev dependencies: @testing-library/react, @testing-library/jest-dom, jsdom, @vitest/coverage-v8 | | |
+| TASK-P1-002 | Create `frontend/vitest.config.ts` with jsdom environment | | |
+| TASK-P1-003 | Create `frontend/src/setupTests.ts` for global test setup | | |
+| TASK-P1-004 | Update `frontend/tsconfig.json` to include test types | | |
+| TASK-P1-005 | Add test scripts to `frontend/package.json` | | |
+| TASK-P1-006 | Verify existing HardinessZoneUtils.test.ts passes with new config | | |
 
 ---
 
@@ -77,12 +77,12 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-007 | Create `frontend/src/__mocks__/` directory structure | | |
-| TASK-008 | Create mock data for LiveDataService (10min station data) | | |
-| TASK-009 | Create mock data for city data (GeoNames format) | | |
-| TASK-010 | Create test utilities for Redux store setup | | |
-| TASK-011 | Create fetch mock utility for service tests | | |
-| TASK-012 | Add example component test demonstrating patterns | | |
+| TASK-P1-007 | Create `frontend/src/__mocks__/` directory structure | | |
+| TASK-P1-008 | Create mock data for LiveDataService (10min station data) | | |
+| TASK-P1-009 | Create mock data for city data (GeoNames format) | | |
+| TASK-P1-010 | Create test utilities for Redux store setup | | |
+| TASK-P1-011 | Create fetch mock utility for service tests | | |
+| TASK-P1-012 | Add example component test demonstrating patterns | | |
 
 ---
 
@@ -92,12 +92,12 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-013 | Add pytest, pytest-cov, pytest-xdist to pyproject.toml | | |
-| TASK-014 | Create `[tool.pytest.ini_options]` configuration section | | |
-| TASK-015 | Create `analysis/conftest.py` with shared fixtures | | |
-| TASK-016 | Create `analysis/fixtures/` directory with sample data | | |
-| TASK-017 | Add example test file demonstrating patterns | | |
-| TASK-018 | Create mock for boto3 S3 client | | |
+| TASK-P1-013 | Add pytest, pytest-cov, pytest-xdist to pyproject.toml | | |
+| TASK-P1-014 | Create `[tool.pytest.ini_options]` configuration section | | |
+| TASK-P1-015 | Create `analysis/conftest.py` with shared fixtures | | |
+| TASK-P1-016 | Create `analysis/fixtures/` directory with sample data | | |
+| TASK-P1-017 | Add example test file demonstrating patterns | | |
+| TASK-P1-018 | Create mock for boto3 S3 client | | |
 
 ---
 
@@ -107,10 +107,10 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-019 | Create `.github/workflows/test.yml` for frontend tests | | |
-| TASK-020 | Add Python test job to workflow | | |
-| TASK-021 | Configure coverage reporting with thresholds | | |
-| TASK-022 | Add workflow badge to README.md | | |
+| TASK-P1-019 | Create `.github/workflows/test.yml` for frontend tests | | |
+| TASK-P1-020 | Add Python test job to workflow | | |
+| TASK-P1-021 | Configure coverage reporting with thresholds | | |
+| TASK-P1-022 | Add workflow badge to README.md | | |
 
 ---
 
@@ -120,10 +120,9 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-023 | Create `.env.example` with all environment variables | | |
-| TASK-024 | Create `scripts/setup-dev.sh` for environment setup | | |
-| TASK-025 | Update README.md with development setup instructions | | |
-| TASK-026 | Verify fresh clone setup works end-to-end | | |
+| TASK-P1-023 | Create `scripts/setup-dev.sh` for environment setup (`.env.example` created in Phase 2) | | |
+| TASK-P1-024 | Update README.md with development setup instructions | | |
+| TASK-P1-025 | Verify fresh clone setup works end-to-end | | |
 
 ## 3. Alternatives
 
@@ -147,7 +146,7 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 ### Python Dependencies (New)
 
 - **DEP-005**: `pytest>=8.0.0` - Testing framework
-- **DEP-006**: `pytest-cov>=6.0.0` - Coverage plugin
+- **DEP-006**: `pytest-cov>=5.0.0` - Coverage plugin
 - **DEP-007**: `pytest-xdist>=3.0.0` - Parallel test execution (optional)
 
 ### Existing Dependencies (Referenced)
@@ -184,9 +183,10 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 ### CI/CD Files
 
 - **FILE-018**: `.github/workflows/test.yml` - NEW - Test workflow
-- **FILE-019**: `.env.example` - NEW - Environment variable template
-- **FILE-020**: `scripts/setup-dev.sh` - NEW - Development setup script
-- **FILE-021**: `README.md` - MODIFY - Add testing documentation
+- **FILE-019**: `scripts/setup-dev.sh` - NEW - Development setup script
+- **FILE-020**: `README.md` - MODIFY - Add testing documentation
+
+**Note:** `.env.example` is created in Phase 2 (Infrastructure) to avoid duplication.
 
 ## 6. Testing
 
@@ -234,13 +234,13 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 ### Execution Order
 
 **Parallel tasks (can run simultaneously):**
-- TASK-001 to TASK-006 (Vitest configuration)
-- TASK-013 to TASK-018 (Pytest configuration)
+- TASK-P1-001 to TASK-P1-006 (Vitest configuration)
+- TASK-P1-013 to TASK-P1-018 (Pytest configuration)
 
 **Sequential dependencies:**
-- TASK-007 to TASK-012 must follow TASK-001 to TASK-006 (need Vitest working first)
-- TASK-019 to TASK-022 (CI) must follow both frontend and Python setup
-- TASK-023 to TASK-026 (Dev setup) can run partially in parallel with CI
+- TASK-P1-007 to TASK-P1-012 must follow TASK-P1-001 to TASK-P1-006 (need Vitest working first)
+- TASK-P1-019 to TASK-P1-022 (CI) must follow both frontend and Python setup
+- TASK-P1-023 to TASK-P1-025 (Dev setup) can run partially in parallel with CI
 
 ### Agent Context Requirements
 
@@ -252,11 +252,11 @@ Each executing agent needs:
 
 ### Validation Checkpoints
 
-- **After TASK-006**: Run `cd frontend && npm test` - should pass
-- **After TASK-012**: Run `cd frontend && npm test` - should have 2+ tests passing
-- **After TASK-017**: Run `cd analysis && pytest` - should pass with example test
-- **After TASK-022**: Push to test branch, verify CI workflow passes
-- **After TASK-026**: Clone fresh repo, run `./scripts/setup-dev.sh`, run tests
+- **After TASK-P1-006**: Run `cd frontend && npm test` - should pass
+- **After TASK-P1-012**: Run `cd frontend && npm test` - should have 2+ tests passing
+- **After TASK-P1-017**: Run `cd analysis && pytest` - should pass with example test
+- **After TASK-P1-022**: Push to test branch, verify CI workflow passes
+- **After TASK-P1-025**: Clone fresh repo, run `./scripts/setup-dev.sh`, run tests
 
 ## 9. Related Specifications / Further Reading
 
@@ -886,7 +886,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
-    "pytest-cov>=6.0.0",
+    "pytest-cov>=5.0.0",
     "pytest-xdist>=3.0.0",
     "moto[s3]>=5.0.0",
 ]

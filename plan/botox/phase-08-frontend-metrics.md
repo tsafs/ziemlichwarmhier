@@ -369,10 +369,8 @@ export interface WarmingRateMetric {
     startYear: number;
     /** End year of trend calculation (2025) */
     endYear: number;
-    /** Statistical confidence (0-1) */
+    /** R² value of linear regression (0-1), indicating statistical confidence */
     confidence: number;
-    /** R² value of linear regression */
-    rSquared: number;
     /** Methodology description */
     methodology: string;
 }

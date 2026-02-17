@@ -487,7 +487,7 @@ class WarmingRate(TypedDict):
     value: float           # °C per decade
     startYear: int         # Trend calculation start (1995)
     endYear: int           # Trend calculation end (2025)
-    confidence: float      # R² value (0-1)
+    confidence: float      # R² value from linear regression (0-1)
 
 
 class RecordDays(TypedDict):

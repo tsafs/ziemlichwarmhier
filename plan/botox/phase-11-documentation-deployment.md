@@ -76,11 +76,11 @@ Phase 11 completes the ERA5 Germany Climate Visualization project by establishin
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-001 | Create `documentation/architecture/era5-pipeline.md` with pipeline data flow diagrams | | |
-| TASK-002 | Create `documentation/architecture/frontend.md` with component hierarchy and Redux flow | | |
-| TASK-003 | Create `documentation/architecture/infrastructure.md` with deployment architecture | | |
-| TASK-004 | Add JSDoc comments to all public TypeScript functions in services and hooks | | |
-| TASK-005 | Add docstrings to all public Python functions in analysis modules | | |
+| TASK-P11-001 | Create `documentation/architecture/era5-pipeline.md` with pipeline data flow diagrams | | |
+| TASK-P11-002 | Create `documentation/architecture/frontend.md` with component hierarchy and Redux flow | | |
+| TASK-P11-003 | Create `documentation/architecture/infrastructure.md` with deployment architecture | | |
+| TASK-P11-004 | Add JSDoc comments to all public TypeScript functions in services and hooks | | |
+| TASK-P11-005 | Add docstrings to all public Python functions in analysis modules | | |
 
 **Completion Criteria:**
 - All architecture docs include diagrams (Mermaid format)
@@ -140,11 +140,11 @@ flowchart LR
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-006 | Create `documentation/data-formats/tiles.md` with tile schema and URL patterns | | |
-| TASK-007 | Create `documentation/data-formats/metrics.md` with JSON schema for all metric types | | |
-| TASK-008 | Create `documentation/data-formats/cities.md` with city data schema | | |
-| TASK-009 | Add JSON Schema files for validation (`schemas/*.json`) | | |
-| TASK-010 | Create `documentation/api/internal-api.md` for service layer contracts | | |
+| TASK-P11-006 | Create `documentation/data-formats/tiles.md` with tile schema and URL patterns | | |
+| TASK-P11-007 | Create `documentation/data-formats/metrics.md` with JSON schema for all metric types | | |
+| TASK-P11-008 | Create `documentation/data-formats/cities.md` with city data schema | | |
+| TASK-P11-009 | Add JSON Schema files for validation (`schemas/*.json`) | | |
+| TASK-P11-010 | Create `documentation/api/internal-api.md` for service layer contracts | | |
 
 **Completion Criteria:**
 - All JSON formats have corresponding JSON Schema
@@ -222,11 +222,11 @@ https://storage.esistwarm.jetzt/tiles/{year}/{month:02d}/{z}/{x}/{y}.webp
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-011 | Create `documentation/deployment/runbook.md` with standard operating procedures | | |
-| TASK-012 | Create `documentation/deployment/cloudflare.md` with Cloudflare configuration guide | | |
-| TASK-013 | Create `documentation/deployment/troubleshooting.md` with common issues and fixes | | |
-| TASK-014 | Create `scripts/ops/regenerate-tiles.sh` for manual tile regeneration | | |
-| TASK-015 | Create `scripts/ops/rollback-deployment.sh` for frontend rollback | | |
+| TASK-P11-011 | Create `documentation/deployment/runbook.md` with standard operating procedures | | |
+| TASK-P11-012 | Create `documentation/deployment/cloudflare.md` with Cloudflare configuration guide | | |
+| TASK-P11-013 | Create `documentation/deployment/troubleshooting.md` with common issues and fixes | | |
+| TASK-P11-014 | Create `scripts/ops/regenerate-tiles.sh` for manual tile regeneration | | |
+| TASK-P11-015 | Create `scripts/ops/rollback-deployment.sh` for frontend rollback | | |
 
 **Completion Criteria:**
 - Runbook covers all common ops tasks
@@ -377,15 +377,15 @@ gh run view <RUN_ID> --log
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-016 | Install and configure Playwright (`npm i -D @playwright/test`) | | |
-| TASK-017 | Create `frontend/playwright.config.ts` with browser and base URL config | | |
-| TASK-018 | Create `frontend/e2e/homepage.spec.ts` - page loads, initial state correct | | |
-| TASK-019 | Create `frontend/e2e/city-selection.spec.ts` - search and select city | | |
-| TASK-020 | Create `frontend/e2e/date-navigation.spec.ts` - month/year selection | | |
-| TASK-021 | Create `frontend/e2e/metrics-display.spec.ts` - metrics cards load | | |
-| TASK-022 | Create `frontend/e2e/map-interaction.spec.ts` - zoom, pan, click | | |
-| TASK-023 | Create `frontend/e2e/url-sharing.spec.ts` - shareable URLs work | | |
-| TASK-024 | Add E2E tests to GitHub Actions CI workflow | | |
+| TASK-P11-016 | Install and configure Playwright (`npm i -D @playwright/test`) | | |
+| TASK-P11-017 | Create `frontend/playwright.config.ts` with browser and base URL config | | |
+| TASK-P11-018 | Create `frontend/e2e/homepage.spec.ts` - page loads, initial state correct | | |
+| TASK-P11-019 | Create `frontend/e2e/city-selection.spec.ts` - search and select city | | |
+| TASK-P11-020 | Create `frontend/e2e/date-navigation.spec.ts` - month/year selection | | |
+| TASK-P11-021 | Create `frontend/e2e/metrics-display.spec.ts` - metrics cards load | | |
+| TASK-P11-022 | Create `frontend/e2e/map-interaction.spec.ts` - zoom, pan, click | | |
+| TASK-P11-023 | Create `frontend/e2e/url-sharing.spec.ts` - shareable URLs work | | |
+| TASK-P11-024 | Add E2E tests to GitHub Actions CI workflow | | |
 
 **Completion Criteria:**
 - All critical flows covered by E2E tests
@@ -661,15 +661,15 @@ test.describe('Map Interaction', () => {
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-025 | Create Cloudflare Pages project linked to GitHub repository | | |
-| TASK-026 | Configure build settings (Node 20, `npm run build`, dist directory) | | |
-| TASK-027 | Configure custom domain `esistwarm.jetzt` with SSL | | |
-| TASK-028 | Set up preview deployments for pull requests | | |
-| TASK-029 | Configure `_headers` file for caching and security headers | | |
-| TASK-030 | Configure `_redirects` file for SPA routing | | |
-| TASK-031 | Create `.github/workflows/cloudflare-pages-deploy.yml` for deployment | | |
-| TASK-032 | Configure environment variables in Cloudflare Pages dashboard | | |
-| TASK-033 | Test deployment with manual trigger | | |
+| TASK-P11-025 | Create Cloudflare Pages project linked to GitHub repository | | |
+| TASK-P11-026 | Configure build settings (Node 20, `npm run build`, dist directory) | | |
+| TASK-P11-027 | Configure custom domain `esistwarm.jetzt` with SSL | | |
+| TASK-P11-028 | Set up preview deployments for pull requests | | |
+| TASK-P11-029 | Configure `_headers` file for caching and security headers | | |
+| TASK-P11-030 | Configure `_redirects` file for SPA routing | | |
+| TASK-P11-031 | Create `.github/workflows/cloudflare-pages-deploy.yml` for deployment | | |
+| TASK-P11-032 | Configure environment variables in Cloudflare Pages dashboard | | |
+| TASK-P11-033 | Test deployment with manual trigger | | |
 
 **Completion Criteria:**
 - Production site accessible at `esistwarm.jetzt`
@@ -783,13 +783,13 @@ jobs:
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-034 | Configure Cloudflare Health Checks for `esistwarm.jetzt` | | |
-| TASK-035 | Configure Cloudflare Health Checks for tile storage endpoint | | |
-| TASK-036 | Set up GitHub Actions failure notifications (Slack/Email) | | |
-| TASK-037 | Create cost monitoring dashboard (Hetzner, Cloudflare usage) | | |
-| TASK-038 | Configure budget alerts for Hetzner storage | | |
-| TASK-039 | Add Cloudflare Analytics for traffic monitoring | | |
-| TASK-040 | Create `documentation/monitoring/alerts.md` documenting alert channels | | |
+| TASK-P11-034 | Configure Cloudflare Health Checks for `esistwarm.jetzt` | | |
+| TASK-P11-035 | Configure Cloudflare Health Checks for tile storage endpoint | | |
+| TASK-P11-036 | Set up GitHub Actions failure notifications (Slack/Email) | | |
+| TASK-P11-037 | Create cost monitoring dashboard (Hetzner, Cloudflare usage) | | |
+| TASK-P11-038 | Configure budget alerts for Hetzner storage | | |
+| TASK-P11-039 | Add Cloudflare Analytics for traffic monitoring | | |
+| TASK-P11-040 | Create `documentation/monitoring/alerts.md` documenting alert channels | | |
 
 **Completion Criteria:**
 - Health checks configured and verified
@@ -881,15 +881,15 @@ resource "cloudflare_healthcheck" "tiles" {
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-041 | Run initial Lighthouse audit and document baseline scores | | |
-| TASK-042 | Implement code splitting for large components (MapLibre, D3) | | |
-| TASK-043 | Configure lazy loading for below-the-fold content | | |
-| TASK-044 | Optimize images (WebP, responsive srcset) | | |
-| TASK-045 | Add preconnect hints for external resources | | |
-| TASK-046 | Configure service worker for offline tile caching | | |
-| TASK-047 | Minify and compress all assets (already in Vite, verify) | | |
-| TASK-048 | Run final Lighthouse audit and document improvements | | |
-| TASK-049 | Create performance budget configuration | | |
+| TASK-P11-041 | Run initial Lighthouse audit and document baseline scores | | |
+| TASK-P11-042 | Implement code splitting for large components (MapLibre, D3) | | |
+| TASK-P11-043 | Configure lazy loading for below-the-fold content | | |
+| TASK-P11-044 | Optimize images (WebP, responsive srcset) | | |
+| TASK-P11-045 | Add preconnect hints for external resources | | |
+| TASK-P11-046 | Configure service worker for offline tile caching | | |
+| TASK-P11-047 | Minify and compress all assets (already in Vite, verify) | | |
+| TASK-P11-048 | Run final Lighthouse audit and document improvements | | |
+| TASK-P11-049 | Create performance budget configuration | | |
 
 **Completion Criteria:**
 - Lighthouse Performance score ≥ 90
@@ -1323,7 +1323,7 @@ frontend/
 - TASK-001, TASK-002, TASK-003 can run in parallel
 - TASK-006, TASK-007, TASK-008 can run in parallel
 - TASK-018 through TASK-023 (E2E tests) can run in parallel
-- TASK-041 through TASK-049 (Performance) largely sequential
+- TASK-P11-041 through TASK-P11-049 (Performance) largely sequential
 
 ### Agent Context Requirements
 
@@ -1358,8 +1358,8 @@ frontend/
 | E2E in CI | TASK-024 | GitHub Action completes green |
 | Pages deployed | TASK-033 | Preview URL returns 200 |
 | Production live | TASK-027 | `esistwarm.jetzt` returns 200 |
-| Monitoring active | TASK-040 | Health check triggers test alert |
-| Performance met | TASK-048 | Lighthouse ≥ 90 on production |
+| Monitoring active | TASK-P11-040 | Health check triggers test alert |
+| Performance met | TASK-P11-048 | Lighthouse ≥ 90 on production |
 
 ### Rollback Strategy
 

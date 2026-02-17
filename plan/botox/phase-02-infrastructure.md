@@ -76,11 +76,11 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-001 | Create Hetzner Cloud account (if not existing) and enable Object Storage                             |           |      |
-| TASK-002 | Create bucket `era5-tiles` in fsn1 (Falkenstein) region via Hetzner Console                          |           |      |
-| TASK-003 | Generate Access Key and Secret Key for bucket access                                                 |           |      |
-| TASK-004 | Document bucket endpoint URL format: `https://era5-tiles.fsn1.your-objectstorage.com`                |           |      |
-| TASK-005 | Test bucket accessibility with boto3 (manual verification)                                           |           |      |
+| TASK-P2-001 | Create Hetzner Cloud account (if not existing) and enable Object Storage                             |           |      |
+| TASK-P2-002 | Create bucket `era5-tiles` in fsn1 (Falkenstein) region via Hetzner Console                          |           |      |
+| TASK-P2-003 | Generate Access Key and Secret Key for bucket access                                                 |           |      |
+| TASK-P2-004 | Document bucket endpoint URL format: `https://era5-tiles.fsn1.your-objectstorage.com`                |           |      |
+| TASK-P2-005 | Test bucket accessibility with boto3 (manual verification)                                           |           |      |
 
 **Manual Steps for TASK-001 to TASK-004:**
 
@@ -107,10 +107,10 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-006 | Create `infrastructure/bucket/era5-cors.json` with CORS rules                                        |           |      |
-| TASK-007 | Create `scripts/setup-hetzner-cors.sh` script to apply CORS configuration                            |           |      |
-| TASK-008 | Apply CORS configuration to bucket                                                                   |           |      |
-| TASK-009 | Verify CORS headers in browser DevTools                                                              |           |      |
+| TASK-P2-006 | Create `infrastructure/bucket/era5-cors.json` with CORS rules                                        |           |      |
+| TASK-P2-007 | Create `scripts/setup-hetzner-cors.sh` script to apply CORS configuration                            |           |      |
+| TASK-P2-008 | Apply CORS configuration to bucket                                                                   |           |      |
+| TASK-P2-009 | Verify CORS headers in browser DevTools                                                              |           |      |
 
 ---
 
@@ -120,11 +120,11 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-010 | Create `analysis/utilities/hetzner_storage.py` - Hetzner-specific upload/download utilities          |           |      |
-| TASK-011 | Add content-type detection for WebP, JSON, and GeoTIFF files                                         |           |      |
-| TASK-012 | Add public-read ACL support for tile uploads                                                         |           |      |
-| TASK-013 | Add directory upload function for batch tile uploads                                                 |           |      |
-| TASK-014 | Write unit tests for upload utility with mocked boto3                                                |           |      |
+| TASK-P2-010 | Create `analysis/utilities/hetzner_storage.py` - Hetzner-specific upload/download utilities          |           |      |
+| TASK-P2-011 | Add content-type detection for WebP, JSON, and GeoTIFF files                                         |           |      |
+| TASK-P2-012 | Add public-read ACL support for tile uploads                                                         |           |      |
+| TASK-P2-013 | Add directory upload function for batch tile uploads                                                 |           |      |
+| TASK-P2-014 | Write unit tests for upload utility with mocked boto3                                                |           |      |
 
 ---
 
@@ -134,10 +134,10 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-015 | Create `.env.example` with all required environment variables                                        |           |      |
-| TASK-016 | Create `scripts/validate-env.py` - validate environment before pipeline runs                         |           |      |
-| TASK-017 | Document environment variables in `documentation/infrastructure/environment.md`                      |           |      |
-| TASK-018 | Add GitHub Secrets documentation for CI/CD setup                                                     |           |      |
+| TASK-P2-015 | Create `.env.example` with all required environment variables                                        |           |      |
+| TASK-P2-016 | Create `scripts/validate-env.py` - validate environment before pipeline runs                         |           |      |
+| TASK-P2-017 | Document environment variables in `documentation/infrastructure/environment.md`                      |           |      |
+| TASK-P2-018 | Add GitHub Secrets documentation for CI/CD setup                                                     |           |      |
 
 ---
 
@@ -147,9 +147,9 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-019 | Document Cloudflare cache rules for tile subdomain/path                                              |           |      |
-| TASK-020 | Create cache purge script for tile updates `scripts/purge-tile-cache.sh`                             |           |      |
-| TASK-021 | Test cache behavior with sample tile upload                                                          |           |      |
+| TASK-P2-019 | Document Cloudflare cache rules for tile subdomain/path                                              |           |      |
+| TASK-P2-020 | Create cache purge script for tile updates `scripts/purge-tile-cache.sh`                             |           |      |
+| TASK-P2-021 | Test cache behavior with sample tile upload                                                          |           |      |
 
 ---
 
@@ -159,10 +159,10 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-022 | Create `analysis/utilities/tests/test_hetzner_storage.py` - unit tests with mocked S3                |           |      |
-| TASK-023 | Create integration test script that uploads/downloads/deletes test file                              |           |      |
-| TASK-024 | Verify public URL accessibility for uploaded test tile                                               |           |      |
-| TASK-025 | Document infrastructure validation checklist                                                         |           |      |
+| TASK-P2-022 | Create `analysis/utilities/tests/test_hetzner_storage.py` - unit tests with mocked S3                |           |      |
+| TASK-P2-023 | Create integration test script that uploads/downloads/deletes test file                              |           |      |
+| TASK-P2-024 | Verify public URL accessibility for uploaded test tile                                               |           |      |
+| TASK-P2-025 | Document infrastructure validation checklist                                                         |           |      |
 
 ## 3. Alternatives
 
@@ -288,14 +288,14 @@ def test_upload_file(mock_s3_client):
 ### Execution Order
 
 **Parallel tasks (can run simultaneously):**
-- TASK-006 and TASK-015 (CORS config and .env.example creation)
-- TASK-010 to TASK-014 (utility development) can parallel with TASK-017-018 (documentation)
+- TASK-P2-006 and TASK-P2-015 (CORS config and .env.example creation)
+- TASK-P2-010 to TASK-P2-014 (utility development) can parallel with TASK-P2-017-018 (documentation)
 
 **Sequential dependencies:**
-- TASK-001 to TASK-005 must complete first (bucket creation)
-- TASK-006 to TASK-008 must complete before TASK-009 (CORS verification)
-- TASK-010 to TASK-013 must complete before TASK-014 (tests need code)
-- TASK-022 to TASK-025 require all prior tasks (integration testing)
+- TASK-P2-001 to TASK-P2-005 must complete first (bucket creation)
+- TASK-P2-006 to TASK-P2-008 must complete before TASK-P2-009 (CORS verification)
+- TASK-P2-010 to TASK-P2-013 must complete before TASK-P2-014 (tests need code)
+- TASK-P2-022 to TASK-P2-025 require all prior tasks (integration testing)
 
 ### Agent Context Requirements
 
@@ -307,10 +307,10 @@ Executing agent needs:
 
 ### Validation Checkpoints
 
-- **After TASK-005**: `boto3` can list bucket contents (empty list OK)
-- **After TASK-009**: Browser DevTools shows `Access-Control-Allow-Origin` header
-- **After TASK-014**: `pytest analysis/utilities/tests/test_hetzner_storage.py` passes
-- **After TASK-024**: Public URL returns 200 with test tile
+- **After TASK-P2-005**: `boto3` can list bucket contents (empty list OK)
+- **After TASK-P2-009**: Browser DevTools shows `Access-Control-Allow-Origin` header
+- **After TASK-P2-014**: `pytest analysis/utilities/tests/test_hetzner_storage.py` passes
+- **After TASK-P2-024**: Public URL returns 200 with test tile
 
 ## 9. Related Specifications / Further Reading
 

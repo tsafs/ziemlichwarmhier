@@ -298,13 +298,13 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-955 | Create `frontend/src/components/plots/narrative/response/ComfortCalendar.tsx` | | |
-| TASK-956 | Render heatmap with decades (rows) x months (columns) | | |
-| TASK-957 | Color cells by comfortable days count (green gradient) | | |
-| TASK-958 | Display day count in each cell | | |
-| TASK-959 | Add axis labels (decades, months) | | |
-| TASK-960 | Include ExpandableText with methodology | | |
-| TASK-961 | Write tests for ComfortCalendar | | |
+| TASK-P9-070 | Create `frontend/src/components/plots/narrative/response/ComfortCalendar.tsx` | | |
+| TASK-P9-071 | Render heatmap with decades (rows) x months (columns) | | |
+| TASK-P9-072 | Color cells by comfortable days count (green gradient) | | |
+| TASK-P9-073 | Display day count in each cell | | |
+| TASK-P9-074 | Add axis labels (decades, months) | | |
+| TASK-P9-075 | Include ExpandableText with methodology | | |
+| TASK-P9-076 | Write tests for ComfortCalendar | | |
 
 **Completion Criteria:**
 - Heatmap renders 7 decades × 12 months
@@ -320,14 +320,14 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-974 | Create `frontend/src/components/plots/narrative/response/TropicalNights.tsx` | | |
-| TASK-975 | Render combined bar + line chart | | |
-| TASK-976 | Bars: tropical nights (Tmin ≥ 20°C) per year | | |
-| TASK-977 | Line: hot days (Tmax ≥ 30°C) per year | | |
-| TASK-978 | Color bars by intensity (yellow to red gradient) | | |
-| TASK-979 | Add reference annotations for historical averages | | |
-| TASK-980 | Include ExpandableText with methodology | | |
-| TASK-981 | Write tests for TropicalNights | | |
+| TASK-P9-077 | Create `frontend/src/components/plots/narrative/response/TropicalNights.tsx` | | |
+| TASK-P9-078 | Render combined bar + line chart | | |
+| TASK-P9-079 | Bars: tropical nights (Tmin ≥ 20°C) per year | | |
+| TASK-P9-080 | Line: hot days (Tmax ≥ 30°C) per year | | |
+| TASK-P9-081 | Color bars by intensity (yellow to red gradient) | | |
+| TASK-P9-082 | Add reference annotations for historical averages | | |
+| TASK-P9-083 | Include ExpandableText with methodology | | |
+| TASK-P9-084 | Write tests for TropicalNights | | |
 
 **Narrative text:**
 - Key insight: *"Sleepless summer nights are no longer rare events."*
@@ -346,14 +346,14 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-970 | Create `frontend/src/components/plots/narrative/response/VegetationStress.tsx` | | |
-| TASK-971 | Render stacked area chart with 3 stress types | | |
-| TASK-972 | Brown area: hot & dry days (Tmax ≥30°C, 7-day precip <0.5mm) | | |
-| TASK-973 | Red area: extreme heat days (Tmax ≥35°C) | | |
-| TASK-974 | Blue markers: late spring frost (after Apr 15, Tmin ≤-2°C) | | |
-| TASK-975 | Add legend for stress types | | |
-| TASK-976 | Include ExpandableText with methodology | | |
-| TASK-977 | Write tests for VegetationStress | | |
+| TASK-P9-085 | Create `frontend/src/components/plots/narrative/response/VegetationStress.tsx` | | |
+| TASK-P9-086 | Render stacked area chart with 3 stress types | | |
+| TASK-P9-087 | Brown area: hot & dry days (Tmax ≥30°C, 7-day precip <0.5mm) | | |
+| TASK-P9-088 | Red area: extreme heat days (Tmax ≥35°C) | | |
+| TASK-P9-089 | Blue markers: late spring frost (after Apr 15, Tmin ≤-2°C) | | |
+| TASK-P9-090 | Add legend for stress types | | |
+| TASK-P9-091 | Include ExpandableText with methodology | | |
+| TASK-P9-092 | Write tests for VegetationStress | | |
 
 **Narrative text:**
 - Intro: *"Plants face a triple threat: drought, heat waves, and late frost."*
@@ -373,12 +373,12 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-978 | Create `frontend/src/components/plots/narrative/tabs/RecognitionTab.tsx` with 2 plots | | |
-| TASK-979 | Create `frontend/src/components/plots/narrative/tabs/UnderstandingTab.tsx` with 4 plots | | |
-| TASK-980 | Create `frontend/src/components/plots/narrative/tabs/ResponseTab.tsx` with 3 plots | | |
-| TASK-981 | Connect tabs to NarrativeSection container | | |
-| TASK-982 | Implement lazy loading for inactive tabs | | |
-| TASK-983 | Write integration tests for full narrative flow | | |
+| TASK-P9-093 | Create `frontend/src/components/plots/narrative/tabs/RecognitionTab.tsx` with 2 plots | | |
+| TASK-P9-094 | Create `frontend/src/components/plots/narrative/tabs/UnderstandingTab.tsx` with 4 plots | | |
+| TASK-P9-095 | Create `frontend/src/components/plots/narrative/tabs/ResponseTab.tsx` with 3 plots | | |
+| TASK-P9-096 | Connect tabs to NarrativeSection container | | |
+| TASK-P9-097 | Implement lazy loading for inactive tabs | | |
+| TASK-P9-098 | Write integration tests for full narrative flow | | |
 
 **Completion Criteria:**
 - All tabs render correct plots
@@ -394,11 +394,11 @@ This phase implements the narrative plot section that tells the climate story th
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-984 | Create `frontend/src/hooks/useNarrativePlots.ts` | | |
-| TASK-985 | Implement auto-fetch on city selection | | |
-| TASK-986 | Add plot loading skeleton/placeholder | | |
-| TASK-987 | Create barrel export for narrative components | | |
-| TASK-988 | Add E2E tests for narrative section | | |
+| TASK-P9-099 | Create `frontend/src/hooks/useNarrativePlots.ts` | | |
+| TASK-P9-100 | Implement auto-fetch on city selection | | |
+| TASK-P9-101 | Add plot loading skeleton/placeholder | | |
+| TASK-P9-102 | Create barrel export for narrative components | | |
+| TASK-P9-103 | Add E2E tests for narrative section | | |
 
 **Completion Criteria:**
 - Hook provides all narrative plot data
@@ -448,28 +448,30 @@ This phase implements the narrative plot section that tells the climate story th
 - **FILE-P9-007**: `frontend/src/components/plots/narrative/recognition/SeasonalWarming.tsx` - NEW
 - **FILE-P9-008**: `frontend/src/components/plots/narrative/understanding/MonthlyDistribution.tsx` - NEW
 - **FILE-P9-009**: `frontend/src/components/plots/narrative/understanding/ExtremesInverted.tsx` - NEW
-- **FILE-P9-010**: `frontend/src/components/plots/narrative/response/ComfortCalendar.tsx` - NEW
-- **FILE-P9-011**: `frontend/src/components/plots/narrative/response/TropicalNights.tsx` - NEW
-- **FILE-P9-012**: `frontend/src/components/plots/narrative/response/VegetationStress.tsx` - NEW
-- **FILE-P9-013**: `frontend/src/components/plots/narrative/index.ts` - NEW - Barrel export
-- **FILE-P9-014**: `frontend/src/components/common/ExpandableText.tsx` - NEW
-- **FILE-P9-015**: `frontend/src/services/NarrativePlotService.ts` - NEW
-- **FILE-P9-016**: `frontend/src/store/slices/narrativePlotSlice.ts` - NEW
-- **FILE-P9-017**: `frontend/src/types/plotData.ts` - NEW
-- **FILE-P9-018**: `frontend/src/hooks/useNarrativePlots.ts` - NEW
+- **FILE-P9-010**: `frontend/src/components/plots/narrative/understanding/RecordBreakingReality.tsx` - NEW
+- **FILE-P9-011**: `frontend/src/components/plots/narrative/understanding/WinterForgotToCome.tsx` - NEW
+- **FILE-P9-012**: `frontend/src/components/plots/narrative/response/ComfortCalendar.tsx` - NEW
+- **FILE-P9-013**: `frontend/src/components/plots/narrative/response/TropicalNights.tsx` - NEW
+- **FILE-P9-014**: `frontend/src/components/plots/narrative/response/VegetationStress.tsx` - NEW
+- **FILE-P9-015**: `frontend/src/components/plots/narrative/index.ts` - NEW - Barrel export
+- **FILE-P9-016**: `frontend/src/components/common/ExpandableText.tsx` - NEW
+- **FILE-P9-017**: `frontend/src/services/NarrativePlotService.ts` - NEW
+- **FILE-P9-018**: `frontend/src/store/slices/narrativePlotSlice.ts` - NEW
+- **FILE-P9-019**: `frontend/src/types/plotData.ts` - NEW
+- **FILE-P9-020**: `frontend/src/hooks/useNarrativePlots.ts` - NEW
 
 ### Modified Files
-- **FILE-P9-019**: `frontend/src/store/index.ts` - MODIFY - Add narrativePlotSlice
+- **FILE-P9-021**: `frontend/src/store/index.ts` - MODIFY - Add narrativePlotSlice
 
 ### Test Files
-- **FILE-P9-020**: `frontend/src/components/plots/narrative/__tests__/NarrativeSection.test.tsx` - NEW
-- **FILE-P9-021**: `frontend/src/components/plots/narrative/__tests__/TemperatureEvolution.test.tsx` - NEW
-- **FILE-P9-022**: `frontend/src/components/plots/narrative/__tests__/ComfortCalendar.test.tsx` - NEW
-- **FILE-P9-023**: `frontend/src/components/plots/narrative/__tests__/TropicalNights.test.tsx` - NEW
-- **FILE-P9-024**: `frontend/src/components/plots/narrative/__tests__/VegetationStress.test.tsx` - NEW
-- **FILE-P9-025**: `frontend/src/components/common/__tests__/ExpandableText.test.tsx` - NEW
-- **FILE-P9-026**: `frontend/src/services/__tests__/NarrativePlotService.test.ts` - NEW
-- **FILE-P9-027**: `frontend/src/store/slices/__tests__/narrativePlotSlice.test.ts` - NEW
+- **FILE-P9-022**: `frontend/src/components/plots/narrative/__tests__/NarrativeSection.test.tsx` - NEW
+- **FILE-P9-023**: `frontend/src/components/plots/narrative/__tests__/TemperatureEvolution.test.tsx` - NEW
+- **FILE-P9-024**: `frontend/src/components/plots/narrative/__tests__/ComfortCalendar.test.tsx` - NEW
+- **FILE-P9-025**: `frontend/src/components/plots/narrative/__tests__/TropicalNights.test.tsx` - NEW
+- **FILE-P9-026**: `frontend/src/components/plots/narrative/__tests__/VegetationStress.test.tsx` - NEW
+- **FILE-P9-027**: `frontend/src/components/common/__tests__/ExpandableText.test.tsx` - NEW
+- **FILE-P9-028**: `frontend/src/services/__tests__/NarrativePlotService.test.ts` - NEW
+- **FILE-P9-029**: `frontend/src/store/slices/__tests__/narrativePlotSlice.test.ts` - NEW
 
 ## 6. Testing
 
@@ -478,7 +480,7 @@ This phase implements the narrative plot section that tells the climate story th
 - **TEST-P9-002**: Tab click changes active tab state
 - **TEST-P9-003**: ExpandableText toggles correctly on click
 - **TEST-P9-004**: NarrativePlotService fetches and parses CSV correctly
-- **TEST-P9-005**: Each plot component (7 total) renders without errors with mock data
+- **TEST-P9-005**: Each plot component (9 total) renders without errors with mock data
 - **TEST-P9-006**: narrativePlotSlice caches data by location
 
 ### Integration Tests
@@ -521,7 +523,7 @@ This phase implements the narrative plot section that tells the climate story th
 ### Assumptions
 - **ASSUMPTION-P9-001**: Observable Plot works with React 19 without issues
 - **ASSUMPTION-P9-002**: Yearly aggregated data fits well in box plots
-- **ASSUMPTION-P9-003**: 7 plots (2+2+3) is sufficient for narrative (expandable later)
+- **ASSUMPTION-P9-003**: 9 plots (2+4+3) is sufficient for narrative (expandable later)
 - **ASSUMPTION-P9-004**: Decadal aggregation for Comfort Calendar heatmap is meaningful
 
 ## 8. Multi-Agent Execution Notes

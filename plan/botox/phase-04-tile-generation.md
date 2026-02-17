@@ -287,9 +287,17 @@ WEBP_QUALITY = 80  # 0-100, balance of size and quality
 MIN_ZOOM = 6
 MAX_ZOOM = 10
 
-# Germany bounds (from Phase 3 config)
+# Import Germany bounds from Phase 3 config to avoid duplication
+# from analysis.era5.config import GERMANY_BOUNDS
+# Note: When implementing, import should look like:
+# ```python
+# from analysis.era5.config import GERMANY_BOUNDS
+# ```
+# The bounds are: north=55.1, south=47.2, west=5.8, east=15.1
+
+# For reference only - actual import from analysis.era5.config
 GERMANY_BOUNDS = {
-    'north': 55.1,
+    'north': 55.1,  # Import from analysis.era5.config in actual implementation
     'south': 47.2,
     'west': 5.8,
     'east': 15.1,
