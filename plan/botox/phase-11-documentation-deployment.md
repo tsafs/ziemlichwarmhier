@@ -1227,20 +1227,20 @@ export default defineConfig({
 // frontend/e2e/mocks/metrics.json
 {
     "germany": {
-        "annualAnomaly": { "value": 1.8, "year": 2025 },
-        "warmingRate": { "value": 0.4, "startYear": 1961, "endYear": 2025 },
-        "recordDays": { "total": 42, "hot": 38, "cold": 4 },
-        "seasonalWarming": { "winter": 2.1, "spring": 1.5, "summer": 1.9, "autumn": 1.6 },
-        "thresholdDays": { "hotDays": 15, "iceDays": 8, "frostDays": 45, "tropicalNights": 3 },
-        "comfortableDays": { "count": 142, "year": 2025 }
+        "fiveYearAnomaly": { "value": 1.8, "periodStart": 2021, "periodEnd": 2025, "referenceStart": 1961, "referenceEnd": 1990 },
+        "warmingRate": { "value": 0.4, "startYear": 1995, "endYear": 2025, "confidence": 0.88 },
+        "recordDays": { "total": 42, "hot": 38, "cold": 4, "year": 2025 },
+        "seasonalWarming": { "winter": 2.1, "spring": 1.5, "summer": 1.9, "fall": 1.6, "fastestSeason": "winter", "periodStart": 2021, "periodEnd": 2025, "referenceStart": 1961, "referenceEnd": 1990 },
+        "thresholdDays": { "hotDays": 15, "iceDays": 8, "frostDays": 45, "tropicalNights": 3, "year": 2025 },
+        "comfortableDays": { "count": 142, "average": 140 }
     },
     "berlin": {
-        "annualAnomaly": { "value": 2.1, "year": 2025 },
-        "warmingRate": { "value": 0.5, "startYear": 1961, "endYear": 2025 },
-        "recordDays": { "total": 28, "hot": 24, "cold": 4 },
-        "seasonalWarming": { "winter": 2.4, "spring": 1.8, "summer": 2.2, "autumn": 1.9 },
-        "thresholdDays": { "hotDays": 22, "iceDays": 5, "frostDays": 38, "tropicalNights": 8 },
-        "comfortableDays": { "count": 138, "year": 2025 }
+        "fiveYearAnomaly": { "value": 2.1, "periodStart": 2021, "periodEnd": 2025, "referenceStart": 1961, "referenceEnd": 1990 },
+        "warmingRate": { "value": 0.5, "startYear": 1995, "endYear": 2025, "confidence": 0.91 },
+        "recordDays": { "total": 28, "hot": 24, "cold": 4, "year": 2025 },
+        "seasonalWarming": { "winter": 2.4, "spring": 1.8, "summer": 2.2, "fall": 1.9, "fastestSeason": "winter", "periodStart": 2021, "periodEnd": 2025, "referenceStart": 1961, "referenceEnd": 1990 },
+        "thresholdDays": { "hotDays": 22, "iceDays": 5, "frostDays": 38, "tropicalNights": 8, "year": 2025 },
+        "comfortableDays": { "count": 138, "average": 136 }
     }
 }
 ```
@@ -2138,9 +2138,9 @@ Components should include `data-testid` attributes for E2E testing:
 function MetricsRow({ metrics }: MetricsRowProps) {
     return (
         <div data-testid="metrics-row" className="metrics-row">
-            <AnnualAnomalyCard 
-                data-testid="annual-anomaly-card"
-                value={metrics.annualAnomaly}
+            <FiveYearAnomalyCard
+                data-testid="five-year-anomaly-card"
+                value={metrics.fiveYearAnomaly}
             />
             {/* ... more cards */}
         </div>

@@ -58,7 +58,7 @@ This phase implements the interactive climate map visualization using MapLibre G
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P7-001 | Install `maplibre-gl` and `@types/maplibre-gl` via npm | | |
+| TASK-P7-001 | Install `maplibre-gl` via npm (TypeScript types bundled since v3; no separate types package required) | | |
 | TASK-P7-002 | Add MapLibre CSS import to App.tsx or index.tsx | | |
 | TASK-P7-003 | Create `frontend/src/constants/mapConfig.ts` with Germany bounds, zoom levels, tile URL pattern | | |
 | TASK-P7-004 | Write type definitions for map state in `frontend/src/types/map.ts` | | |
@@ -243,8 +243,7 @@ This phase implements the interactive climate map visualization using MapLibre G
 ## 4. Dependencies
 
 ### External Dependencies
-- **DEP-P7-001**: `maplibre-gl` ^4.x - Map rendering library
-- **DEP-P7-002**: `@types/maplibre-gl` - TypeScript types (peer of maplibre-gl in v4)
+- **DEP-P7-001**: `maplibre-gl` ^4.x - Map rendering library (TypeScript types bundled; no separate `@types/maplibre-gl` package needed since v3)
 - **DEP-P7-003**: Tile data from Hetzner Object Storage (Phase 4 output)
 
 ### Internal Dependencies  

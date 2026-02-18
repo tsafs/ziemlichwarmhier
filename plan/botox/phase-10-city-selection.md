@@ -180,7 +180,7 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P10-039 | Update `frontend/src/store/slices/selectedCitySlice.ts` | | |
+| TASK-P10-039 | Create `frontend/src/store/slices/citySlice.ts` - new city selection state for ERA5 feature (do NOT modify existing `selectedCitySlice.ts`) | | |
 | TASK-P10-040 | Add `selectCityBySlug(slug)` action | | |
 | TASK-P10-041 | Add `selectCitySelector` by slug | | |
 | TASK-P10-042 | Ensure backward compatibility with ID-based selection | | |
@@ -269,7 +269,7 @@ This phase implements the city search and selection functionality that connects 
 - **DEP-P10-002**: GeoNames city data - Already present (`german_cities_p5000.csv`)
 
 ### Internal Dependencies
-- **DEP-P10-003**: `selectedCitySlice` - Existing, to be enhanced
+- **DEP-P10-003**: `citySlice` - NEW file; `selectedCitySlice.ts` remains unchanged for backward compatibility
 - **DEP-P10-004**: `cityDataSlice` - Existing, will merge correlation data
 - **DEP-P10-005**: `ClimateMap` (Phase 7) - Will respond to city selection
 - **DEP-P10-006**: `MetricsRow` (Phase 8) - Will respond to city selection
@@ -297,7 +297,7 @@ This phase implements the city search and selection functionality that connects 
 - **FILE-P10-010**: `data/cities/city_grid_correlation.json` - NEW (generated)
 
 ### Modified Files
-- **FILE-P10-011**: `frontend/src/store/slices/selectedCitySlice.ts` - MODIFY
+- **FILE-P10-011**: `frontend/src/store/slices/citySlice.ts` - NEW - ERA5 city selection state
 - **FILE-P10-012**: `frontend/src/store/slices/cityDataSlice.ts` - MODIFY
 - **FILE-P10-013**: `frontend/src/classes/City.ts` - MODIFY (add slug, grid fields)
 - **FILE-P10-014**: `frontend/src/App.tsx` - MODIFY (add URL param handling)
@@ -624,7 +624,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAppDispatch } from '../store/hooks/useAppDispatch';
 import { useAppSelector } from '../store/hooks/useAppSelector';
-import { selectCityBySlug, selectCurrentCitySlug } from '../store/slices/selectedCitySlice';
+import { selectCityBySlug, selectCurrentCitySlug } from '../store/slices/citySlice';
 import { selectCitySlugIndex } from '../store/slices/cityDataSlice';
 import { findCityBySlug } from '../utils/citySlugUtils';
 
@@ -723,7 +723,7 @@ import { FaSearch, FaTimes } from 'react-icons/fa';
 import { useAppDispatch } from '../../store/hooks/useAppDispatch';
 import { useAppSelector } from '../../store/hooks/useAppSelector';
 import { selectCities } from '../../store/slices/cityDataSlice';
-import { selectCityBySlug, selectSelectedCityName } from '../../store/slices/selectedCitySlice';
+import { selectCityBySlug, selectSelectedCityName } from '../../store/slices/citySlice';
 import { searchCities, highlightMatch } from '../../utils/citySearchUtils';
 import { cityNameToSlug } from '../../utils/citySlugUtils';
 import { theme, createStyles } from '../../styles/design-system';
@@ -1172,15 +1172,18 @@ if __name__ == '__main__':
     main()
 ```
 
-### 10.6 Updated selectedCitySlice
+### 10.6 citySlice.ts (New File)
 
-**File**: `frontend/src/store/slices/selectedCitySlice.ts` (modifications)
+**File**: `frontend/src/store/slices/citySlice.ts` (new file)
+
+> **Note**: `selectedCitySlice.ts` is kept unchanged. `citySlice.ts` is a new, separate slice for ERA5 city selection state, ensuring backward compatibility with any existing consumers of `selectedCitySlice`.
 
 ```typescript
 /**
- * Selected City Slice (Enhanced)
+ * City Slice
  * 
- * Add these additions to the existing slice:
+ * ERA5-specific city selection state. Separate from the pre-existing
+ * selectedCitySlice.ts to avoid breaking backward compatibility.
  */
 
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
@@ -1236,7 +1239,7 @@ export const selectCityBySlug = createAsyncThunk<
 );
 
 // Add to slice reducers
-const selectedCitySlice = createSlice({
+const citySlice = createSlice({
     name: 'selectedCity',
     initialState,
     reducers: {
@@ -1285,8 +1288,8 @@ export const selectCurrentCitySlug = (state: RootState) => state.selectedCity.ci
 export const selectSelectedCityName = (state: RootState) => state.selectedCity.cityName;
 export const selectCityIsLoading = (state: RootState) => state.selectedCity.isLoading;
 
-export const { selectCity, clearCity } = selectedCitySlice.actions;
-export default selectedCitySlice.reducer;
+export const { selectCity, clearCity } = citySlice.actions;
+export default citySlice.reducer;
 ```
 
 ### 10.7 ShareButton Component
@@ -1569,7 +1572,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter } from 'react-router-dom';
 import CitySearch from '../CitySearch';
 import cityDataReducer from '../../../store/slices/cityDataSlice';
-import selectedCityReducer from '../../../store/slices/selectedCitySlice';
+import cityReducer from '../../../store/slices/citySlice';
 
 const mockCities = {
     '1': { id: '1', name: 'Berlin', lat: 52.52, lon: 13.405 },
@@ -1581,7 +1584,7 @@ const mockCities = {
 const createMockStore = () => configureStore({
     reducer: {
         cityData: cityDataReducer,
-        selectedCity: selectedCityReducer,
+        selectedCity: cityReducer,
     },
     preloadedState: {
         cityData: {

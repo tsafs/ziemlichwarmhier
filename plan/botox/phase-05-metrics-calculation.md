@@ -28,7 +28,7 @@ This phase implements the climate metrics calculation pipeline that processes ER
 
 ### From Master Plan
 
-- **REQ-003**: Display 4-6 static climate metrics (temperature anomaly, warming rate, record days, etc.)
+- **REQ-003**: Display 6 static climate metrics (Five-Year Temperature Anomaly, Warming Rate, Winter Warming, Record-Breaking Days, Snow Days Lost, Comfortable Days)
 - **REQ-004**: Support city selection with tile-based metrics (cities map to grid tiles; multiple cities can share one tile's data)
 
 ### Phase-Specific Requirements
@@ -248,8 +248,17 @@ This phase implements the climate metrics calculation pipeline that processes ER
 | Path | Description |
 |------|-------------|
 | `data/metrics/germany.json` | Country-level aggregated metrics |
-| `data/metrics/tiles/{grid_i}_{grid_j}.json` | Per-tile metrics (multiple cities map to same tile) |
+| `data/metrics/tiles/{grid_i}_{grid_j}.json` | Per-tile metrics (multiple cities can share the same tile) |
+| `data/metrics/tiles/{grid_i}_{grid_j}_decadal.json` | Per-tile decadal aggregates for narrative plots (Comfort Calendar, Tropical Nights, Vegetation Stress) |
 | `data/metrics/grid/metrics_{year}.nc` | Per-grid-cell metrics (NetCDF) |
+
+**Decadal metrics URL contract:**
+- Pattern: `/data/metrics/tiles/{grid_i}_{grid_j}_decadal.json`
+- Produced by: `TASK-P5-039` (`calculate_decadal_aggregates.py`)
+- Consumed by: Phase 9 plots — Comfort Calendar, Sleep Interrupted (Tropical Nights), Vegetation Stress
+- Structure: `{ decade: string, month?: number, value: number }[]` arrays keyed by metric type
+
+> **Future country support note:** `germany.json` is the country-level aggregate for Germany. When expanding to other countries, additional files (e.g. `france.json`) would follow the same pattern. The frontend `MetricsService` and pipeline export logic will need to be extended at that point.
 
 ## 6. Testing
 
@@ -382,9 +391,9 @@ FIVE_YEAR_ANOMALY_PERIOD = {
 
 # Temperature thresholds (DWD standards)
 # Note: 32°C is NOT a DWD standard - excluded per ALT-007
+# Note: 25°C (Sommertag) is not used in any current metric or plot - omitted to avoid dead code
 THRESHOLDS = {
     'hot_day': 30.0,           # Tmax >= 30°C (Heißer Tag)
-    'summer_day': 25.0,         # Tmax >= 25°C (Sommertag)
     'tropical_night': 20.0,     # Tmin >= 20°C (Tropennacht)
     'extreme_heat_day': 35.0,   # Tmax >= 35°C (vegetation/health damage)
     'frost_day': 0.0,           # Tmin < 0°C (Frosttag)
@@ -522,6 +531,28 @@ class ComfortableDays(TypedDict):
     average: float         # Average per year (2021-2025)
 
 
+class SeasonalWarming(TypedDict):
+    """Seasonal temperature anomalies (DJF, MAM, JJA, SON)."""
+    winter: float          # DJF anomaly (°C)
+    spring: float          # MAM anomaly (°C)
+    summer: float          # JJA anomaly (°C)
+    fall: float            # SON anomaly (°C)
+    fastestSeason: str     # 'winter' | 'spring' | 'summer' | 'fall'
+    periodStart: int
+    periodEnd: int
+    referenceStart: int
+    referenceEnd: int
+
+
+class ThresholdDays(TypedDict):
+    """Thermal threshold day counts for a given year."""
+    hotDays: int           # Tmax >= 30°C (Heißer Tag)
+    tropicalNights: int    # Tmin >= 20°C (Tropennacht)
+    iceDays: int           # Tmax <= 0°C (Eistag)
+    frostDays: int         # Tmin < 0°C (Frosttag)
+    year: int
+
+
 class LocationMetrics(TypedDict):
     """Complete metrics for a location (city or country)."""
     calculatedAt: str                   # ISO timestamp
@@ -529,6 +560,8 @@ class LocationMetrics(TypedDict):
     warmingRate: WarmingRate
     recordDays: RecordDays
     winterWarming: WinterWarming
+    seasonalWarming: SeasonalWarming
+    thresholdDays: ThresholdDays
     snowDaysLost: SnowDaysLost
     comfortableDays: ComfortableDays
 
@@ -650,11 +683,12 @@ def calculate_five_year_anomaly(
     anomaly_grid = five_year_mean - climatology
     anomaly_value = float(np.nanmean(anomaly_grid))
     
-    logger.info(f"Annual anomaly for {year}: {anomaly_value:+.2f}°C")
+    logger.info(f"Five-year anomaly ({FIVE_YEAR_ANOMALY_PERIOD['start_year']}-{FIVE_YEAR_ANOMALY_PERIOD['end_year']}): {anomaly_value:+.2f}°C")
     
-    return AnnualAnomaly(
+    return FiveYearAnomaly(
         value=round(anomaly_value, 2),
-        year=year,
+        periodStart=FIVE_YEAR_ANOMALY_PERIOD['start_year'],
+        periodEnd=FIVE_YEAR_ANOMALY_PERIOD['end_year'],
         referenceStart=REFERENCE_PERIOD['start_year'],
         referenceEnd=REFERENCE_PERIOD['end_year'],
     )
@@ -1479,11 +1513,13 @@ def validate_metrics_schema(data: dict) -> bool:
         ValueError: If schema validation fails
     """
     required_keys = [
-        'annualAnomaly',
+        'fiveYearAnomaly',
         'warmingRate',
         'recordDays',
+        'winterWarming',
         'seasonalWarming',
         'thresholdDays',
+        'snowDaysLost',
         'comfortableDays',
     ]
     
@@ -1492,10 +1528,10 @@ def validate_metrics_schema(data: dict) -> bool:
             raise ValueError(f"Missing required key: {key}")
     
     # Validate nested structures
-    if 'value' not in data['annualAnomaly']:
-        raise ValueError("annualAnomaly missing 'value'")
+    if 'value' not in data['fiveYearAnomaly']:
+        raise ValueError("fiveYearAnomaly missing 'value'")
     if 'confidence' not in data['warmingRate']:
-        raise ValueError("warmingRate missing 'confidence'")
+        raise ValueError("warmingRate missing 'confidence'"))
     
     return True
 
@@ -1510,15 +1546,16 @@ if __name__ == '__main__':
     # Example: Create sample metrics
     sample_metrics: LocationMetrics = {
         'calculatedAt': datetime.utcnow().isoformat() + 'Z',
-        'annualAnomaly': {
+        'fiveYearAnomaly': {
             'value': 2.3,
-            'year': 2025,
+            'periodStart': 2021,
+            'periodEnd': 2025,
             'referenceStart': 1961,
             'referenceEnd': 1990,
         },
         'warmingRate': {
             'value': 0.45,
-            'startYear': 1991,
+            'startYear': 1995,
             'endYear': 2025,
             'confidence': 0.85,
         },
@@ -1528,12 +1565,23 @@ if __name__ == '__main__':
             'cold': 2,
             'year': 2025,
         },
+        'winterWarming': {
+            'value': 2.8,
+            'periodStart': 2021,
+            'periodEnd': 2025,
+            'referenceStart': 1961,
+            'referenceEnd': 1990,
+        },
         'seasonalWarming': {
             'winter': 2.8,
             'spring': 2.1,
             'summer': 1.9,
             'fall': 2.4,
             'fastestSeason': 'winter',
+            'periodStart': 2021,
+            'periodEnd': 2025,
+            'referenceStart': 1961,
+            'referenceEnd': 1990,
         },
         'thresholdDays': {
             'hotDays': 15,
@@ -1542,9 +1590,16 @@ if __name__ == '__main__':
             'frostDays': 52,
             'year': 2025,
         },
+        'snowDaysLost': {
+            'value': -18,
+            'currentAverage': 12.0,
+            'referenceAverage': 30.0,
+            'periodStart': 2021,
+            'periodEnd': 2025,
+        },
         'comfortableDays': {
             'count': 95,
-            'year': 2025,
+            'average': 93.0,
         },
     }
     

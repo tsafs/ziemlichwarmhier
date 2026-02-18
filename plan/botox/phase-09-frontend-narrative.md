@@ -627,13 +627,21 @@ export interface ExtremesPoint {
     referenceCold: number;
 }
 
-/** Combined narrative plot data for a location */
+/** Combined narrative plot data for a location (all 9 plots) */
 export interface NarrativePlotData {
     locationId: string;
+    // Recognition (2)
     temperatureEvolution: TemperatureEvolutionPoint[];
     seasonalWarming: SeasonalWarmingPoint[];
+    // Understanding (4)
     monthlyDistribution: MonthlyDistributionPoint[];
     extremes: ExtremesPoint[];
+    recordBreaking: RecordBreakingPoint[];
+    winterForgotToCome: WinterForgotToComePoint[];
+    // Response (3)
+    comfortCalendar: ComfortCalendarPoint[];
+    tropicalNights: TropicalNightsPoint[];
+    vegetationStress: VegetationStressPoint[];
 }
 
 /** Plot loading state */
@@ -666,6 +674,11 @@ import type {
     SeasonalWarmingPoint,
     MonthlyDistributionPoint,
     ExtremesPoint,
+    RecordBreakingPoint,
+    WinterForgotToComePoint,
+    ComfortCalendarPoint,
+    TropicalNightsPoint,
+    VegetationStressPoint,
     NarrativePlotData,
 } from '../types/plotData';
 
@@ -788,18 +801,32 @@ export const fetchExtremesData = async (
 };
 
 /**
- * Fetch all narrative plot data for a location
+ * Fetch all narrative plot data for a location — all 9 plots
  */
 export const fetchAllNarrativePlotData = async (
     locationId: string
 ): Promise<NarrativePlotData> => {
-    const [temperatureEvolution, seasonalWarming, monthlyDistribution, extremes] = 
-        await Promise.all([
-            fetchTemperatureEvolutionData(locationId),
-            fetchSeasonalWarmingData(locationId),
-            fetchMonthlyDistributionData(locationId),
-            fetchExtremesData(locationId),
-        ]);
+    const [
+        temperatureEvolution,
+        seasonalWarming,
+        monthlyDistribution,
+        extremes,
+        recordBreaking,
+        winterForgotToCome,
+        comfortCalendar,
+        tropicalNights,
+        vegetationStress,
+    ] = await Promise.all([
+        fetchTemperatureEvolutionData(locationId),
+        fetchSeasonalWarmingData(locationId),
+        fetchMonthlyDistributionData(locationId),
+        fetchExtremesData(locationId),
+        fetchRecordBreakingData(locationId),
+        fetchWinterForgotToComeData(locationId),
+        fetchComfortCalendarData(locationId),
+        fetchTropicalNightsData(locationId),
+        fetchVegetationStressData(locationId),
+    ]);
 
     return {
         locationId,
@@ -807,6 +834,11 @@ export const fetchAllNarrativePlotData = async (
         seasonalWarming,
         monthlyDistribution,
         extremes,
+        recordBreaking,
+        winterForgotToCome,
+        comfortCalendar,
+        tropicalNights,
+        vegetationStress,
     };
 };
 ```
@@ -1558,6 +1590,11 @@ import type {
     SeasonalWarmingPoint,
     MonthlyDistributionPoint,
     ExtremesPoint,
+    RecordBreakingPoint,
+    WinterForgotToComePoint,
+    ComfortCalendarPoint,
+    TropicalNightsPoint,
+    VegetationStressPoint,
     NarrativePlotData,
 } from '../types/plotData';
 
@@ -1778,6 +1815,22 @@ describe('ExpandableText', () => {
 **File**: `frontend/src/types/plotData.ts` (additional interfaces)
 
 ```typescript
+/** Record-breaking temperature days (yearly) — Understanding tab */
+export interface RecordBreakingPoint {
+    year: number;
+    hotRecords: number;    // New all-time daily maximum records
+    coldRecords: number;   // New all-time daily minimum records
+    ratio: number;         // hotRecords / (hotRecords + coldRecords), for diverging bar
+}
+
+/** Winter precipitation character (yearly) — Understanding tab */
+export interface WinterForgotToComePoint {
+    year: number;
+    snowDays: number;          // Days with snow cover (DJF)
+    rainDays: number;          // Rain-only days (DJF)
+    totalPrecipDays: number;   // All precipitation days (DJF)
+}
+
 /** Comfort calendar data point (decadal aggregation) */
 export interface ComfortCalendarPoint {
     decade: string;        // e.g., "1960s", "1970s"
@@ -1816,16 +1869,18 @@ export interface VegetationStressPoint {
     lateFrostDays: number;     // After Apr 15, Tmin ≤-2°C
 }
 
-/** Extended narrative plot data for a location */
+/** Extended narrative plot data for a location — all 9 plots */
 export interface NarrativePlotData {
     locationId: string;
-    // Recognition
+    // Recognition (2)
     temperatureEvolution: TemperatureEvolutionPoint[];
     seasonalWarming: SeasonalWarmingPoint[];
-    // Understanding
+    // Understanding (4)
     monthlyDistribution: MonthlyDistributionPoint[];
     extremes: ExtremesPoint[];
-    // Response
+    recordBreaking: RecordBreakingPoint[];
+    winterForgotToCome: WinterForgotToComePoint[];
+    // Response (3)
     comfortCalendar: ComfortCalendarPoint[];
     tropicalNights: TropicalNightsPoint[];
     vegetationStress: VegetationStressPoint[];
@@ -2327,6 +2382,33 @@ export default ResponseTab;
 **File**: `frontend/src/__mocks__/narrativePlotMocks.ts` (additions)
 
 ```typescript
+// Update mockNarrativePlotData to include Response data
+export const mockRecordBreaking: RecordBreakingPoint[] = [
+    { year: 2016, hotRecords: 8, coldRecords: 3, ratio: 0.73 },
+    { year: 2017, hotRecords: 6, coldRecords: 4, ratio: 0.60 },
+    { year: 2018, hotRecords: 24, coldRecords: 1, ratio: 0.96 },
+    { year: 2019, hotRecords: 18, coldRecords: 2, ratio: 0.90 },
+    { year: 2020, hotRecords: 14, coldRecords: 3, ratio: 0.82 },
+    { year: 2021, hotRecords: 5, coldRecords: 5, ratio: 0.50 },
+    { year: 2022, hotRecords: 22, coldRecords: 1, ratio: 0.96 },
+    { year: 2023, hotRecords: 28, coldRecords: 0, ratio: 1.00 },
+    { year: 2024, hotRecords: 31, coldRecords: 0, ratio: 1.00 },
+    { year: 2025, hotRecords: 25, coldRecords: 1, ratio: 0.96 },
+];
+
+export const mockWinterForgotToCome: WinterForgotToComePoint[] = [
+    { year: 2016, snowDays: 18, rainDays: 32, totalPrecipDays: 50 },
+    { year: 2017, snowDays: 15, rainDays: 35, totalPrecipDays: 50 },
+    { year: 2018, snowDays: 8, rainDays: 40, totalPrecipDays: 48 },
+    { year: 2019, snowDays: 6, rainDays: 42, totalPrecipDays: 48 },
+    { year: 2020, snowDays: 4, rainDays: 44, totalPrecipDays: 48 },
+    { year: 2021, snowDays: 12, rainDays: 38, totalPrecipDays: 50 },
+    { year: 2022, snowDays: 3, rainDays: 45, totalPrecipDays: 48 },
+    { year: 2023, snowDays: 2, rainDays: 46, totalPrecipDays: 48 },
+    { year: 2024, snowDays: 1, rainDays: 47, totalPrecipDays: 48 },
+    { year: 2025, snowDays: 2, rainDays: 46, totalPrecipDays: 48 },
+];
+
 export const mockComfortCalendar: ComfortCalendarPoint[] = [
     { decade: '1960er', decadeStart: 1960, months: { jan: 0, feb: 0, mar: 2, apr: 12, may: 20, jun: 18, jul: 15, aug: 16, sep: 18, oct: 10, nov: 2, dec: 0 } },
     { decade: '1970er', decadeStart: 1970, months: { jan: 0, feb: 0, mar: 3, apr: 13, may: 19, jun: 17, jul: 14, aug: 15, sep: 17, oct: 11, nov: 3, dec: 0 } },
@@ -2370,6 +2452,8 @@ export const mockNarrativePlotData: NarrativePlotData = {
     seasonalWarming: mockSeasonalWarming,
     monthlyDistribution: mockMonthlyDistribution,
     extremes: mockExtremes,
+    recordBreaking: mockRecordBreaking,
+    winterForgotToCome: mockWinterForgotToCome,
     comfortCalendar: mockComfortCalendar,
     tropicalNights: mockTropicalNights,
     vegetationStress: mockVegetationStress,

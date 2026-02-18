@@ -38,7 +38,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
   - Response (3 plots): Comfort Calendar, Tropical Nights, Vegetation Stress
 - **REQ-006**: Support land areas only, including coastal islands (exclude ocean)
 - **REQ-007**: Support monthly data updates via nightly pipeline
-- **REQ-008**: Support arbitrary time range (initial: 10 years, 2016-2026)
+- **REQ-008**: Support arbitrary time range (default: all years of dataset)
 - **REQ-009**: Provide responsive design for mobile and desktop
 
 ### Non-Functional Requirements
@@ -55,7 +55,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - **CON-002**: ERA5-Land resolution is 0.1° (~9km) - can be interpolated to 1km
 - **CON-003**: HYRAS 1km data available for Germany (1951-2024) as reference/validation
 - **CON-004**: Maximum GitHub Actions runtime: 6 hours (free tier)
-- **CON-005**: Cloudflare R2 free tier: 10GB storage, 1M reads/month, 10M writes/month
+- **CON-005**: Hetzner Object Storage: €0.0052/GB storage, free EU egress
 
 ### Security Requirements
 
@@ -110,9 +110,9 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P2-001 | Create Hetzner Object Storage bucket `era5-tiles` in fsn1 region | | |
+| TASK-P2-001 | Create Hetzner Object Storage bucket `climate-tiles` in fsn1 region | | |
 | TASK-P2-002 | Configure CORS for browser-based tile loading | | |
-| TASK-P2-003 | Create `analysis/utilities/hetzner_storage.py` - S3-compatible upload utilities | | |
+| TASK-P2-003 | Configure `analysis/utilities/upload_to_s3.py` for Hetzner (already exists; verify S3-compatible endpoint support) | | |
 | TASK-P2-004 | Create `.env.example` with all environment variables | | |
 | TASK-P2-005 | Configure Cloudflare CDN caching rules for tile subdomain | | |
 | TASK-P2-006 | Create `scripts/validate-env.py` for environment validation | | |
@@ -169,7 +169,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 **Completion Criteria:**
 - Tiles generated at zoom levels 6-10 for Germany
-- Color ramp matches specification (-2°C to +3°C diverging)
+- Color ramp matches specification (-3°C to +3°C symmetric diverging, configurable via `tile_config.py` `ANOMALY_VMIN`/`ANOMALY_VMAX`)
 - Tiles have transparent background (land only visible)
 - All tiles accessible via Hetzner Object Storage URL pattern
 
@@ -246,8 +246,9 @@ This plan describes a comprehensive climate visualization platform for Germany u
 | TASK-P6-003 | Create `jobs/job-era5-daily/src/process_daily.py` - orchestrate daily pipeline | | |
 | TASK-P6-004 | Create `jobs/job-era5-monthly/` - monthly tile regeneration job | | |
 | TASK-P6-005 | Create `jobs/job-era5-yearly/` - yearly metrics recalculation job | | |
-| TASK-P6-006 | Create `.github/workflows/era5-daily-pipeline.yml` - scheduled daily action | | |
-| TASK-P6-007 | Create `.github/workflows/era5-monthly-pipeline.yml` - scheduled monthly action | | |
+| TASK-P6-006 | Create `.github/workflows/era5-build.yml` - builds and pushes Docker image to GHCR on source changes (path filter: `jobs/job-era5-daily/**`, `analysis/**`) | | |
+| TASK-P6-007 | Create `.github/workflows/era5-daily-pipeline.yml` - nightly job: pull pre-built image from GHCR and run (no build step) | | |
+| TASK-P6-008 | Create `.github/workflows/era5-monthly-pipeline.yml` - scheduled monthly action | | |
 | TASK-P6-008 | Add monitoring/alerting for pipeline failures (GitHub Actions notifications) | | |
 | TASK-P6-009 | Write integration tests for complete pipeline execution | | |
 
@@ -481,8 +482,8 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - **DEP-004**: `xarray` - NetCDF handling and grid operations
 - **DEP-005**: `rasterio` - GeoTIFF read/write
 - **DEP-006**: `scipy` - Interpolation (bicubic, bilinear)
-- **DEP-007**: `rio-tiler` - Tile generation from GeoTIFF
-- **DEP-008**: `boto3` - S3/R2 upload
+- **DEP-007**: `rio-tiler` - Tile generation from GeoTIFF (accepted; enables smooth color continuity at tile boundaries by reading actual data values)
+- **DEP-008**: `boto3` - S3-compatible upload (Hetzner Object Storage)
 - **DEP-009**: `cdsapi` - Copernicus CDS API client
 - **DEP-010**: `numpy` - Numerical operations
 - **DEP-011**: `pandas` - Data manipulation
@@ -490,8 +491,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Frontend Dependencies
 
-- **DEP-013**: `maplibre-gl` - Map rendering
-- **DEP-014**: `@maplibre/maplibre-gl-js` - TypeScript types
+- **DEP-013**: `maplibre-gl` - Map rendering (TypeScript types bundled since v3; no separate types package required)
 - **DEP-015**: `react`, `react-dom` - UI framework (existing)
 - **DEP-016**: `@reduxjs/toolkit` - State management (existing)
 - **DEP-017**: `vitest` - Testing framework
@@ -517,7 +517,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - **FILE-007**: `analysis/tiles/generate_tiles.py` - NEW - Tile generation
 - **FILE-008**: `analysis/tiles/color_ramps.py` - NEW - Color scale definitions
 - **FILE-009**: `analysis/tiles/tile_config.py` - NEW - Tile configuration
-- **FILE-010**: `analysis/tiles/upload_tiles.py` - NEW - R2 upload
+- **FILE-010**: `analysis/tiles/upload_tiles.py` - NEW - Hetzner upload
 
 **Metric Calculators:**
 - **FILE-011**: `analysis/metrics/calculate_five_year_anomaly.py` - NEW - 5-year mean anomaly
@@ -557,9 +557,10 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### GitHub Actions
 
-- **FILE-038**: `.github/workflows/era5-daily-pipeline.yml` - NEW - Daily schedule
-- **FILE-039**: `.github/workflows/era5-monthly-pipeline.yml` - NEW - Monthly schedule
-- **FILE-040**: `.github/workflows/era5-yearly-pipeline.yml` - NEW - Yearly schedule
+- **FILE-038**: `.github/workflows/era5-build.yml` - NEW - Builds and pushes Docker image on source changes
+- **FILE-039**: `.github/workflows/era5-daily-pipeline.yml` - NEW - Daily pipeline (pulls pre-built image; no build step)
+- **FILE-040**: `.github/workflows/era5-monthly-pipeline.yml` - NEW - Monthly schedule
+- **FILE-041**: `.github/workflows/era5-yearly-pipeline.yml` - NEW - Yearly schedule
 
 ### Frontend Files
 
@@ -692,7 +693,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 ### Assumptions
 
 - **ASSUMPTION-001**: ERA5 data remains freely available via Copernicus CDS
-- **ASSUMPTION-002**: Cloudflare R2 free tier (10GB, 1M reads) sufficient for initial deployment
+- **ASSUMPTION-002**: Hetzner Object Storage costs remain low (€0.0052/GB); free EU egress sufficient for initial deployment
 - **ASSUMPTION-003**: GitHub Actions free tier sufficient for daily/monthly pipelines
 - **ASSUMPTION-004**: User has modern browser with WebGL support (90%+ of traffic)
 - **ASSUMPTION-005**: 1km visual resolution sufficient for climate data (actual ERA5 is 28km)
@@ -738,7 +739,7 @@ Each phase can be executed by a separate agent session. Provide these context fi
 
 ### Validation Checkpoints
 
-- **After Phase 1**: `scripts/setup-dev.sh` runs successfully; R2 bucket accessible
+- **After Phase 1**: `scripts/setup-dev.sh` runs successfully; Hetzner bucket accessible
 - **After Phase 2**: `python -m pytest analysis/era5/tests/` passes; sample data processed
 - **After Phase 3**: Tiles visible at R2 URL; tile validation script passes
 - **After Phase 4**: Metrics JSON generated; values within expected ranges
@@ -912,15 +913,15 @@ export const StatCard: React.FC<StatCardProps> = ({
     );
 };
 
-// Usage for AnnualAnomalyCard (TASK-053):
-export const AnnualAnomalyCard: React.FC = () => {
+// Usage for FiveYearAnomalyCard (TASK-P8-036):
+export const FiveYearAnomalyCard: React.FC = () => {
     const { data, isLoading, error } = useMetrics();
     return (
         <StatCard
-            title="Temperaturanomalie"
-            value={data ? `+${data.annualAnomaly.toFixed(1)}°C` : '-'}
-            subtitle={`${data?.year} vs. 1961-1990`}
-            infoText="Differenz der Jahresmitteltemperatur zum langjährigen Durchschnitt"
+            title="5-Jahres-Anomalie"
+            value={data ? `+${data.fiveYearAnomaly.value.toFixed(1)}°C` : '-'}
+            subtitle={`${data?.fiveYearAnomaly.periodStart}–${data?.fiveYearAnomaly.periodEnd} vs. 1961–1990`}
+            infoText="Differenz der Mitteltemperatur der letzten 5 Jahre zum langjährigen Durchschnitt"
             isLoading={isLoading}
             error={error}
             colorScheme="warm"
@@ -970,7 +971,11 @@ def load_era5_data(file_path: Path, bounds: dict) -> xr.Dataset:
 **File**: `analysis/tiles/generate_tiles.py` (to be created)
 
 ```python
-# Reference pattern for tile generation using rio-tiler
+# Reference pattern for tile generation using rio-tiler.
+# rio-tiler is ACCEPTED: it reads actual data values from the GeoTIFF and
+# applies the colormap consistently, ensuring color continuity at tile
+# boundaries (adjacent tiles naturally 'fade' into each other because the
+# underlying data is smooth). No explicit cross-tile blending is needed.
 from rio_tiler.io import Reader
 from rio_tiler.colormap import cmap
 from rio_tiler.models import ImageData
@@ -1056,7 +1061,8 @@ COPY jobs/job-era5-daily/src ./src/
 # Copy shared analysis modules
 COPY analysis/era5/*.py ./src/era5/
 COPY analysis/tiles/*.py ./src/tiles/
-COPY analysis/utilities/upload_to_s3.py ./src/
+COPY analysis/utilities/upload_to_s3.py ./src/utilities/
+
 
 # Install dependencies
 RUN pip install --no-cache-dir \
@@ -1107,7 +1113,7 @@ from era5.interpolate_to_grid import interpolate_to_1km
 from era5.apply_land_mask import apply_germany_land_mask
 from era5.calculate_anomalies import calculate_monthly_anomaly
 from tiles.generate_tiles import generate_tiles_for_geotiff
-from upload_to_s3 import upload_directory_to_s3
+from utilities.upload_to_s3 import upload_directory_to_s3
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -1137,7 +1143,7 @@ def main():
     tiles_dir = Path(f"./data/tiles/{year}/{month:02d}")
     generate_tiles_for_geotiff(anomaly_path, tiles_dir)
     
-    # Step 6: Upload to R2
+    # Step 6: Upload to S3-compatible storage (Hetzner Object Storage)
     upload_directory_to_s3(tiles_dir, f"tiles/{year}/{month:02d}/")
     
     logger.info(f"Pipeline completed for {year}-{month:02d}")
@@ -1163,7 +1169,7 @@ const GERMANY_BOUNDS: [[number, number], [number, number]] = [
     [15.04, 55.06]  // Northeast
 ];
 
-const TILE_BASE_URL = import.meta.env.VITE_TILE_BASE_URL || 'https://era5-tiles.example.com';
+const TILE_BASE_URL = import.meta.env.VITE_TILE_BASE_URL || 'https://climate-tiles.example.com';
 
 export const ClimateMap: React.FC = () => {
     const mapContainer = useRef<HTMLDivElement>(null);
@@ -1246,10 +1252,66 @@ export const ClimateMap: React.FC = () => {
 
 ### 10.9 GitHub Actions Workflow Pattern
 
+Two separate workflows are used: one builds and pushes the image only when source files change; the nightly job simply pulls and runs the pre-built image. This avoids an expensive rebuild on every scheduled run.
+
+**File**: `.github/workflows/era5-build.yml` (to be created)
+
+```yaml
+# Builds and pushes the ERA5 Docker image to GHCR only when source changes.
+name: Build ERA5 Docker Image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'jobs/job-era5-daily/**'
+      - 'analysis/era5/**'
+      - 'analysis/tiles/**'
+      - 'analysis/utilities/**'
+  workflow_dispatch:  # Allow manual rebuild
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/era5-daily
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ERA5 daily image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: jobs/job-era5-daily/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
 **File**: `.github/workflows/era5-daily-pipeline.yml` (to be created)
 
 ```yaml
-# Reference pattern for scheduled ERA5 pipeline
+# Nightly pipeline: pulls the pre-built image and runs the ERA5 processing job.
+# The image is only rebuilt by era5-build.yml when source files change.
 name: ERA5 Daily Pipeline
 
 on:
@@ -1266,31 +1328,34 @@ jobs:
   run-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 120  # 2 hours max
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          python-version: '3.13'
-          cache: 'pip'
-          
-      - name: Install dependencies
-        run: |
-          pip install -r analysis/era5/requirements.txt
-          
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull ERA5 daily image
+        run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
       - name: Run ERA5 pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
-          BUCKET_NAME: era5-climate-tiles
-          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
+          ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          BUCKET_NAME: climate-tiles
+          ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
         run: |
-          python jobs/job-era5-daily/src/process_daily.py
-          
+          docker run --rm \
+            -e CDS_API_KEY \
+            -e ACCESS_KEY \
+            -e SECRET_KEY \
+            -e BUCKET_NAME \
+            -e ENDPOINT_URL \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
       - name: Notify on failure
         if: failure()
         uses: actions/github-script@v7
@@ -1317,10 +1382,11 @@ interface LocationMetrics {
     /** ISO date of last calculation */
     calculatedAt: string;
     
-    /** Annual temperature anomaly vs 1961-1990 */
-    annualAnomaly: {
-        value: number;      // e.g., 2.3 (°C)
-        year: number;       // e.g., 2025
+    /** Five-year temperature anomaly (2021-2025 vs 1961-1990) */
+    fiveYearAnomaly: {
+        value: number;         // e.g., 2.3 (°C)
+        periodStart: number;   // e.g., 2021
+        periodEnd: number;     // e.g., 2025
         referenceStart: number;  // e.g., 1961
         referenceEnd: number;    // e.g., 1990
     };
@@ -1341,21 +1407,25 @@ interface LocationMetrics {
         year: number;       // e.g., 2025
     };
     
-    /** Seasonal warming rates */
+    /** Seasonal temperature anomalies (DJF, MAM, JJA, SON) */
     seasonalWarming: {
-        winter: number;     // DJF anomaly
-        spring: number;     // MAM anomaly
-        summer: number;     // JJA anomaly
-        fall: number;       // SON anomaly
+        winter: number;        // DJF anomaly (°C)
+        spring: number;        // MAM anomaly (°C)
+        summer: number;        // JJA anomaly (°C)
+        fall: number;          // SON anomaly (°C)
         fastestSeason: 'winter' | 'spring' | 'summer' | 'fall';
+        periodStart: number;   // e.g., 2021
+        periodEnd: number;     // e.g., 2025
+        referenceStart: number;
+        referenceEnd: number;
     };
     
-    /** Threshold day counts */
+    /** Threshold day counts (most recent complete year) */
     thresholdDays: {
-        hotDays: number;         // Tmax ≥ 30°C
-        tropicalNights: number;  // Tmin ≥ 20°C
-        iceDays: number;         // Tmax ≤ 0°C
-        frostDays: number;       // Tmin < 0°C
+        hotDays: number;         // Tmax ≥ 30°C (Heißer Tag)
+        tropicalNights: number;  // Tmin ≥ 20°C (Tropennacht)
+        iceDays: number;         // Tmax ≤ 0°C (Eistag)
+        frostDays: number;       // Tmin < 0°C (Frosttag)
         year: number;
     };
     

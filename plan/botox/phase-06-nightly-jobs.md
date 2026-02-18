@@ -103,12 +103,13 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P6-021 | Create `.github/workflows/era5-daily-pipeline.yml` | | |
-| TASK-P6-022 | Create `.github/workflows/era5-monthly-pipeline.yml` | | |
-| TASK-P6-023 | Create `.github/workflows/era5-yearly-pipeline.yml` | | |
-| TASK-P6-024 | Configure cron schedules for each workflow | | |
-| TASK-P6-025 | Add workflow_dispatch for manual triggers | | |
-| TASK-P6-026 | Configure environment secrets in repository | | |
+| TASK-P6-021 | Create `.github/workflows/build-era5-jobs.yml` - builds and pushes all 3 images to GHCR on source changes (path filter on `jobs/**` and `analysis/**`); use build matrix for daily/monthly/yearly | | |
+| TASK-P6-022 | Create `.github/workflows/era5-daily-pipeline.yml` - nightly: pull image from GHCR and run (no build step) | | |
+| TASK-P6-023 | Create `.github/workflows/era5-monthly-pipeline.yml` - monthly schedule, same pull-and-run pattern | | |
+| TASK-P6-024 | Create `.github/workflows/era5-yearly-pipeline.yml` - yearly schedule, same pull-and-run pattern | | |
+| TASK-P6-025 | Configure cron schedules for each pipeline workflow | | |
+| TASK-P6-026 | Add workflow_dispatch for manual triggers on all workflows | | |
+| TASK-P6-027 | Configure environment secrets in repository (CDS_API_KEY, S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL) | | |
 
 ### Implementation Phase 6.5: Notifications & Monitoring
 
@@ -171,9 +172,9 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 | Secret Name | Description |
 |-------------|-------------|
 | `CDS_API_KEY` | Copernicus CDS API key |
-| `HETZNER_ACCESS_KEY` | Hetzner Object Storage access key |
-| `HETZNER_SECRET_KEY` | Hetzner Object Storage secret key |
-| `HETZNER_ENDPOINT_URL` | Hetzner S3 endpoint URL |
+| `S3_ACCESS_KEY` | S3-compatible access key |
+| `S3_SECRET_KEY` | S3-compatible secret key |
+| `S3_ENDPOINT_URL` | S3 endpoint URL |
 | `BUCKET_NAME` | Target bucket name |
 
 ## 5. Files
@@ -881,6 +882,8 @@ if __name__ == '__main__':
 
 ### 10.7 GitHub Actions Daily Workflow
 
+The nightly job **pulls** the pre-built image from GHCR; it does **not** rebuild it. Images are rebuilt by `build-era5-jobs.yml` (section 10.11) only when source files change.
+
 **File**: `.github/workflows/era5-daily-pipeline.yml`
 
 ```yaml
@@ -892,7 +895,6 @@ on:
     # ERA5-Land data typically available ~5 days after month end
     - cron: '0 6 * * *'
   workflow_dispatch:
-    # Allow manual trigger
     inputs:
       force_run:
         description: 'Force run even if data already processed'
@@ -901,54 +903,40 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/era5-daily
+  IMAGE_NAME: ${{ github.repository }}/era5-daily
 
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 120  # 2 hour max
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          python-version: '3.13'
-          cache: 'pip'
-      
-      - name: Install dependencies
-        run: |
-          pip install -r jobs/job-era5-daily/requirements.txt
-      
-      - name: Set up CDS API
-        run: |
-          mkdir -p ~/.cdsapi
-          echo "url: https://cds.climate.copernicus.eu/api/v2" > ~/.cdsapirc
-          echo "key: ${{ secrets.CDS_API_KEY }}" >> ~/.cdsapirc
-      
-      - name: Run ERA5 daily pipeline
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull ERA5 daily image
+        run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Run ERA5 pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
-          BUCKET_NAME: ${{ vars.BUCKET_NAME || 'era5-climate-tiles' }}
-          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
+          ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          BUCKET_NAME: climate-tiles
+          ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
         run: |
-          cd jobs/job-era5-daily
-          python src/process_daily.py
-      
-      - name: Upload logs as artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pipeline-logs-${{ github.run_id }}
-          path: |
-            jobs/job-era5-daily/data/
-            !jobs/job-era5-daily/data/**/*.nc
-          retention-days: 7
-      
+          docker run --rm \
+            -e CDS_API_KEY \
+            -e ACCESS_KEY \
+            -e SECRET_KEY \
+            -e BUCKET_NAME \
+            -e ENDPOINT_URL \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
       - name: Notify on failure
         if: failure()
         uses: actions/github-script@v7
@@ -1001,34 +989,38 @@ jobs:
   run-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 180  # 3 hour max
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          python-version: '3.13'
-          cache: 'pip'
-      
-      - name: Install dependencies
-        run: |
-          pip install -r jobs/job-era5-monthly/requirements.txt
-      
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull ERA5 monthly image
+        run: docker pull ghcr.io/${{ github.repository }}/era5-monthly:latest
+
       - name: Run ERA5 monthly pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
-          BUCKET_NAME: ${{ vars.BUCKET_NAME || 'era5-climate-tiles' }}
-          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
+          ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          BUCKET_NAME: climate-tiles
+          ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
           TARGET_YEAR: ${{ github.event.inputs.year || '' }}
           TARGET_MONTH: ${{ github.event.inputs.month || '' }}
         run: |
-          cd jobs/job-era5-monthly
-          python src/process_monthly.py
-      
+          docker run --rm \
+            -e CDS_API_KEY \
+            -e ACCESS_KEY \
+            -e SECRET_KEY \
+            -e BUCKET_NAME \
+            -e ENDPOINT_URL \
+            -e TARGET_YEAR \
+            -e TARGET_MONTH \
+            ghcr.io/${{ github.repository }}/era5-monthly:latest
+
       - name: Notify on failure
         if: failure()
         uses: actions/github-script@v7
@@ -1067,33 +1059,36 @@ jobs:
   run-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 360  # 6 hour max (GitHub limit)
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          python-version: '3.13'
-          cache: 'pip'
-      
-      - name: Install dependencies
-        run: |
-          pip install -r jobs/job-era5-yearly/requirements.txt
-      
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull ERA5 yearly image
+        run: docker pull ghcr.io/${{ github.repository }}/era5-yearly:latest
+
       - name: Run ERA5 yearly pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
-          ACCESS_KEY: ${{ secrets.HETZNER_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.HETZNER_SECRET_KEY }}
-          BUCKET_NAME: ${{ vars.BUCKET_NAME || 'era5-climate-tiles' }}
-          ENDPOINT_URL: ${{ secrets.HETZNER_ENDPOINT_URL }}
+          ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          BUCKET_NAME: climate-tiles
+          ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
           TARGET_YEAR: ${{ github.event.inputs.year || '' }}
         run: |
-          cd jobs/job-era5-yearly
-          python src/process_yearly.py
-      
+          docker run --rm \
+            -e CDS_API_KEY \
+            -e ACCESS_KEY \
+            -e SECRET_KEY \
+            -e BUCKET_NAME \
+            -e ENDPOINT_URL \
+            -e TARGET_YEAR \
+            ghcr.io/${{ github.repository }}/era5-yearly:latest
+
       - name: Notify on failure
         if: failure()
         uses: actions/github-script@v7
@@ -1107,6 +1102,67 @@ jobs:
               body: `Yearly metrics calculation failed. [View run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
               labels: ['pipeline-failure', 'automated', 'era5', 'high-priority']
             });
+```
+
+### 10.11 GitHub Actions Build Workflow
+
+This workflow builds and pushes all three job images to GHCR whenever the relevant source files change. The nightly/monthly/yearly pipelines (10.7–10.9) pull from GHCR without rebuilding.
+
+**File**: `.github/workflows/build-era5-jobs.yml`
+
+```yaml
+name: Build ERA5 Docker Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'jobs/job-era5-daily/**'
+      - 'jobs/job-era5-monthly/**'
+      - 'jobs/job-era5-yearly/**'
+      - 'analysis/era5/**'
+      - 'analysis/tiles/**'
+      - 'analysis/metrics/**'
+      - 'analysis/plots/**'
+      - 'analysis/utilities/**'
+  workflow_dispatch:  # Allow manual rebuild
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        job: [era5-daily, era5-monthly, era5-yearly]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ${{ matrix.job }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: jobs/job-${{ matrix.job }}/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.job }}:latest
+          cache-from: type=gha,scope=${{ matrix.job }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.job }}
 ```
 
 ### 10.10 Operations Runbook
@@ -1149,7 +1205,7 @@ docker run \
   -e CDS_API_KEY="your-key" \
   -e ACCESS_KEY="your-access-key" \
   -e SECRET_KEY="your-secret-key" \
-  -e BUCKET_NAME="era5-climate-tiles" \
+  -e BUCKET_NAME="climate-tiles" \
   -e ENDPOINT_URL="https://fsn1.your-objectstorage.com" \
   era5-daily
 ```

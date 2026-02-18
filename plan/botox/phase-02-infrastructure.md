@@ -77,9 +77,9 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
 | TASK-P2-001 | Create Hetzner Cloud account (if not existing) and enable Object Storage                             |           |      |
-| TASK-P2-002 | Create bucket `era5-tiles` in fsn1 (Falkenstein) region via Hetzner Console                          |           |      |
+| TASK-P2-002 | Create bucket `climate-tiles` in fsn1 (Falkenstein) region via Hetzner Console                       |           |      |
 | TASK-P2-003 | Generate Access Key and Secret Key for bucket access                                                 |           |      |
-| TASK-P2-004 | Document bucket endpoint URL format: `https://era5-tiles.fsn1.your-objectstorage.com`                |           |      |
+| TASK-P2-004 | Document bucket endpoint URL format: `https://climate-tiles.fsn1.your-objectstorage.com`             |           |      |
 | TASK-P2-005 | Test bucket accessibility with boto3 (manual verification)                                           |           |      |
 
 **Manual Steps for TASK-001 to TASK-004:**
@@ -90,13 +90,13 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 1. Log in to Hetzner Cloud Console: https://console.hetzner.cloud/
 2. Navigate to "Object Storage" in left sidebar
 3. Click "Create Bucket"
-   - Bucket name: `era5-tiles`
+   - Bucket name: `climate-tiles`
    - Location: fsn1 (Falkenstein, Germany)
 4. After creation, click on bucket → "Keys" tab
 5. Click "Create Key"
    - Description: "ERA5 Pipeline Access"
    - Copy Access Key and Secret Key immediately (shown only once)
-6. Note the endpoint URL: `https://era5-tiles.fsn1.your-objectstorage.com`
+6. Note the endpoint URL: `https://climate-tiles.fsn1.your-objectstorage.com`
 ```
 
 ---
@@ -120,7 +120,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-P2-010 | Create `analysis/utilities/hetzner_storage.py` - Hetzner-specific upload/download utilities          |           |      |
+| TASK-P2-010 | Verify/extend `analysis/utilities/upload_to_s3.py` - S3-compatible upload/download utilities                |           |      |
 | TASK-P2-011 | Add content-type detection for WebP, JSON, and GeoTIFF files                                         |           |      |
 | TASK-P2-012 | Add public-read ACL support for tile uploads                                                         |           |      |
 | TASK-P2-013 | Add directory upload function for batch tile uploads                                                 |           |      |
@@ -159,7 +159,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
-| TASK-P2-022 | Create `analysis/utilities/tests/test_hetzner_storage.py` - unit tests with mocked S3                |           |      |
+| TASK-P2-022 | Create `analysis/utilities/tests/test_upload_to_s3.py` - unit tests with mocked S3                |           |      |
 | TASK-P2-023 | Create integration test script that uploads/downloads/deletes test file                              |           |      |
 | TASK-P2-024 | Verify public URL accessibility for uploaded test tile                                               |           |      |
 | TASK-P2-025 | Document infrastructure validation checklist                                                         |           |      |
@@ -170,7 +170,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 - **ALT-002**: **Scaleway Object Storage (current provider)** - Already in use for frontend assets. Considered using same bucket. Rejected to maintain separation between frontend hosting and data tiles - allows independent cost tracking and potential migration.
 
-- **ALT-003**: **Single bucket for all data** - Rejected in favor of dedicated `era5-tiles` bucket for isolation, simpler CORS rules, and cleaner cost attribution.
+- **ALT-003**: **Single bucket for all data** - Rejected in favor of dedicated `climate-tiles` bucket for isolation, simpler CORS rules, and cleaner cost attribution. The name `climate-tiles` is intentionally dataset-agnostic to support future expansion beyond ERA5.
 
 - **ALT-004**: **Vercel Blob Storage** - Considered for frontend integration. Rejected due to higher costs and vendor lock-in. S3-compatible storage is more portable.
 
@@ -210,8 +210,8 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Utility Files
 
-- **FILE-007**: `analysis/utilities/hetzner_storage.py` - NEW - Hetzner upload/download utilities
-- **FILE-008**: `analysis/utilities/tests/test_hetzner_storage.py` - NEW - Unit tests
+- **FILE-007**: `analysis/utilities/upload_to_s3.py` - MODIFY - S3-compatible upload/download utilities (already exists; extend for ERA5 use)
+- **FILE-008**: `analysis/utilities/tests/test_upload_to_s3.py` - NEW - Unit tests
 
 ### Configuration Files
 
@@ -250,7 +250,7 @@ def mock_s3_client(mocker):
 
 def test_upload_file(mock_s3_client):
     """Test file upload sets correct content-type."""
-    from analysis.utilities.hetzner_storage import upload_file
+    from analysis.utilities.upload_to_s3 import upload_file
     
     upload_file('test.webp', 'tiles/test.webp')
     
@@ -309,7 +309,7 @@ Executing agent needs:
 
 - **After TASK-P2-005**: `boto3` can list bucket contents (empty list OK)
 - **After TASK-P2-009**: Browser DevTools shows `Access-Control-Allow-Origin` header
-- **After TASK-P2-014**: `pytest analysis/utilities/tests/test_hetzner_storage.py` passes
+- **After TASK-P2-014**: `pytest analysis/utilities/tests/test_upload_to_s3.py` passes
 - **After TASK-P2-024**: Public URL returns 200 with test tile
 
 ## 9. Related Specifications / Further Reading
@@ -379,7 +379,7 @@ set -e
 # Usage: ./scripts/setup-hetzner-cors.sh
 
 # Configuration
-BUCKET_NAME="${BUCKET_NAME:-era5-tiles}"
+BUCKET_NAME="${BUCKET_NAME:-climate-tiles}"
 REGION="${REGION:-fsn1}"
 ENDPOINT_URL="${ENDPOINT_URL:-https://${BUCKET_NAME}.${REGION}.your-objectstorage.com}"
 CORS_FILE="infrastructure/bucket/era5-cors.json"
@@ -426,22 +426,22 @@ echo "Done! CORS configuration is active."
 
 ---
 
-### 10.3 Hetzner Storage Utility
+### 10.3 S3 Storage Utility
 
-**File**: `analysis/utilities/hetzner_storage.py` - NEW
+**File**: `analysis/utilities/upload_to_s3.py` - MODIFY
 
 ```python
 #!/usr/bin/env python3
 """
-Hetzner Object Storage utilities for ERA5 tile management.
+S3-compatible object storage utilities for ERA5 tile management.
 
-This module provides S3-compatible upload/download functions specifically
-configured for Hetzner Object Storage endpoints.
+This module provides upload/download functions that work with any
+S3-compatible endpoint (Hetzner Object Storage, AWS S3, Cloudflare R2, etc.).
 
 Usage:
-    from analysis.utilities.hetzner_storage import HetznerStorage
+    from analysis.utilities.upload_to_s3 import S3Storage
     
-    storage = HetznerStorage()
+    storage = S3Storage()
     storage.upload_file('local/path/tile.webp', 'tiles/2025/01/6/32/21.webp')
     storage.upload_directory('local/tiles/', 'tiles/2025/01/')
 """
@@ -471,8 +471,8 @@ CONTENT_TYPES = {
 
 
 @dataclass
-class HetznerConfig:
-    """Configuration for Hetzner Object Storage connection."""
+class S3Config:
+    """Configuration for S3-compatible storage connection."""
     access_key: str
     secret_key: str
     bucket_name: str
@@ -484,7 +484,7 @@ class HetznerConfig:
             self.endpoint_url = f'https://{self.bucket_name}.{self.region}.your-objectstorage.com'
     
     @classmethod
-    def from_env(cls) -> 'HetznerConfig':
+    def from_env(cls) -> 'S3Config':
         """Create config from environment variables."""
         required = ['ACCESS_KEY', 'SECRET_KEY', 'BUCKET_NAME']
         missing = [var for var in required if not os.environ.get(var)]
@@ -503,16 +503,16 @@ class HetznerConfig:
         )
 
 
-class HetznerStorage:
-    """Client for Hetzner Object Storage operations."""
+class S3Storage:
+    """Client for S3-compatible object storage operations."""
     
-    def __init__(self, config: Optional[HetznerConfig] = None):
+    def __init__(self, config: Optional[S3Config] = None):
         """Initialize storage client.
         
         Args:
             config: Storage configuration. If None, reads from environment.
         """
-        self.config = config or HetznerConfig.from_env()
+        self.config = config or S3Config.from_env()
         self._client: Optional[boto3.client] = None
     
     @property
@@ -847,20 +847,20 @@ if __name__ == '__main__':
 
 ### 10.4 Unit Tests for Storage Utility
 
-**File**: `analysis/utilities/tests/test_hetzner_storage.py` - NEW
+**File**: `analysis/utilities/tests/test_upload_to_s3.py` - NEW
 
 ```python
 #!/usr/bin/env python3
-"""Unit tests for Hetzner storage utility."""
+"""Unit tests for S3-compatible storage utility."""
 
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from botocore.exceptions import ClientError
 
-from analysis.utilities.hetzner_storage import (
-    HetznerStorage,
-    HetznerConfig,
+from analysis.utilities.upload_to_s3 import (
+    S3Storage,
+    S3Config,
     CONTENT_TYPES,
 )
 
@@ -868,7 +868,7 @@ from analysis.utilities.hetzner_storage import (
 @pytest.fixture
 def mock_config():
     """Create test configuration."""
-    return HetznerConfig(
+    return S3Config(
         access_key='test-access-key',
         secret_key='test-secret-key',
         bucket_name='test-bucket',
@@ -887,15 +887,15 @@ def mock_s3_client(mocker):
 @pytest.fixture
 def storage(mock_config, mock_s3_client):
     """Create storage instance with mocked client."""
-    return HetznerStorage(config=mock_config)
+    return S3Storage(config=mock_config)
 
 
-class TestHetznerConfig:
-    """Tests for HetznerConfig."""
+class TestS3Config:
+    """Tests for S3Config."""
     
     def test_endpoint_url_generated(self):
         """Test endpoint URL is generated from bucket and region."""
-        config = HetznerConfig(
+        config = S3Config(
             access_key='key',
             secret_key='secret',
             bucket_name='my-bucket',
@@ -905,7 +905,7 @@ class TestHetznerConfig:
     
     def test_custom_endpoint_url(self):
         """Test custom endpoint URL is preserved."""
-        config = HetznerConfig(
+        config = S3Config(
             access_key='key',
             secret_key='secret',
             bucket_name='my-bucket',
@@ -918,7 +918,7 @@ class TestHetznerConfig:
         mocker.patch.dict('os.environ', {}, clear=True)
         
         with pytest.raises(EnvironmentError) as exc_info:
-            HetznerConfig.from_env()
+            S3Config.from_env()
         
         assert 'ACCESS_KEY' in str(exc_info.value)
     
@@ -931,7 +931,7 @@ class TestHetznerConfig:
             'REGION': 'hel1',
         })
         
-        config = HetznerConfig.from_env()
+        config = S3Config.from_env()
         
         assert config.access_key == 'env-key'
         assert config.secret_key == 'env-secret'
@@ -1147,20 +1147,20 @@ class TestCors:
 # Hetzner Object Storage (ERA5 tiles)
 # =============================================================================
 
-# Hetzner access key (from Object Storage → Keys)
-HETZNER_ACCESS_KEY=your_access_key_here
+# S3-compatible access key (Hetzner Object Storage → Keys)
+S3_ACCESS_KEY=your_access_key_here
 
-# Hetzner secret key (from Object Storage → Keys)
-HETZNER_SECRET_KEY=your_secret_key_here
+# S3-compatible secret key (Hetzner Object Storage → Keys)
+S3_SECRET_KEY=your_secret_key_here
 
 # Bucket name (must match bucket created in Hetzner console)
-HETZNER_BUCKET_NAME=era5-tiles
+S3_BUCKET_NAME=climate-tiles
 
 # Region (fsn1 = Falkenstein, nbg1 = Nuremberg, hel1 = Helsinki)
-HETZNER_REGION=fsn1
+S3_REGION=fsn1
 
 # Endpoint URL (optional - auto-generated from bucket and region if not set)
-# HETZNER_ENDPOINT_URL=https://era5-tiles.fsn1.your-objectstorage.com
+# S3_ENDPOINT_URL=https://climate-tiles.fsn1.your-objectstorage.com
 
 # =============================================================================
 # Scaleway Object Storage (Frontend hosting - existing)
@@ -1196,7 +1196,7 @@ CDS_API_URL=https://cds.climate.copernicus.eu/api/v2
 # =============================================================================
 
 # Base URL for ERA5 tiles (for frontend development)
-VITE_TILE_BASE_URL=https://era5-tiles.fsn1.your-objectstorage.com
+VITE_TILE_BASE_URL=https://climate-tiles.fsn1.your-objectstorage.com
 
 # Enable development mode features
 VITE_DEV_MODE=true
@@ -1205,8 +1205,8 @@ VITE_DEV_MODE=true
 # CI/CD (GitHub Actions)
 # =============================================================================
 # These are set as GitHub Secrets, not in .env
-# - HETZNER_ACCESS_KEY
-# - HETZNER_SECRET_KEY
+# - S3_ACCESS_KEY
+# - S3_SECRET_KEY
 # - CDS_API_KEY
 # - AWS_ACCESS_KEY_ID (Scaleway)
 # - AWS_SECRET_ACCESS_KEY (Scaleway)
@@ -1258,16 +1258,16 @@ class EnvVar:
 
 
 # Environment variable groups
-HETZNER_VARS = [
-    EnvVar('HETZNER_ACCESS_KEY', True, 'Hetzner Object Storage access key'),
-    EnvVar('HETZNER_SECRET_KEY', True, 'Hetzner Object Storage secret key'),
-    EnvVar('HETZNER_BUCKET_NAME', True, 'Hetzner bucket name', 'era5-tiles'),
-    EnvVar('HETZNER_REGION', False, 'Hetzner region', 'fsn1'),
-    EnvVar('HETZNER_ENDPOINT_URL', False, 'Hetzner endpoint URL (auto-generated if not set)'),
+S3_VARS = [
+    EnvVar('S3_ACCESS_KEY', True, 'S3-compatible access key'),
+    EnvVar('S3_SECRET_KEY', True, 'S3-compatible secret key'),
+    EnvVar('S3_BUCKET_NAME', True, 'Bucket name', 'climate-tiles'),
+    EnvVar('S3_REGION', False, 'Region', 'fsn1'),
+    EnvVar('S3_ENDPOINT_URL', False, 'Endpoint URL (auto-generated if not set)'),
 ]
 
 # Legacy env var names (for backwards compatibility)
-LEGACY_HETZNER_VARS = [
+LEGACY_S3_VARS = [
     EnvVar('ACCESS_KEY', True, 'S3 access key (legacy)'),
     EnvVar('SECRET_KEY', True, 'S3 secret key (legacy)'),
     EnvVar('BUCKET_NAME', True, 'Bucket name (legacy)'),
@@ -1307,7 +1307,7 @@ def validate_group(vars: list[EnvVar], group_name: str, use_legacy: bool = False
         
         if not value and var.required:
             # Check legacy fallback
-            legacy_name = var.name.replace('HETZNER_', '')
+            legacy_name = var.name.replace('S3_', '')
             legacy_value = os.environ.get(legacy_name) if use_legacy else None
             
             if legacy_value:
@@ -1344,8 +1344,8 @@ def main():
     if args.hetzner or validate_all:
         print("\n🔐 Hetzner Object Storage:")
         valid, errors = validate_group(
-            HETZNER_VARS if not args.legacy else LEGACY_HETZNER_VARS,
-            "Hetzner",
+            S3_VARS if not args.legacy else LEGACY_S3_VARS,
+            "S3 Storage",
             use_legacy=args.legacy
         )
         all_valid = all_valid and valid
@@ -1383,7 +1383,7 @@ if __name__ == '__main__':
 **Notes**:
 - Groups variables by service
 - Masks sensitive values in output
-- Supports both new (HETZNER_*) and legacy (ACCESS_KEY) naming
+- Supports both new (S3_*) and legacy (ACCESS_KEY) naming
 - Exit code indicates validation result for CI integration
 
 ---
@@ -1406,7 +1406,7 @@ set -e
 # Configuration
 CLOUDFLARE_ZONE_ID="${CLOUDFLARE_ZONE_ID:-}"
 CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-}"
-TILE_BASE_URL="${VITE_TILE_BASE_URL:-https://era5-tiles.fsn1.your-objectstorage.com}"
+TILE_BASE_URL="${VITE_TILE_BASE_URL:-https://climate-tiles.fsn1.your-objectstorage.com}"
 
 # Validate configuration
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
@@ -1500,8 +1500,8 @@ printf '\x0d\x00\x00\x00\x30\x01\x00\x9d\x01\x2a\x01\x00\x01\x00\x00\x34\x25\x9f
 
 echo "📤 Test 1: Upload file..."
 python -c "
-from analysis.utilities.hetzner_storage import HetznerStorage
-storage = HetznerStorage()
+from analysis.utilities.upload_to_s3 import S3Storage
+storage = S3Storage()
 url = storage.upload_file('$TEST_FILE', '$TEST_KEY')
 print(f'Uploaded to: {url}')
 "
@@ -1540,8 +1540,8 @@ echo ""
 echo "📥 Test 5: Download file..."
 DOWNLOAD_PATH="$TEST_DIR/downloaded.webp"
 python -c "
-from analysis.utilities.hetzner_storage import HetznerStorage
-storage = HetznerStorage()
+from analysis.utilities.upload_to_s3 import S3Storage
+storage = S3Storage()
 storage.download_file('$TEST_KEY', '$DOWNLOAD_PATH')
 print('Downloaded successfully')
 "
@@ -1549,8 +1549,8 @@ print('Downloaded successfully')
 echo ""
 echo "🗑️  Test 6: Cleanup test file..."
 python -c "
-from analysis.utilities.hetzner_storage import HetznerStorage
-storage = HetznerStorage()
+from analysis.utilities.upload_to_s3 import S3Storage
+storage = S3Storage()
 storage.delete_file('$TEST_KEY')
 print('Deleted test file')
 "
@@ -1600,7 +1600,7 @@ This guide covers setting up Hetzner Object Storage for ERA5 climate visualizati
 2. Navigate to **Object Storage** in the left sidebar
 3. Click **Create Bucket**
 4. Configure:
-   - **Bucket name**: `era5-tiles`
+   - **Bucket name**: `climate-tiles`
    - **Location**: `fsn1` (Falkenstein, Germany) - closest to most German users
 5. Click **Create**
 
@@ -1617,10 +1617,10 @@ This guide covers setting up Hetzner Object Storage for ERA5 climate visualizati
 Create a `.env` file based on `.env.example`:
 
 ```bash
-HETZNER_ACCESS_KEY=your_access_key_here
-HETZNER_SECRET_KEY=your_secret_key_here
-HETZNER_BUCKET_NAME=era5-tiles
-HETZNER_REGION=fsn1
+S3_ACCESS_KEY=your_access_key_here
+S3_SECRET_KEY=your_secret_key_here
+S3_BUCKET_NAME=climate-tiles
+S3_REGION=fsn1
 ```
 
 ## 4. Apply CORS Configuration
@@ -1655,9 +1655,9 @@ Expected output:
 
 | Region | Location | Endpoint URL |
 |--------|----------|--------------|
-| fsn1 | Falkenstein, Germany | `https://era5-tiles.fsn1.your-objectstorage.com` |
-| nbg1 | Nuremberg, Germany | `https://era5-tiles.nbg1.your-objectstorage.com` |
-| hel1 | Helsinki, Finland | `https://era5-tiles.hel1.your-objectstorage.com` |
+| fsn1 | Falkenstein, Germany | `https://climate-tiles.fsn1.your-objectstorage.com` |
+| nbg1 | Nuremberg, Germany | `https://climate-tiles.nbg1.your-objectstorage.com` |
+| hel1 | Helsinki, Finland | `https://climate-tiles.hel1.your-objectstorage.com` |
 
 ## Pricing (as of 2026)
 
@@ -1708,11 +1708,11 @@ For ERA5 tiles (~500MB estimated), monthly cost is approximately €0.003/month.
 # Secrets to add in GitHub repository settings:
 # Settings → Secrets and variables → Actions → New repository secret
 
-# Hetzner ERA5 Tiles:
-HETZNER_ACCESS_KEY: <from-hetzner-console>
-HETZNER_SECRET_KEY: <from-hetzner-console>
-HETZNER_BUCKET_NAME: era5-tiles
-HETZNER_REGION: fsn1
+# ERA5 Tiles (S3-compatible / Hetzner Object Storage):
+S3_ACCESS_KEY: <from-hetzner-console>
+S3_SECRET_KEY: <from-hetzner-console>
+S3_BUCKET_NAME: climate-tiles
+S3_REGION: fsn1
 
 # Copernicus CDS (for ERA5 downloads):
 CDS_API_KEY: <from-cds-profile>

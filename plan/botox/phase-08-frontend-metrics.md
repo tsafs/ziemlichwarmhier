@@ -26,7 +26,7 @@ This phase implements the climate metrics display cards that show key statistics
 ## 1. Requirements & Constraints
 
 ### Functional Requirements (from Master Plan)
-- **REQ-003**: Display 4-6 static climate metrics (temperature anomaly, warming rate, record days, etc.)
+- **REQ-003**: Display exactly 6 static climate metrics (fiveYearAnomaly, warmingRate, recordDays, seasonalWarming, thresholdDays, comfortableDays)
 - **REQ-009**: Provide responsive design for mobile and desktop
 
 ### Phase-Specific Requirements
@@ -435,6 +435,39 @@ export interface ComfortableDaysMetric {
     methodology: string;
 }
 
+/** Seasonal temperature anomalies (DJF, MAM, JJA, SON) */
+export interface SeasonalWarmingMetric {
+    /** DJF anomaly (°C) */
+    winter: number;
+    /** MAM anomaly (°C) */
+    spring: number;
+    /** JJA anomaly (°C) */
+    summer: number;
+    /** SON anomaly (°C) */
+    fall: number;
+    /** Season with highest anomaly */
+    fastestSeason: 'winter' | 'spring' | 'summer' | 'fall';
+    periodStart: number;
+    periodEnd: number;
+    referenceStart: number;
+    referenceEnd: number;
+    methodology: string;
+}
+
+/** Threshold day counts (Heißer Tag, Tropennacht, Eistag, Frosttag) */
+export interface ThresholdDaysMetric {
+    /** Days with Tmax ≥ 30°C (Heißer Tag) */
+    hotDays: number;
+    /** Days with Tmin ≥ 20°C (Tropennacht) */
+    tropicalNights: number;
+    /** Days with Tmax ≤ 0°C (Eistag) */
+    iceDays: number;
+    /** Days with Tmin < 0°C (Frosttag) */
+    frostDays: number;
+    year: number;
+    methodology: string;
+}
+
 /** Combined metrics for a location */
 export interface LocationMetrics {
     /** Location identifier (city ID or 'national') */
@@ -447,8 +480,8 @@ export interface LocationMetrics {
     fiveYearAnomaly: FiveYearAnomalyMetric;
     warmingRate: WarmingRateMetric;
     recordDays: RecordDaysMetric;
-    winterWarming: WinterWarmingMetric;
-    snowDaysLost: SnowDaysLostMetric;
+    seasonalWarming: SeasonalWarmingMetric;
+    thresholdDays: ThresholdDaysMetric;
     comfortableDays: ComfortableDaysMetric;
 }
 
@@ -618,19 +651,23 @@ import type { LocationMetrics } from '../types/metrics';
 const METRICS_BASE_PATH = '/data/metrics';
 
 /**
- * Fetch metrics for a specific city/location
- * @param locationId - City ID or 'national' for Germany-wide
+ * Fetch metrics for a grid tile.
+ * Data is stored per-tile; multiple cities may share the same tile.
+ * @param tileId - Tile identifier in format "{grid_i}_{grid_j}" (e.g. "45_23")
+ * 
+ * NOTE: Future expansion to other countries requires only adding new tile files;
+ * this function does not need to change.
  */
 export const fetchMetricsForLocation = async (
-    locationId: string
+    tileId: string
 ): Promise<LocationMetrics> => {
-    const url = buildUrl(`${METRICS_BASE_PATH}/${locationId}.json`, false);
+    const url = buildUrl(`${METRICS_BASE_PATH}/tiles/${tileId}.json`, false);
     
     const response = await fetch(url);
     
     if (!response.ok) {
         if (response.status === 404) {
-            throw new Error(`Metrics not available for location: ${locationId}`);
+            throw new Error(`Metrics not available for tile: ${tileId}`);
         }
         throw new Error(`Failed to fetch metrics: ${response.statusText}`);
     }
@@ -638,7 +675,7 @@ export const fetchMetricsForLocation = async (
     const data = await response.json();
     
     // Validate required fields
-    if (!data.locationId || !data.annualAnomaly || !data.warmingRate) {
+    if (!data.fiveYearAnomaly || !data.warmingRate) {
         throw new Error('Invalid metrics data structure');
     }
     
@@ -646,10 +683,13 @@ export const fetchMetricsForLocation = async (
 };
 
 /**
- * Fetch national (Germany-wide) metrics
+ * Fetch national (Germany-wide) aggregate metrics
  */
 export const fetchNationalMetrics = async (): Promise<LocationMetrics> => {
-    return fetchMetricsForLocation('national');
+    const url = buildUrl(`${METRICS_BASE_PATH}/germany.json`, false);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch national metrics: ${response.statusText}`);
+    return response.json();
 };
 
 /**
@@ -725,10 +765,10 @@ export const selectMetricsForLocation = (locationId: string) =>
         (data) => data?.[locationId]
     );
 
-export const selectAnnualAnomaly = (locationId: string) =>
+export const selectFiveYearAnomaly = (locationId: string) =>
     createSelector(
         [selectMetricsForLocation(locationId)],
-        (metrics) => metrics?.annualAnomaly
+        (metrics) => metrics?.fiveYearAnomaly
     );
 
 export const selectWarmingRate = (locationId: string) =>
@@ -773,24 +813,24 @@ export const shouldFetchMetrics = shouldFetch;
 export default slice.reducer;
 ```
 
-### 10.6 AnnualAnomalyCard Component
+### 10.6 FiveYearAnomalyCard Component
 
-**File**: `frontend/src/components/metrics/cards/AnnualAnomalyCard.tsx`
+**File**: `frontend/src/components/metrics/cards/FiveYearAnomalyCard.tsx`
 
 ```typescript
 /**
- * Annual Anomaly Card
+ * Five-Year Anomaly Card
  * 
- * Displays the annual temperature anomaly relative to reference period.
+ * Displays the 5-year mean temperature anomaly relative to reference period.
  */
 
 import { memo, useMemo } from 'react';
 import StatCard from '../../plots/Stats/StatCard';
 import { useAppSelector } from '../../../store/hooks/useAppSelector';
-import { selectAnnualAnomaly, selectMetricsIsLoading, selectMetricsError } from '../../../store/slices/metricsSlice';
+import { selectFiveYearAnomaly, selectMetricsIsLoading, selectMetricsError } from '../../../store/slices/metricsSlice';
 import { theme } from '../../../styles/design-system';
 
-interface AnnualAnomalyCardProps {
+interface FiveYearAnomalyCardProps {
     locationId: string;
 }
 
@@ -805,8 +845,8 @@ const getAnomalyColor = (value: number): string => {
     return theme.colors.neutral;
 };
 
-const AnnualAnomalyCard = memo(({ locationId }: AnnualAnomalyCardProps) => {
-    const anomaly = useAppSelector(selectAnnualAnomaly(locationId));
+const FiveYearAnomalyCard = memo(({ locationId }: FiveYearAnomalyCardProps) => {
+    const anomaly = useAppSelector(selectFiveYearAnomaly(locationId));
     const isLoading = useAppSelector(selectMetricsIsLoading);
     const error = useAppSelector(selectMetricsError);
 
@@ -821,19 +861,20 @@ const AnnualAnomalyCard = memo(({ locationId }: AnnualAnomalyCardProps) => {
     );
 
     const subtitle = useMemo(() =>
-        anomaly ? `vs. ${anomaly.referenceStart}-${anomaly.referenceEnd} Mittel` : undefined,
+        anomaly
+            ? `${anomaly.periodStart}–${anomaly.periodEnd} vs. ${anomaly.referenceStart}–${anomaly.referenceEnd}`
+            : undefined,
         [anomaly]
     );
 
-    const infoText = anomaly?.methodology ?? 
-        'Die jährliche Temperaturanomalie zeigt die Abweichung der Jahresmitteltemperatur vom langjährigen Referenzzeitraum (1961-1990).';
+    const infoText =
+        'Die 5-Jahres-Temperaturanomalie zeigt die mittlere Abweichung der letzten 5 Jahre vom Referenzzeitraum (1961–1990).';
 
     return (
         <StatCard
-            title="Jahresanomalie"
+            title="5-Jahres-Anomalie"
             value={formattedValue}
             subtitle={subtitle}
-            footnote={anomaly ? `Jahr ${anomaly.year}` : undefined}
             infoText={infoText}
             isLoading={isLoading}
             error={error}
@@ -844,9 +885,9 @@ const AnnualAnomalyCard = memo(({ locationId }: AnnualAnomalyCardProps) => {
     );
 });
 
-AnnualAnomalyCard.displayName = 'AnnualAnomalyCard';
+FiveYearAnomalyCard.displayName = 'FiveYearAnomalyCard';
 
-export default AnnualAnomalyCard;
+export default FiveYearAnomalyCard;
 ```
 
 ### 10.7 WarmingRateCard Component
@@ -1133,7 +1174,7 @@ export function useSelectedCityMetrics(): UseMetricsReturn {
  */
 
 export { default as MetricsRow } from './MetricsRow';
-export { default as AnnualAnomalyCard } from './cards/AnnualAnomalyCard';
+export { default as FiveYearAnomalyCard } from './cards/FiveYearAnomalyCard';
 export { default as WarmingRateCard } from './cards/WarmingRateCard';
 export { default as RecordDaysCard } from './cards/RecordDaysCard';
 export { default as SeasonalWarmingCard } from './cards/SeasonalWarmingCard';
@@ -1156,16 +1197,17 @@ export const mockLocationMetrics: LocationMetrics = {
     locationId: 'berlin',
     locationName: 'Berlin',
     generatedAt: '2026-02-15T10:00:00Z',
-    annualAnomaly: {
+    fiveYearAnomaly: {
         value: 1.2,
-        year: 2025,
+        periodStart: 2021,
+        periodEnd: 2025,
         referenceStart: 1961,
         referenceEnd: 1990,
-        methodology: 'Mittelwert der Tagesmitteltemperaturen im Vergleich zum Referenzzeitraum.',
+        methodology: 'Mittelwert der 5-Jahres-Tagesmitteltemperaturen im Vergleich zum Referenzzeitraum.',
     },
     warmingRate: {
         value: 0.35,
-        startYear: 1990,
+        startYear: 1995,
         endYear: 2025,
         confidence: 0.95,
         rSquared: 0.87,
@@ -1184,30 +1226,24 @@ export const mockLocationMetrics: LocationMetrics = {
         spring: 1.1,
         summer: 1.5,
         fall: 0.9,
-        year: 2025,
+        fastestSeason: 'winter',
+        periodStart: 2021,
+        periodEnd: 2025,
         referenceStart: 1961,
         referenceEnd: 1990,
         methodology: 'Saisonmittel vs. Referenzzeitraum.',
     },
     thresholdDays: {
-        summerDays: 78,
         hotDays: 22,
+        tropicalNights: 5,
         iceDays: 8,
         frostDays: 52,
-        tropicalNights: 5,
         year: 2025,
-        reference: {
-            summerDays: 45,
-            hotDays: 8,
-            iceDays: 22,
-            frostDays: 85,
-            tropicalNights: 1,
-        },
         methodology: 'Tageszählung nach DWD-Definitionen.',
     },
     comfortableDays: {
         count: 92,
-        year: 2025,
+        average: 91.5,
         referenceAverage: 105,
         methodology: 'Tage mit Höchsttemperatur zwischen 18°C und 25°C.',
     },
@@ -1217,8 +1253,8 @@ export const mockNationalMetrics: LocationMetrics = {
     ...mockLocationMetrics,
     locationId: 'national',
     locationName: 'Deutschland',
-    annualAnomaly: {
-        ...mockLocationMetrics.annualAnomaly,
+    fiveYearAnomaly: {
+        ...mockLocationMetrics.fiveYearAnomaly,
         value: 1.0,
     },
     warmingRate: {
@@ -1317,7 +1353,7 @@ describe('MetricsService', () => {
             const result = await fetchMetricsForLocation('berlin');
 
             expect(result.locationId).toBe('berlin');
-            expect(result.annualAnomaly.value).toBe(1.2);
+            expect(result.fiveYearAnomaly.value).toBe(1.2);
         });
 
         it('throws on 404', async () => {

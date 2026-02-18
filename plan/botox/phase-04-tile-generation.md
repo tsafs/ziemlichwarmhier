@@ -33,7 +33,7 @@ This phase implements the map tile generation pipeline that converts processed E
 ### Phase-Specific Requirements
 
 - **REQ-P4-001**: Generate WebP tiles from anomaly GeoTIFFs at zoom levels 6-10
-- **REQ-P4-002**: Apply diverging color ramp (-3°C to +3°C, blue to red)
+- **REQ-P4-002**: Apply diverging color ramp (-3°C to +3°C, blue to red). Range is configurable via `ANOMALY_VMIN` / `ANOMALY_VMAX` in `tile_config.py`.
 - **REQ-P4-003**: Preserve transparency for ocean/NoData areas
 - **REQ-P4-004**: Follow XYZ tile naming: `/{year}/{month:02d}/{z}/{x}/{y}.webp`
 - **REQ-P4-005**: Set content-type headers correctly for WebP on upload
@@ -122,7 +122,7 @@ This phase implements the map tile generation pipeline that converts processed E
 
 - **ALT-P4-003**: **Use rio-tiler for tile generation**
   - Production-ready, optimized for Cloud Optimized GeoTIFFs
-  - Rejected for simplicity: Custom implementation gives more control over color mapping
+  - **Accepted**: rio-tiler reads actual GeoTIFF data values and applies the colormap consistently, ensuring natural color continuity at tile boundaries (adjacent tiles show matching colors because the underlying data is smooth — no explicit cross-tile blending code is needed). See master plan section 10.6 for reference implementation.
 
 - **ALT-P4-004**: **JPEG tiles with separate mask**
   - Smaller files than WebP, simpler encoding
@@ -140,11 +140,12 @@ This phase implements the map tile generation pipeline that converts processed E
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `rasterio` | >=1.4.0 | GeoTIFF reading |
+| `rio-tiler` | >=7.0.0 | Tile extraction + colormap from COG |
 | `Pillow` | >=10.0.0 | WebP encoding |
 | `numpy` | >=2.3.0 | Array operations |
-| `matplotlib` | >=3.10.0 | Colormap definitions |
+| `matplotlib` | >=3.10.0 | Colormap definitions in `color_ramps.py` |
 | `boto3` | >=1.38.0 | S3-compatible upload |
-| `mercantile` | >=1.2.0 | Tile coordinate calculations |
+| `mercantile` | >=1.2.0 | Tile coordinate calculations (fallback) |
 | `tqdm` | >=4.67.0 | Progress bars |
 | `pytest` | >=8.0.0 | Testing |
 
@@ -386,9 +387,9 @@ from matplotlib import colormaps
 from matplotlib.colors import Normalize, LinearSegmentedColormap
 
 
-# Anomaly value range
-ANOMALY_VMIN = -3.0  # °C
-ANOMALY_VMAX = 3.0   # °C
+# Anomaly value range (configurable — matches ANOMALY_VMIN/ANOMALY_VMAX in tile_config.py)
+ANOMALY_VMIN = -3.0  # °C  (must stay symmetric, e.g. -3 to +3)
+ANOMALY_VMAX = 3.0   # °C  (adjust here to change color scale range)
 
 # Default colormap: diverging blue (cold) to red (warm)
 DEFAULT_COLORMAP = 'RdBu_r'
@@ -522,6 +523,8 @@ if __name__ == '__main__':
 
 **File**: `analysis/tiles/generate_tiles.py`
 
+> **Implementation note (ALT-P4-003 accepted):** The implementation should use **rio-tiler** for tile extraction and colormap application rather than the manual mercantile + rasterio approach shown below. rio-tiler reads directly from Cloud Optimized GeoTIFFs and naturally produces seamless color continuity at tile boundaries by applying the colormap consistently to the actual data values. See the reference implementation in master plan Section 10.6. The code below documents the fallback logic and data flow; adapt it using the rio-tiler API.
+
 ```python
 #!/usr/bin/env python3
 """
@@ -529,6 +532,9 @@ Generate WebP map tiles from GeoTIFF anomaly data.
 
 Converts processed ERA5 anomaly GeoTIFFs into XYZ tile pyramids
 suitable for web map display with MapLibre GL.
+
+NOTE: Implementation should use rio-tiler (see ALT-P4-003 in Alternatives section
+and master plan Section 10.6 for the accepted reference implementation).
 """
 
 import logging
@@ -825,8 +831,8 @@ from .tile_config import CACHE_CONTROL, CONTENT_TYPE
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Hetzner Object Storage endpoints
-HETZNER_ENDPOINTS = {
+# S3-compatible storage endpoints
+S3_ENDPOINTS = {
     'fsn1': 'https://fsn1.your-objectstorage.com',
     'hel1': 'https://hel1.your-objectstorage.com',
     'nbg1': 'https://nbg1.your-objectstorage.com',
