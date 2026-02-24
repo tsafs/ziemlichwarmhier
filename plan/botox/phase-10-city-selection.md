@@ -12,13 +12,13 @@ tags: [phase-10, frontend, search, city-selection, url, routing]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the city search and selection functionality that connects all visualization components. It builds on the existing `StationSearch` component pattern, adds URL-based city parameter support for shareable links, creates the Python script to correlate cities with ERA5 grid cells, and ensures all components (map, metrics, narrative plots) respond to city selection changes.
+This phase implements the city search and selection functionality that connects all visualization components. It builds on the existing `StationSearch` component pattern, adds URL-based city parameter support for shareable links, creates the Python script to correlate cities with ERA5-Land grid cells, and ensures all components (map, metrics, narrative plots) respond to city selection changes.
 
 **Key deliverables:**
 - `CitySearch` autocomplete component (extending existing pattern)
 - URL-based city selection via query parameter (`?city=berlin`)
 - Deep-linking support for social sharing
-- Python script to correlate GeoNames cities with ERA5 grid cells
+- Python script to correlate GeoNames cities with ERA5-Land grid cells
 - Enhanced `citySlice` with grid correlation data
 - Integration testing for end-to-end city selection flow
 
@@ -135,13 +135,13 @@ This phase implements the city search and selection functionality that connects 
 
 ### Implementation Phase 10.5: Python Grid Correlation Script
 
-- GOAL-P10-005: Create script to map cities to nearest ERA5 grid cells
+- GOAL-P10-005: Create script to map cities to nearest ERA5-Land grid cells
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
 | TASK-P10-026 | Create `analysis/cities/correlate_cities_to_grid.py` | | |
 | TASK-P10-027 | Load Germany city list from `german_cities_p5000.csv` | | |
-| TASK-P10-028 | Define ERA5 grid (0.1° resolution) | | |
+| TASK-P10-028 | Define ERA5-Land grid (0.1° resolution) | | |
 | TASK-P10-029 | Calculate nearest grid cell for each city | | |
 | TASK-P10-030 | Output correlation data as JSON (`city_grid_correlation.json`) | | |
 | TASK-P10-031 | Include city slug in output for URL matching | | |
@@ -180,7 +180,7 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P10-039 | Create `frontend/src/store/slices/citySlice.ts` - new city selection state for ERA5 feature (do NOT modify existing `selectedCitySlice.ts`) | | |
+| TASK-P10-039 | Create `frontend/src/store/slices/citySlice.ts` - new city selection state for ERA5-Land feature (do NOT modify existing `selectedCitySlice.ts`) | | |
 | TASK-P10-040 | Add `selectCityBySlug(slug)` action | | |
 | TASK-P10-041 | Add `selectCitySelector` by slug | | |
 | TASK-P10-042 | Ensure backward compatibility with ID-based selection | | |
@@ -297,7 +297,7 @@ This phase implements the city search and selection functionality that connects 
 - **FILE-P10-010**: `data/cities/city_grid_correlation.json` - NEW (generated)
 
 ### Modified Files
-- **FILE-P10-011**: `frontend/src/store/slices/citySlice.ts` - NEW - ERA5 city selection state
+- **FILE-P10-011**: `frontend/src/store/slices/citySlice.ts` - NEW - ERA5-Land city selection state
 - **FILE-P10-012**: `frontend/src/store/slices/cityDataSlice.ts` - MODIFY
 - **FILE-P10-013**: `frontend/src/classes/City.ts` - MODIFY (add slug, grid fields)
 - **FILE-P10-014**: `frontend/src/App.tsx` - MODIFY (add URL param handling)
@@ -348,8 +348,8 @@ This phase implements the city search and selection functionality that connects 
 - **RISK-P10-003**: Search performance with large result sets
   - **Mitigation**: Limit to 15 results; use debounced input (300ms)
 
-- **RISK-P10-004**: Grid correlation mismatch with ERA5 updates
-  - **Mitigation**: Regenerate correlation JSON when ERA5 grid changes; version the file
+- **RISK-P10-004**: Grid correlation mismatch with ERA5-Land updates
+  - **Mitigation**: Regenerate correlation JSON when ERA5-Land grid changes; version the file
 
 ### Assumptions
 - **ASSUMPTION-P10-001**: 2,949 cities sufficient for all user needs
@@ -984,10 +984,10 @@ export default CitySearch;
 ```python
 #!/usr/bin/env python3
 """
-Correlate cities to ERA5 grid cells.
+Correlate cities to ERA5-Land grid cells.
 
 This script takes the GeoNames city list and finds the nearest
-ERA5 grid cell for each city, outputting a JSON file with
+ERA5-Land grid cell for each city, outputting a JSON file with
 city metadata and grid indices.
 """
 
@@ -1064,7 +1064,7 @@ def city_name_to_slug(name: str) -> str:
 
 def lat_lon_to_grid_indices(lat: float, lon: float) -> Tuple[int, int, float, float]:
     """
-    Convert lat/lon to ERA5 grid indices.
+    Convert lat/lon to ERA5-Land grid indices.
     
     Returns (i, j, grid_lat, grid_lon) where:
     - i is the column index (longitude)
@@ -1100,7 +1100,7 @@ def load_cities(csv_path: Path) -> List[dict]:
 
 
 def correlate_cities(cities: List[dict]) -> List[CityCorrelation]:
-    """Correlate cities to ERA5 grid cells."""
+    """Correlate cities to ERA5-Land grid cells."""
     correlations = []
     seen_slugs = set()
     
@@ -1176,13 +1176,13 @@ if __name__ == '__main__':
 
 **File**: `frontend/src/store/slices/citySlice.ts` (new file)
 
-> **Note**: `selectedCitySlice.ts` is kept unchanged. `citySlice.ts` is a new, separate slice for ERA5 city selection state, ensuring backward compatibility with any existing consumers of `selectedCitySlice`.
+> **Note**: `selectedCitySlice.ts` is kept unchanged. `citySlice.ts` is a new, separate slice for ERA5-Land city selection state, ensuring backward compatibility with any existing consumers of `selectedCitySlice`.
 
 ```typescript
 /**
  * City Slice
  * 
- * ERA5-specific city selection state. Separate from the pre-existing
+ * ERA5-Land-specific city selection state. Separate from the pre-existing
  * selectedCitySlice.ts to avoid breaking backward compatibility.
  */
 

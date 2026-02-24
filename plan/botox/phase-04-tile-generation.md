@@ -12,7 +12,7 @@ tags: [phase-4, tiles, webp, rasterio, visualization, geotiff]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the map tile generation pipeline that converts processed ERA5 anomaly GeoTIFFs into WebP tile pyramids for web-based visualization. The tiles follow the standard XYZ tile scheme (slippy map) and are optimized for MapLibre GL rendering.
+This phase implements the map tile generation pipeline that converts processed ERA5-Land anomaly GeoTIFFs into WebP tile pyramids for web-based visualization. The tiles follow the standard XYZ tile scheme (slippy map) and are optimized for MapLibre GL rendering.
 
 **Key outputs:**
 - GeoTIFF to WebP tile conversion
@@ -26,7 +26,7 @@ This phase implements the map tile generation pipeline that converts processed E
 
 ### From Master Plan
 
-- **REQ-001**: Display temperature anomaly maps using ERA5 data at 1km visual resolution
+- **REQ-001**: Display temperature anomaly maps using ERA5-Land data at 1km visual resolution
 - **NFR-003**: Map tile loading < 500ms per visible viewport
 - **NFR-001**: Monthly operational costs ≤ €15/month
 
@@ -132,7 +132,7 @@ This phase implements the map tile generation pipeline that converts processed E
 
 ### Phase Dependencies
 
-- **DEP-P4-001**: Phase 3 (ERA5 Pipeline) - produces anomaly GeoTIFFs
+- **DEP-P4-001**: Phase 3 (ERA5-Land Pipeline) - produces anomaly GeoTIFFs
 - **DEP-P4-002**: Phase 2 (Infrastructure) - Hetzner Object Storage configured
 
 ### Python Package Dependencies
@@ -530,7 +530,7 @@ if __name__ == '__main__':
 """
 Generate WebP map tiles from GeoTIFF anomaly data.
 
-Converts processed ERA5 anomaly GeoTIFFs into XYZ tile pyramids
+Converts processed ERA5-Land anomaly GeoTIFFs into XYZ tile pyramids
 suitable for web map display with MapLibre GL.
 
 NOTE: Implementation should use rio-tiler (see ALT-P4-003 in Alternatives section

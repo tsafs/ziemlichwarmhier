@@ -12,10 +12,10 @@ tags: [phase-6, jobs, docker, github-actions, automation, pipeline]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the automated job orchestration for the ERA5 climate visualization pipeline. It creates Docker-based jobs that run as scheduled GitHub Actions workflows to keep the climate data and tiles up to date.
+This phase implements the automated job orchestration for the ERA5-Land climate visualization pipeline. It creates Docker-based jobs that run as scheduled GitHub Actions workflows to keep the climate data and tiles up to date.
 
 **Key outputs:**
-- Daily job: Check for new ERA5 data and process new months
+- Daily job: Check for new ERA5-Land data and process new months
 - Monthly job: Regenerate all tiles for the completed month
 - Yearly job: Recalculate all metrics (five-year anomaly, warming rate, winter warming, record days, snow days lost, comfortable days)
 - GitHub Actions workflows for scheduling
@@ -32,7 +32,7 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 
 ### Phase-Specific Requirements
 
-- **REQ-P6-001**: Daily job checks for new ERA5 data and processes if available
+- **REQ-P6-001**: Daily job checks for new ERA5-Land data and processes if available
 - **REQ-P6-002**: Monthly job regenerates tiles for previous complete month on 1st
 - **REQ-P6-003**: Yearly job recalculates all 6 metrics on January 15:
   - Five-year temperature anomaly (2021-2025 vs 1961-1990)
@@ -52,13 +52,13 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 - **CON-P6-001**: GitHub Actions free tier limits: 2000 minutes/month, 6 hour max per job
 - **CON-P6-002**: Docker images should be < 1GB for fast pull times
 - **CON-P6-003**: Secrets must not be exposed in logs or error messages
-- **CON-P6-004**: ERA5 data has ~5 day publication delay
+- **CON-P6-004**: ERA5-Land data has ~5 day publication delay
 
 ## 2. Implementation Steps
 
 ### Implementation Phase 6.1: Daily Job
 
-- GOAL-P6-001: Create daily ERA5 processing job
+- GOAL-P6-001: Create daily ERA5-Land processing job
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
@@ -157,7 +157,7 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 ### Phase Dependencies
 
 - **DEP-P6-001**: Phase 2 (Infrastructure) - S3 credentials and bucket configured
-- **DEP-P6-002**: Phase 3 (ERA5 Pipeline) - all processing modules
+- **DEP-P6-002**: Phase 3 (ERA5-Land Pipeline) - all processing modules
 - **DEP-P6-003**: Phase 4 (Tile Generation) - tile generation modules
 - **DEP-P6-004**: Phase 5 (Metrics) - metrics calculation modules
 
@@ -241,7 +241,7 @@ This phase implements the automated job orchestration for the ERA5 climate visua
 ### Assumptions
 
 - **ASSUMPTION-P6-001**: GitHub Actions free tier sufficient (2000 min/month)
-- **ASSUMPTION-P6-002**: ERA5 data typically available within 5 days of month end
+- **ASSUMPTION-P6-002**: ERA5-Land data typically available within 5 days of month end
 - **ASSUMPTION-P6-003**: Pipeline duration < 60 minutes for daily job
 - **ASSUMPTION-P6-004**: Repository remains public (free Actions minutes)
 - **ASSUMPTION-P6-005**: Hetzner S3 API stable and compatible with boto3
@@ -343,7 +343,7 @@ ENTRYPOINT ["./entrypoint.sh"]
 set -e
 
 echo "=========================================="
-echo "ERA5 Daily Pipeline"
+echo "ERA5-Land Daily Pipeline"
 echo "Started: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "=========================================="
 
@@ -387,13 +387,13 @@ echo "key: $CDS_API_KEY" >> ~/.cdsapirc
 
 # Run the pipeline
 echo ""
-echo "Starting ERA5 processing pipeline..."
+echo "Starting ERA5-Land processing pipeline..."
 python src/process_daily.py
 
 # Report completion
 echo ""
 echo "=========================================="
-echo "ERA5 Daily Pipeline Complete"
+echo "ERA5-Land Daily Pipeline Complete"
 echo "Finished: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "=========================================="
 ```
@@ -405,7 +405,7 @@ echo "=========================================="
 ```python
 #!/usr/bin/env python3
 """
-ERA5 Daily Pipeline Orchestrator.
+ERA5-Land Daily Pipeline Orchestrator.
 
 Checks for new ERA5-Land data and processes any new months available.
 Runs daily but only performs work when new data is detected.
@@ -546,7 +546,7 @@ def run_pipeline(year: int, month: int):
 
 def main():
     """Main entry point for daily pipeline."""
-    logger.info("ERA5 Daily Pipeline starting...")
+    logger.info("ERA5-Land Daily Pipeline starting...")
     
     # Get target month
     year, month = get_target_month()
@@ -576,7 +576,7 @@ if __name__ == '__main__':
 **File**: `jobs/job-era5-daily/requirements.txt`
 
 ```
-# ERA5 data processing
+# ERA5-Land data processing
 cdsapi>=0.7.0
 xarray>=2025.6.1
 netCDF4>=1.7.2
@@ -607,7 +607,7 @@ requests>=2.32.0
 ```python
 #!/usr/bin/env python3
 """
-ERA5 Monthly Pipeline Orchestrator.
+ERA5-Land Monthly Pipeline Orchestrator.
 
 Regenerates all tiles for the previous complete month.
 This handles any data corrections from CDS.
@@ -696,7 +696,7 @@ def run_full_month_pipeline(year: int, month: int):
 
 def main():
     """Main entry point."""
-    logger.info("ERA5 Monthly Pipeline starting...")
+    logger.info("ERA5-Land Monthly Pipeline starting...")
     
     year, month = get_target_month()
     logger.info(f"Target month: {year}-{month:02d}")
@@ -721,7 +721,7 @@ if __name__ == '__main__':
 ```python
 #!/usr/bin/env python3
 """
-ERA5 Yearly Pipeline Orchestrator.
+ERA5-Land Yearly Pipeline Orchestrator.
 
 Recalculates all metrics for the completed year and exports to JSON.
 Updated to use correct metric names per narrative spec.
@@ -809,7 +809,7 @@ def run_yearly_pipeline(year: int):
     output_dir = base_dir / 'metrics'
     
     # Load historical data (all years)
-    logger.info(f"Loading ERA5 data for metrics calculation...")
+    logger.info(f"Loading ERA5-Land data for metrics calculation...")
     ds = xr.open_dataset(base_dir / 'historical' / 'era5_land_germany.nc')
     ds_precip = xr.open_dataset(base_dir / 'historical' / 'era5_land_precip_germany.nc')
     
@@ -862,7 +862,7 @@ def run_yearly_pipeline(year: int):
 
 def main():
     """Main entry point."""
-    logger.info("ERA5 Yearly Pipeline starting...")
+    logger.info("ERA5-Land Yearly Pipeline starting...")
     
     year = get_target_year()
     logger.info(f"Target year: {year}")
@@ -887,7 +887,7 @@ The nightly job **pulls** the pre-built image from GHCR; it does **not** rebuild
 **File**: `.github/workflows/era5-daily-pipeline.yml`
 
 ```yaml
-name: ERA5 Daily Pipeline
+name: ERA5-Land Daily Pipeline
 
 on:
   schedule:
@@ -918,10 +918,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull ERA5 daily image
+      - name: Pull ERA5-Land daily image
         run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Run ERA5 pipeline
+      - name: Run ERA5-Land pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
           ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
@@ -942,7 +942,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const title = `ERA5 Daily Pipeline Failed - ${new Date().toISOString().split('T')[0]}`;
+            const title = `ERA5-Land Daily Pipeline Failed - ${new Date().toISOString().split('T')[0]}`;
             const body = `
             ## Pipeline Failure Report
             
@@ -968,7 +968,7 @@ jobs:
 **File**: `.github/workflows/era5-monthly-pipeline.yml`
 
 ```yaml
-name: ERA5 Monthly Pipeline
+name: ERA5-Land Monthly Pipeline
 
 on:
   schedule:
@@ -998,10 +998,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull ERA5 monthly image
+      - name: Pull ERA5-Land monthly image
         run: docker pull ghcr.io/${{ github.repository }}/era5-monthly:latest
 
-      - name: Run ERA5 monthly pipeline
+      - name: Run ERA5-Land monthly pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
           ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
@@ -1026,7 +1026,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const title = `ERA5 Monthly Pipeline Failed - ${new Date().toISOString().split('T')[0]}`;
+            const title = `ERA5-Land Monthly Pipeline Failed - ${new Date().toISOString().split('T')[0]}`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -1041,7 +1041,7 @@ jobs:
 **File**: `.github/workflows/era5-yearly-pipeline.yml`
 
 ```yaml
-name: ERA5 Yearly Pipeline
+name: ERA5-Land Yearly Pipeline
 
 on:
   schedule:
@@ -1068,10 +1068,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull ERA5 yearly image
+      - name: Pull ERA5-Land yearly image
         run: docker pull ghcr.io/${{ github.repository }}/era5-yearly:latest
 
-      - name: Run ERA5 yearly pipeline
+      - name: Run ERA5-Land yearly pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
           ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
@@ -1094,7 +1094,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const title = `ERA5 Yearly Pipeline Failed - ${new Date().getFullYear()}`;
+            const title = `ERA5-Land Yearly Pipeline Failed - ${new Date().getFullYear()}`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -1111,7 +1111,7 @@ This workflow builds and pushes all three job images to GHCR whenever the releva
 **File**: `.github/workflows/build-era5-jobs.yml`
 
 ```yaml
-name: Build ERA5 Docker Images
+name: Build ERA5-Land Docker Images
 
 on:
   push:
@@ -1170,11 +1170,11 @@ jobs:
 **File**: `documentation/deployment/runbook.md`
 
 ```markdown
-# ERA5 Climate Pipeline Operations Runbook
+# ERA5-Land Climate Pipeline Operations Runbook
 
 ## Overview
 
-This runbook describes operational procedures for the ERA5 climate visualization pipeline.
+This runbook describes operational procedures for the ERA5-Land climate visualization pipeline.
 
 ## Scheduled Jobs
 

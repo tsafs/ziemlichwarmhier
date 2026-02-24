@@ -1,5 +1,5 @@
 ---
-goal: Phase 3 - ERA5 Data Pipeline Core Implementation
+goal: Phase 3 - ERA5-Land Data Pipeline Core Implementation
 version: 1.1
 date_created: 2026-02-16
 last_updated: 2026-02-17
@@ -12,7 +12,7 @@ tags: [phase-3, era5, data-pipeline, python, xarray, cdsapi]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the core ERA5 data download and processing pipeline. It establishes the foundation for all climate data processing by creating modules to fetch ERA5-Land data from the Copernicus Climate Data Store (CDS), interpolate it to 1km visual resolution, apply a land mask for Germany, and calculate temperature anomalies against a reference period.
+This phase implements the core ERA5-Land data download and processing pipeline. It establishes the foundation for all climate data processing by creating modules to fetch ERA5-Land data from the Copernicus Climate Data Store (CDS), interpolate it to 1km visual resolution, apply a land mask for Germany, and calculate temperature anomalies against a reference period.
 
 **Key outputs:**
 - CDS API client setup with authentication
@@ -29,7 +29,7 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 
 ### From Master Plan
 
-- **REQ-001**: Display temperature anomaly maps for Germany using ERA5 data at 1km visual resolution
+- **REQ-001**: Display temperature anomaly maps for Germany using ERA5-Land data at 1km visual resolution
 - **REQ-006**: Support land areas only, including coastal islands (exclude ocean)
 - **CON-002**: ERA5-Land resolution is 0.1° (~9km) - can be interpolated to 1km
 - **CON-003**: HYRAS 1km data available for Germany (1951-2024) as reference/validation
@@ -58,7 +58,7 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 
 ### Implementation Phase 3.1: Configuration Module
 
-- GOAL-P3-001: Centralize all ERA5 processing configuration
+- GOAL-P3-001: Centralize all ERA5-Land processing configuration
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
@@ -125,7 +125,7 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
 | TASK-P3-028 | Create `analysis/era5/tests/` directory structure | | |
-| TASK-P3-029 | Create sample ERA5 test data subset (1 month, reduced grid) | | |
+| TASK-P3-029 | Create sample ERA5-Land test data subset (1 month, reduced grid) | | |
 | TASK-P3-030 | Create integration test running full pipeline | | |
 | TASK-P3-031 | Add pytest fixtures for common test data | | |
 | TASK-P3-032 | Document module usage in docstrings and README | | |
@@ -175,8 +175,8 @@ This phase implements the core ERA5 data download and processing pipeline. It es
 
 ## 3. Alternatives
 
-- **ALT-P3-001**: **Use ERA5 instead of ERA5-Land**
-  - ERA5 has 0.25° (~28km) resolution vs ERA5-Land's 0.1° (~9km)
+- **ALT-P3-001**: **Use ERA5-Land instead of ERA5-Land**
+  - ERA5-Land has 0.25° (~28km) resolution vs ERA5-Land's 0.1° (~9km)
   - Rejected: More interpolation artifacts, ERA5-Land is better for land areas
 
 - **ALT-P3-002**: **Use bilinear instead of bicubic interpolation**
@@ -363,9 +363,9 @@ Each agent session needs:
 ```python
 #!/usr/bin/env python3
 """
-ERA5 data processing configuration.
+ERA5-Land data processing configuration.
 
-Centralized configuration for all ERA5-related processing including
+Centralized configuration for all ERA5-Land-related processing including
 geographic bounds, variable definitions, and reference periods.
 """
 
@@ -514,9 +514,9 @@ def validate_bounds(bounds):
 ```python
 #!/usr/bin/env python3
 """
-Type definitions for ERA5 data processing.
+Type definitions for ERA5-Land data processing.
 
-Defines data structures used throughout the ERA5 pipeline.
+Defines data structures used throughout the ERA5-Land pipeline.
 Note: Using dictionaries rather than dataclasses for consistency
 with existing codebase patterns.
 """
@@ -650,7 +650,7 @@ def fetch_monthly_data(
         year: Year to fetch (e.g., 2024)
         month: Month to fetch (1-12)
         output_dir: Directory to save downloaded file
-        variable: ERA5 variable name (default: t2m)
+        variable: ERA5-Land variable name (default: t2m)
         force_download: If True, download even if cached
         
     Returns:
@@ -712,7 +712,7 @@ def fetch_monthly_data(
                 time.sleep(delay)
             else:
                 raise RuntimeError(
-                    f"Failed to download ERA5 data after {CDS_CONFIG['max_retries']} attempts"
+                    f"Failed to download ERA5-Land data after {CDS_CONFIG['max_retries']} attempts"
                 ) from e
 
 
@@ -727,7 +727,7 @@ def fetch_reference_climatology(
     
     Args:
         output_dir: Directory for climatology files
-        variable: ERA5 variable name
+        variable: ERA5-Land variable name
         
     Returns:
         Path to climatology NetCDF file
@@ -769,7 +769,7 @@ def fetch_reference_climatology(
 
 
 def load_era5_data(file_path: Path) -> xr.Dataset:
-    """Load ERA5 NetCDF file as xarray Dataset.
+    """Load ERA5-Land NetCDF file as xarray Dataset.
     
     Args:
         file_path: Path to NetCDF file
@@ -885,7 +885,7 @@ def interpolate_to_1km(
     in_lats = ds['latitude'].values
     in_lons = ds['longitude'].values
     
-    # ERA5 latitude is often descending (north to south)
+    # ERA5-Land latitude is often descending (north to south)
     if in_lats[0] > in_lats[-1]:
         in_lats = in_lats[::-1]
         data = data[::-1, :]
@@ -998,7 +998,7 @@ def interpolate_from_xarray(
 if __name__ == '__main__':
     import argparse
     
-    parser = argparse.ArgumentParser(description='Interpolate ERA5 data to 1km')
+    parser = argparse.ArgumentParser(description='Interpolate ERA5-Land data to 1km')
     parser.add_argument('input_file', help='Input NetCDF file')
     parser.add_argument('--output-dir', default='./data/era5/interpolated',
                         help='Output directory')
@@ -1017,7 +1017,7 @@ if __name__ == '__main__':
 ```python
 #!/usr/bin/env python3
 """
-Apply Germany land mask to interpolated ERA5 data.
+Apply Germany land mask to interpolated ERA5-Land data.
 
 Uses Natural Earth 1:10m land polygons to mask out ocean areas
 while preserving German islands.
@@ -1218,7 +1218,7 @@ def apply_germany_land_mask(
     mask_path: Path = None,
     variable: str = 't2m',
 ) -> Path:
-    """Apply land mask to interpolated ERA5 data.
+    """Apply land mask to interpolated ERA5-Land data.
     
     Args:
         input_path: Path to interpolated NetCDF
@@ -1472,10 +1472,10 @@ def validate_against_hyras(
     hyras_path: Path,
     tolerance: float = 0.5,
 ) -> dict:
-    """Validate ERA5 anomalies against HYRAS reference (if available).
+    """Validate ERA5-Land anomalies against HYRAS reference (if available).
     
     Args:
-        anomaly_path: Path to ERA5 anomaly GeoTIFF
+        anomaly_path: Path to ERA5-Land anomaly GeoTIFF
         hyras_path: Path to HYRAS data for same period
         tolerance: Acceptable mean difference in °C
         
@@ -1484,7 +1484,7 @@ def validate_against_hyras(
     """
     logger.info("Validating against HYRAS reference...")
     
-    # Load ERA5 anomaly
+    # Load ERA5-Land anomaly
     with rasterio.open(anomaly_path) as src:
         era5 = src.read(1)
     
@@ -1525,7 +1525,7 @@ if __name__ == '__main__':
 ```python
 #!/usr/bin/env python3
 """
-Pytest fixtures for ERA5 processing tests.
+Pytest fixtures for ERA5-Land processing tests.
 """
 
 import pytest
@@ -1668,7 +1668,7 @@ def sample_geotiff(temp_output_dir):
 
 ```python
 #!/usr/bin/env python3
-"""Tests for ERA5 data fetching."""
+"""Tests for ERA5-Land data fetching."""
 
 import pytest
 from pathlib import Path
@@ -1736,8 +1736,8 @@ class TestFetchMonthlyData:
         assert result2.stat().st_mtime > result1.stat().st_mtime
 
 
-class TestLoadERA5Data:
-    """Tests for loading ERA5 data."""
+class TestLoadERA5LandData:
+    """Tests for loading ERA5-Land data."""
     
     def test_load_converts_kelvin_to_celsius(self, sample_era5_data, temp_output_dir):
         """Temperature is converted from Kelvin to Celsius."""

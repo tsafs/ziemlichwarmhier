@@ -17,15 +17,15 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 ## 1. Requirements & Constraints
 
 - **REQ-001**: One-command local test harness for frontend (Vitest/RTL) and Python pipelines (pytest) with deterministic seeds and coverage thresholds enforced.
-- **REQ-002**: Stable fixture packs (tiles, metrics JSON/CSV, plot CSVs, city-grid map, city correlation JSON, ERA5 subsets) to allow offline runs and snapshot/golden comparisons; real ERA5-derived samples kept <50 MB total and documented.
+- **REQ-002**: Stable fixture packs (tiles, metrics JSON/CSV, plot CSVs, city-grid map, city correlation JSON, ERA5-Land subsets) to allow offline runs and snapshot/golden comparisons; real ERA5-Land-derived samples kept <50 MB total and documented.
 - **REQ-003**: Local CI parity: run GitHub Actions workflows locally (act or equivalent) with mocked secrets/providers, including build, tests, jobs, Playwright/Lighthouse, and actionlint.
 - **REQ-004**: Schema/golden checks for tiles/JSON/CSV/env to gate drift before committing botox phase changes (metrics, plots, city correlation, decadal outputs, tile headers/size, env schema).
 - **REQ-005**: LLM agent guidelines and guardrails (playbooks, run commands, expected outputs) to enable auto-correction loops.
 - **REQ-006**: Reusable Agent Skills for repeatable patterns (schema/golden guardrail, frontend data service + slice, plot integration, metrics card, pipeline job, env validation, city search/slug/URL, GH Actions job matrix, Playwright/E2E) authored before executing other tasks.
 - **REQ-007**: Preflight command enforces unit + schema + golden + coverage + actionlint + act dry-runs with mocked secrets and env validation before botox phase execution.
-- **CON-001**: No external network required for tests (except optional integration opt-in); ERA5 fixture pull is a one-time step requiring CDS API key and user approval.
+- **CON-001**: No external network required for tests (except optional integration opt-in); ERA5-Land fixture pull is a one-time step requiring CDS API key and user approval.
 - **CON-002**: Keep added tooling lightweight; compatible with Node 20 and Python 3.13 (frontend still on Node 20).
-- **GUD-001**: Prefer small, real-looking static fixtures over synthetic noise; document seeds/derivations and attribution for ERA5.
+- **GUD-001**: Prefer small, real-looking static fixtures over synthetic noise; document seeds/derivations and attribution for ERA5-Land.
 - **PAT-001**: Use snapshot/golden testing where outputs are structured (JSON/CSV) and image diff for tiles.
 
 ## 2. Implementation Steps
@@ -54,7 +54,7 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 | -------- | ------------------------------------------------------------------ | --------- | ---- |
 | TASK-001 | Add frontend Vitest config + npm `test`/`test:watch`/`test:coverage` scripts; wire RTL/jsdom; set coverage thresholds |           |      |
 | TASK-002 | Create fixture pack (<50 MB): minimal tiles (z6 sample), metrics JSON/CSV, plot CSV, city-grid map, city correlation JSON, MapLibre mock tiles; document seeds/attribution |           |      |
-| TASK-003 | Add Python pytest setup (Python 3.13) with fixtures for ERA5 slices (t2m, tmax, tmin, precip/solid precip as needed for metrics/plots) and HYRAS stubs; stub S3/CDS via local files |           |      |
+| TASK-003 | Add Python pytest setup (Python 3.13) with fixtures for ERA5-Land slices (t2m, tmax, tmin, precip/solid precip as needed for metrics/plots) and HYRAS stubs; stub S3/CDS via local files |           |      |
 | TASK-004 | Add schema/golden checks (JSON schema for metrics/plots/decadal outputs/city correlation, CSV headers, tile checksum/headers/size, env schema validation) to tests |           |      |
 
 ### Implementation Phase 2
@@ -78,7 +78,7 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 - **DEP-001**: Node 20, npm; Vitest/RTL already listed in frontend deps.
 - **DEP-002**: Python 3.13 with pytest to be added.
 - **DEP-003**: act (or similar) for local GitHub Actions emulation.
-- **DEP-004**: CDS API key (for one-time ERA5 fixture pull; user-provided when prompted).
+- **DEP-004**: CDS API key (for one-time ERA5-Land fixture pull; user-provided when prompted).
 
 ## 5. Files
 
@@ -94,7 +94,7 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 - **FILE-010**: schemas/env.schema.json — NEW — env validation spec (mirrors .env.example).
 - **FILE-011**: scripts/run-preflight.sh — NEW — orchestrates unit/schema/golden/coverage/env validation + actionlint + act dry-runs.
 - **FILE-012**: docs/self-correct-playbook.md — NEW — commands, expected outputs, troubleshooting.
-- **FILE-013**: analysis/tests/fixtures/era5/** — NEW — ERA5 NetCDF/GeoTIFF/daily temp subsets (<50 MB) with attribution; includes precip/solid precip where needed.
+- **FILE-013**: analysis/tests/fixtures/era5/** — NEW — ERA5-Land NetCDF/GeoTIFF/daily temp subsets (<50 MB) with attribution; includes precip/solid precip where needed.
 - **FILE-014**: .env.example — MODIFY — add required vars; used by env schema.
 - **FILE-015**: scripts/validate-env.py — NEW — env schema validator.
 - **FILE-016**: .github/workflows/* — MODIFY — note/local inputs for act; include Playwright/Lighthouse/actionlint/job builds.
@@ -121,11 +121,11 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 - **RISK-001**: Fixture drift vs real data; **Mitigation**: document seeds, periodic refresh gated by schema.
 - **RISK-002**: act parity gaps vs GH Actions; **Mitigation**: limit scope to key workflows, document known differences.
 - **RISK-003**: Golden image flakiness; **Mitigation**: pin rendering libs, use tolerance-aware diff or checksum.
-- **RISK-004**: ERA5 fixture pull blocked by missing CDS credentials or network; **Mitigation**: prompt contributor for CDS API key once; cache pulled subset; keep fixtures <50 MB.
+- **RISK-004**: ERA5-Land fixture pull blocked by missing CDS credentials or network; **Mitigation**: prompt contributor for CDS API key once; cache pulled subset; keep fixtures <50 MB.
 
 ### Assumptions
 - **ASSUMPTION-001**: Node 20 and Python 3.13 available locally.
-- **ASSUMPTION-002**: Contributors can install act (or alternative) locally and supply CDS API key when prompted for the one-time ERA5 fixture pull.
+- **ASSUMPTION-002**: Contributors can install act (or alternative) locally and supply CDS API key when prompted for the one-time ERA5-Land fixture pull.
 
 ## 8. Multi-Agent Execution Notes
 
@@ -136,7 +136,7 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 - Access to fixture seeds and schema files.
 - Commands for tests/preflight documented in playbook.
 - act installed for workflow dry-runs.
-- CDS API key available when performing the one-time ERA5 fixture pull (user-provided on prompt).
+- CDS API key available when performing the one-time ERA5-Land fixture pull (user-provided on prompt).
 
 ### Validation Checkpoints
 - After Phase 0: All skills published (TASK-000–TASK-00H) and reference current paths; city search and tile-gen intentionally excluded.

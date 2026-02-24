@@ -12,7 +12,7 @@ tags: [phase-7, frontend, maplibre, visualization, map]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the interactive climate map visualization using MapLibre GL JS. The map displays ERA5 temperature anomaly tiles overlaid on a base map of Germany, with clickable city markers, a color legend, and month/year date selection. The implementation follows existing codebase patterns (Redux slices, services, hooks) while introducing MapLibre GL for the first time.
+This phase implements the interactive climate map visualization using MapLibre GL JS. The map displays ERA5-Land temperature anomaly tiles overlaid on a base map of Germany, with clickable city markers, a color legend, and month/year date selection. The implementation follows existing codebase patterns (Redux slices, services, hooks) while introducing MapLibre GL for the first time.
 
 **Key deliverables:**
 - MapLibre GL integration with Germany-focused map
@@ -26,7 +26,7 @@ This phase implements the interactive climate map visualization using MapLibre G
 ## 1. Requirements & Constraints
 
 ### Functional Requirements (from Master Plan)
-- **REQ-001**: Display temperature anomaly maps for Germany using ERA5 data at 1km visual resolution
+- **REQ-001**: Display temperature anomaly maps for Germany using ERA5-Land data at 1km visual resolution
 - **REQ-002**: Support rolling 12-month anomaly visualization
 - **REQ-009**: Provide responsive design for mobile and desktop
 
@@ -574,7 +574,7 @@ export default mapSlice.reducer;
 /**
  * Tile Service
  * 
- * Generates URLs for ERA5 temperature anomaly tiles.
+ * Generates URLs for ERA5-Land temperature anomaly tiles.
  */
 
 import { TILE_BASE_URL, MAP_CONFIG } from '../constants/mapConfig';
@@ -610,7 +610,7 @@ export const isDateAvailable = (year: number, month: number): boolean => {
     const requestedDate = new Date(year, month - 1, 1);
     const startDate = new Date(MAP_CONFIG.DATA_START_YEAR, MAP_CONFIG.DATA_START_MONTH - 1, 1);
     
-    // Must be after data start and before current month (ERA5 has ~5 day delay)
+    // Must be after data start and before current month (ERA5-Land has ~5 day delay)
     const endDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     
     return requestedDate >= startDate && requestedDate <= endDate;
@@ -646,7 +646,7 @@ export const getAvailableYears = (): number[] => {
  */
 export const getLatestAvailableDate = (): { year: number; month: number } => {
     const now = new Date();
-    // ERA5 has ~5 day delay, so use previous month
+    // ERA5-Land has ~5 day delay, so use previous month
     const month = now.getMonth() === 0 ? 12 : now.getMonth();
     const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
     return { year, month };
@@ -661,7 +661,7 @@ export const getLatestAvailableDate = (): { year: number; month: number } => {
 /**
  * ClimateMap Component
  * 
- * Interactive map displaying ERA5 temperature anomaly tiles
+ * Interactive map displaying ERA5-Land temperature anomaly tiles
  * for Germany using MapLibre GL JS.
  */
 

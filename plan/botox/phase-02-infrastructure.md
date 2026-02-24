@@ -12,7 +12,7 @@ tags: [phase-2, infrastructure, storage, hetzner, cdn, cloudflare, s3]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This plan details the infrastructure setup for the ERA5 Germany Climate Visualization project. It establishes Hetzner Object Storage for tile hosting and configures the existing Cloudflare CDN for caching. This phase creates the foundation for all data pipelines and frontend tile loading.
+This plan details the infrastructure setup for the ERA5-Land Germany Climate Visualization project. It establishes Hetzner Object Storage for tile hosting and configures the existing Cloudflare CDN for caching. This phase creates the foundation for all data pipelines and frontend tile loading.
 
 **Key Deliverables:**
 - Hetzner Object Storage bucket configured for public tile serving
@@ -28,7 +28,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Requirements (from Master Plan)
 
-- **REQ-P2-001**: ERA5 tiles must be publicly accessible via HTTPS
+- **REQ-P2-001**: ERA5-Land tiles must be publicly accessible via HTTPS
 - **REQ-INF-002**: Storage must support S3-compatible API (boto3)
 - **REQ-INF-003**: Free or near-zero egress costs (Hetzner: free outbound)
 - **REQ-INF-004**: EU-based storage for GDPR compliance
@@ -72,7 +72,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Implementation Phase 2.1: Hetzner Account & Bucket Setup
 
-- GOAL-001: Create and configure Hetzner Object Storage bucket for ERA5 tiles
+- GOAL-001: Create and configure Hetzner Object Storage bucket for ERA5-Land tiles
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
@@ -94,7 +94,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
    - Location: fsn1 (Falkenstein, Germany)
 4. After creation, click on bucket → "Keys" tab
 5. Click "Create Key"
-   - Description: "ERA5 Pipeline Access"
+   - Description: "ERA5-Land Pipeline Access"
    - Copy Access Key and Secret Key immediately (shown only once)
 6. Note the endpoint URL: `https://climate-tiles.fsn1.your-objectstorage.com`
 ```
@@ -143,7 +143,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Implementation Phase 2.5: CDN Configuration (Cloudflare)
 
-- GOAL-005: Configure Cloudflare caching for ERA5 tiles
+- GOAL-005: Configure Cloudflare caching for ERA5-Land tiles
 
 | Task     | Description                                                                                           | Completed | Date |
 | -------- | ----------------------------------------------------------------------------------------------------- | --------- | ---- |
@@ -170,7 +170,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 - **ALT-002**: **Scaleway Object Storage (current provider)** - Already in use for frontend assets. Considered using same bucket. Rejected to maintain separation between frontend hosting and data tiles - allows independent cost tracking and potential migration.
 
-- **ALT-003**: **Single bucket for all data** - Rejected in favor of dedicated `climate-tiles` bucket for isolation, simpler CORS rules, and cleaner cost attribution. The name `climate-tiles` is intentionally dataset-agnostic to support future expansion beyond ERA5.
+- **ALT-003**: **Single bucket for all data** - Rejected in favor of dedicated `climate-tiles` bucket for isolation, simpler CORS rules, and cleaner cost attribution. The name `climate-tiles` is intentionally dataset-agnostic to support future expansion beyond ERA5-Land.
 
 - **ALT-004**: **Vercel Blob Storage** - Considered for frontend integration. Rejected due to higher costs and vendor lock-in. S3-compatible storage is more portable.
 
@@ -198,7 +198,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Infrastructure Configuration Files
 
-- **FILE-001**: `infrastructure/bucket/era5-cors.json` - NEW - CORS rules for ERA5 bucket
+- **FILE-001**: `infrastructure/bucket/era5-cors.json` - NEW - CORS rules for ERA5-Land bucket
 - **FILE-002**: `infrastructure/hetzner/README.md` - NEW - Hetzner setup documentation
 
 ### Script Files
@@ -210,7 +210,7 @@ This plan details the infrastructure setup for the ERA5 Germany Climate Visualiz
 
 ### Utility Files
 
-- **FILE-007**: `analysis/utilities/upload_to_s3.py` - MODIFY - S3-compatible upload/download utilities (already exists; extend for ERA5 use)
+- **FILE-007**: `analysis/utilities/upload_to_s3.py` - MODIFY - S3-compatible upload/download utilities (already exists; extend for ERA5-Land use)
 - **FILE-008**: `analysis/utilities/tests/test_upload_to_s3.py` - NEW - Unit tests
 
 ### Configuration Files
@@ -327,7 +327,7 @@ Executing agent needs:
 
 ## 10. Code Reference (REQUIRED)
 
-### 10.1 CORS Configuration for ERA5 Bucket
+### 10.1 CORS Configuration for ERA5-Land Bucket
 
 **File**: `infrastructure/bucket/era5-cors.json` - NEW
 
@@ -433,7 +433,7 @@ echo "Done! CORS configuration is active."
 ```python
 #!/usr/bin/env python3
 """
-S3-compatible object storage utilities for ERA5 tile management.
+S3-compatible object storage utilities for ERA5-Land tile management.
 
 This module provides upload/download functions that work with any
 S3-compatible endpoint (Hetzner Object Storage, AWS S3, Cloudflare R2, etc.).
@@ -1139,12 +1139,12 @@ class TestCors:
 **File**: `.env.example` - NEW
 
 ```bash
-# ERA5 Climate Visualization - Environment Variables
+# ERA5-Land Climate Visualization - Environment Variables
 # Copy this file to .env and fill in your values
 # NEVER commit .env to version control!
 
 # =============================================================================
-# Hetzner Object Storage (ERA5 tiles)
+# Hetzner Object Storage (ERA5-Land tiles)
 # =============================================================================
 
 # S3-compatible access key (Hetzner Object Storage → Keys)
@@ -1182,7 +1182,7 @@ REGION=fr-par
 ENDPOINT_URL=https://s3.fr-par.scw.cloud
 
 # =============================================================================
-# Copernicus Climate Data Store (ERA5 data)
+# Copernicus Climate Data Store (ERA5-Land data)
 # =============================================================================
 
 # CDS API key (from https://cds.climate.copernicus.eu/user)
@@ -1195,7 +1195,7 @@ CDS_API_URL=https://cds.climate.copernicus.eu/api/v2
 # Frontend Development
 # =============================================================================
 
-# Base URL for ERA5 tiles (for frontend development)
+# Base URL for ERA5-Land tiles (for frontend development)
 VITE_TILE_BASE_URL=https://climate-tiles.fsn1.your-objectstorage.com
 
 # Enable development mode features
@@ -1213,7 +1213,7 @@ VITE_DEV_MODE=true
 ```
 
 **Notes**:
-- Clear separation between Hetzner (ERA5) and Scaleway (frontend)
+- Clear separation between Hetzner (ERA5-Land) and Scaleway (frontend)
 - Includes all variables needed for Phase 3+ pipelines
 - Documents GitHub Secrets for CI/CD
 
@@ -1396,7 +1396,7 @@ if __name__ == '__main__':
 #!/bin/bash
 set -e
 
-# Purge Cloudflare cache for ERA5 tiles
+# Purge Cloudflare cache for ERA5-Land tiles
 # Usage: ./scripts/purge-tile-cache.sh [path_prefix]
 #
 # Examples:
@@ -1460,14 +1460,14 @@ echo "Note: It may take up to 30 seconds for the cache to clear globally."
 #!/bin/bash
 set -e
 
-# Integration test for ERA5 infrastructure
+# Integration test for ERA5-Land infrastructure
 # Tests: bucket access, upload, download, public URL, CORS
 #
 # Usage: ./scripts/test-infrastructure.sh
 #
 # Requires: ACCESS_KEY, SECRET_KEY, BUCKET_NAME, REGION, ENDPOINT_URL
 
-echo "🧪 ERA5 Infrastructure Integration Test"
+echo "🧪 ERA5-Land Infrastructure Integration Test"
 echo "========================================"
 
 # Validate environment
@@ -1586,7 +1586,7 @@ echo "✅ Infrastructure test complete!"
 ```markdown
 # Hetzner Object Storage Setup Guide
 
-This guide covers setting up Hetzner Object Storage for ERA5 climate visualization tiles.
+This guide covers setting up Hetzner Object Storage for ERA5-Land climate visualization tiles.
 
 ## Prerequisites
 
@@ -1608,7 +1608,7 @@ This guide covers setting up Hetzner Object Storage for ERA5 climate visualizati
 
 1. Click on your new bucket → **Keys** tab
 2. Click **Create Key**
-3. Set description: "ERA5 Pipeline Access"
+3. Set description: "ERA5-Land Pipeline Access"
 4. **Copy the Access Key and Secret Key immediately** (shown only once!)
 5. Store securely (password manager or environment variables)
 
@@ -1667,7 +1667,7 @@ Expected output:
 | Egress | Free (included) |
 | Requests | Free (included) |
 
-For ERA5 tiles (~500MB estimated), monthly cost is approximately €0.003/month.
+For ERA5-Land tiles (~500MB estimated), monthly cost is approximately €0.003/month.
 
 ## Troubleshooting
 
@@ -1708,13 +1708,13 @@ For ERA5 tiles (~500MB estimated), monthly cost is approximately €0.003/month.
 # Secrets to add in GitHub repository settings:
 # Settings → Secrets and variables → Actions → New repository secret
 
-# ERA5 Tiles (S3-compatible / Hetzner Object Storage):
+# ERA5-Land Tiles (S3-compatible / Hetzner Object Storage):
 S3_ACCESS_KEY: <from-hetzner-console>
 S3_SECRET_KEY: <from-hetzner-console>
 S3_BUCKET_NAME: climate-tiles
 S3_REGION: fsn1
 
-# Copernicus CDS (for ERA5 downloads):
+# Copernicus CDS (for ERA5-Land downloads):
 CDS_API_KEY: <from-cds-profile>
 
 # Scaleway (existing, for frontend):

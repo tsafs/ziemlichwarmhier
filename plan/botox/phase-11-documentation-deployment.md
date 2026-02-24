@@ -12,7 +12,7 @@ tags: [phase-11, documentation, deployment, e2e-testing, cloudflare, monitoring]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-Phase 11 completes the ERA5 Germany Climate Visualization project by establishing comprehensive documentation, end-to-end testing for critical user flows, and production deployment infrastructure. This phase ensures the project is maintainable, observable, and production-ready.
+Phase 11 completes the ERA5-Land Germany Climate Visualization project by establishing comprehensive documentation, end-to-end testing for critical user flows, and production deployment infrastructure. This phase ensures the project is maintainable, observable, and production-ready.
 
 **Key Deliverables:**
 1. **Architecture Documentation** - Technical docs for pipeline, frontend, and data formats
@@ -92,11 +92,11 @@ Phase 11 completes the ERA5 Germany Climate Visualization project by establishin
 ```markdown
 <!-- documentation/architecture/era5-pipeline.md -->
 ---
-title: ERA5 Data Pipeline Architecture
+title: ERA5-Land Data Pipeline Architecture
 last_updated: 2026-02-16
 ---
 
-# ERA5 Data Pipeline
+# ERA5-Land Data Pipeline
 
 ## Overview
 
@@ -1808,7 +1808,7 @@ test.describe('Metrics Display', () => {
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Regenerate ERA5 tiles for specified month or all months
+# Regenerate ERA5-Land tiles for specified month or all months
 # Usage: ./regenerate-tiles.sh [YEAR] [MONTH] | --all
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

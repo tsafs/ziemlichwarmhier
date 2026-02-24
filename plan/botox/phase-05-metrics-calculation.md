@@ -12,7 +12,7 @@ tags: [phase-5, metrics, climate-stats, statistics, python, json]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the climate metrics calculation pipeline that processes ERA5 data to generate statistical indicators for frontend display. The metrics include five-year temperature anomalies, warming rates, record-breaking days, winter warming, snow days lost, and comfortable temperature days.
+This phase implements the climate metrics calculation pipeline that processes ERA5-Land data to generate statistical indicators for frontend display. The metrics include five-year temperature anomalies, warming rates, record-breaking days, winter warming, snow days lost, and comfortable temperature days.
 
 **Key outputs:**
 - Five-year temperature anomaly calculation (2021-2025 vs 1961-1990)
@@ -197,7 +197,7 @@ This phase implements the climate metrics calculation pipeline that processes ER
 
 ### Phase Dependencies
 
-- **DEP-P5-001**: Phase 3 (ERA5 Pipeline) - provides temperature data
+- **DEP-P5-001**: Phase 3 (ERA5-Land Pipeline) - provides temperature data
 - **DEP-P5-002**: Phase 2 (Infrastructure) - target for JSON upload
 - **DEP-P5-003**: City correlation data (Phase 9 overlap) - city-to-grid mapping
 
@@ -301,7 +301,7 @@ This phase implements the climate metrics calculation pipeline that processes ER
 
 | Risk ID | Description | Probability | Impact | Mitigation |
 |---------|-------------|-------------|--------|------------|
-| RISK-P5-001 | ERA5-Land daily data not available (only monthly) | High | High | May need ERA5 hourly → derive Tmax/Tmin |
+| RISK-P5-001 | ERA5-Land daily data not available (only monthly) | High | High | May need ERA5-Land hourly → derive Tmax/Tmin |
 | RISK-P5-002 | Historical records incomplete for record-breaking calc | Medium | Medium | Use available data, document limitations |
 | RISK-P5-003 | City aggregation misses some cities | Low | Medium | Verify all cities have valid grid assignment |
 | RISK-P5-004 | Memory overflow for full historical processing | Medium | Medium | Process year-by-year, chunk operations |
@@ -339,7 +339,7 @@ This phase implements the climate metrics calculation pipeline that processes ER
 Each agent session needs:
 - This phase plan document
 - Master plan section 10.10 (Metrics JSON Schema)
-- ERA5 data format from Phase 3
+- ERA5-Land data format from Phase 3
 
 ### Validation Checkpoints
 

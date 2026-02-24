@@ -260,7 +260,7 @@ Each executing agent needs:
 
 ## 9. Related Specifications / Further Reading
 
-- [Master Plan: ERA5 Germany Climate Visualization](era5-germany-climate-visualization-1.md)
+- [Master Plan: ERA5-Land Germany Climate Visualization](era5-germany-climate-visualization-1.md)
 - [Vitest Documentation](https://vitest.dev/)
 - [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 - [Pytest Documentation](https://docs.pytest.org/)
@@ -1043,7 +1043,7 @@ def sample_era5_dataset():
     lon = np.arange(5.8, 15.2, 0.1)
     time = pd.date_range('2025-01-01', periods=12, freq='ME')
     
-    # Temperature in Kelvin (ERA5 convention)
+    # Temperature in Kelvin (ERA5-Land convention)
     t2m = np.random.uniform(270, 300, (12, len(lat), len(lon)))
     
     ds = xr.Dataset(
@@ -1057,7 +1057,7 @@ def sample_era5_dataset():
         },
         attrs={
             'Conventions': 'CF-1.6',
-            'history': 'pytest fixture for ERA5',
+            'history': 'pytest fixture for ERA5-Land',
         }
     )
     
@@ -1080,7 +1080,7 @@ def mock_s3_client():
 
 @pytest.fixture
 def mock_cds_api():
-    """Mock CDS API client for testing ERA5 downloads."""
+    """Mock CDS API client for testing ERA5-Land downloads."""
     client = MagicMock()
     client.retrieve = MagicMock(return_value=None)
     return client
@@ -1236,7 +1236,7 @@ class TestDatasetProcessing:
 
     def test_era5_kelvin_to_celsius_conversion(self, sample_era5_dataset):
         """Test temperature conversion from Kelvin to Celsius."""
-        # ERA5 data is in Kelvin, convert to Celsius
+        # ERA5-Land data is in Kelvin, convert to Celsius
         t2m_celsius = sample_era5_dataset['t2m'] - 273.15
         
         # Check reasonable temperature range for Germany
@@ -1361,7 +1361,7 @@ REGION=eu-central-1
 ENDPOINT_URL=https://your-endpoint.example.com
 
 # ============================================================================
-# Copernicus Climate Data Store (CDS) - ERA5 Data Access
+# Copernicus Climate Data Store (CDS) - ERA5-Land Data Access
 # ============================================================================
 
 # CDS API URL (default, rarely needs changing)
