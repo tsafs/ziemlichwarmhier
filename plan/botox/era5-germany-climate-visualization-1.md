@@ -14,6 +14,15 @@ tags: [architecture, feature, climate, era5, visualization, infrastructure]
 
 This plan describes a comprehensive climate visualization platform for Germany using ERA5 reanalysis data, displayed at 1km tile resolution. The system follows the narrative structure and visualization concepts from the original "botox" plans while optimizing for cost (~€5-15/month) through pre-generated static tiles and edge caching.
 
+## Executive Summary
+
+- Scope: Germany-focused ERA5 climate visualization, delivering pipelines → tiles/metrics → nightly jobs → interactive frontend (map, metrics, narrative) → docs/deployment.
+- Backend/data: Fetch ERA5-Land monthly/daily (Tmin/Tmax/precip) with retry/cache; land mask incl. islands; ~1 km interpolation; anomalies vs 1961–1990; deterministic WebP XYZ tiles z6–10; six static metrics + nine plot datasets aggregated to country/cities; JSON/CSV schemas as contracts.
+- Infrastructure/providers: Hetzner S3-compatible bucket + CORS; Cloudflare CDN for public HTTPS/free egress; env schema validation; upload/cache rules; cost target ≈€15/mo.
+- Frontend: MapLibre Germany-bounded map with anomaly tiles, month/year selector, legend; six responsive metric cards with loading/error and tooltips; three-tab narrative with nine Observable Plot components and mobile accordion; city selection with slugged search, URL param, deep links/share.
+- Scheduling/ops: Dockerized daily/monthly/yearly jobs via GitHub Actions/GHCR; idempotent runs; alerts on failure; runbook.
+- Quality/LLM guardrails: Testing foundation (Vitest/RTL, pytest, integration/E2E); schema contracts for tiles/JSON; validate outputs per phase to keep frontend in sync; Lighthouse ≥90; zero-downtime deploy on Cloudflare Pages.
+
 **Key Design Decisions:**
 1. **Pre-generated static WebP tiles** - Eliminates runtime compute costs
 2. **Hetzner Object Storage + Cloudflare CDN** - EU-based storage with free egress, existing CDN for caching
