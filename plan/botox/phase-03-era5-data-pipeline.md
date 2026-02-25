@@ -404,7 +404,7 @@ class ClimateDataProvider(Protocol):
 
     @property
     def latitude_descending(self) -> bool:
-        """True if latitude is stored north-to-south (ERA5/ERA5-Land convention)."""
+        """True if latitude is stored north-to-south (ERA5-Land convention)."""
         ...
 
     @property
