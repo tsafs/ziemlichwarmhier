@@ -26,7 +26,7 @@ This phase implements the interactive climate map visualization using MapLibre G
 ## 1. Requirements & Constraints
 
 ### Functional Requirements (from Master Plan)
-- **REQ-001**: Display temperature anomaly maps for Germany using ERA5-Land data at 1km visual resolution
+- **REQ-001**: Display temperature anomaly maps for Germany using ERA5-Land data at native resolution (~9 km)
 - **REQ-002**: Support rolling 12-month anomaly visualization
 - **REQ-009**: Provide responsive design for mobile and desktop
 
@@ -61,6 +61,7 @@ This phase implements the interactive climate map visualization using MapLibre G
 | TASK-P7-001 | Install `maplibre-gl` via npm (TypeScript types bundled since v3; no separate types package required) | | |
 | TASK-P7-002 | Add MapLibre CSS import to App.tsx or index.tsx | | |
 | TASK-P7-003 | Create `frontend/src/constants/mapConfig.ts` with Germany bounds, zoom levels, tile URL pattern | | |
+| TASK-P7-003a | Create `frontend/src/config/climateDataConfig.ts` defining `ClimateDataConfig` interface (`datasetId`, `displayName`, `tileBaseUrl`, `metricsBaseUrl`, `nativeResolution`, `dataDelayDays`, `gridResolutionLabel`) resolved from `import.meta.env` at build time. All services read URLs and labels from this config instead of hardcoding | | |
 | TASK-P7-004 | Write type definitions for map state in `frontend/src/types/map.ts` | | |
 
 **Completion Criteria:**
@@ -270,6 +271,7 @@ This phase implements the interactive climate map visualization using MapLibre G
 - **FILE-P7-009**: `frontend/src/hooks/useMapTiles.ts` - NEW - Map data hook
 - **FILE-P7-010**: `frontend/src/types/map.ts` - NEW - Map type definitions
 - **FILE-P7-011**: `frontend/src/constants/mapConfig.ts` - NEW - Map constants
+- **FILE-P7-012**: `frontend/src/config/climateDataConfig.ts` - NEW - Provider-agnostic climate data config (dataset URLs, labels, resolution)
 
 ### Modified Files
 - **FILE-P7-012**: `frontend/src/store/index.ts` - MODIFY - Add mapSlice
@@ -367,6 +369,53 @@ Provide these files for agent execution:
 - [Master Plan](../botox/era5-germany-climate-visualization-1.md) - Overall architecture
 
 ## 10. Code Reference (REQUIRED)
+
+### 10.0 Climate Data Configuration
+
+**File**: `frontend/src/config/climateDataConfig.ts`
+
+```typescript
+/**
+ * Climate Data Configuration
+ *
+ * Provider-agnostic configuration resolved from environment at build time.
+ * All services import this config instead of hardcoding dataset URLs and labels.
+ * Swapping to a different data source = change env vars, no code changes.
+ */
+
+export interface ClimateDataConfig {
+    /** Short identifier, e.g. 'era5-land' */
+    datasetId: string;
+    /** Human-readable name for UI display */
+    displayName: string;
+    /** Base URL for tile assets */
+    tileBaseUrl: string;
+    /** Base URL for metrics JSON */
+    metricsBaseUrl: string;
+    /** Base URL for plot CSV data */
+    plotDataBaseUrl: string;
+    /** Native grid resolution (degrees) */
+    nativeResolution: number;
+    /** Data availability delay (days) */
+    dataDelayDays: number;
+    /** Grid resolution label for display */
+    gridResolutionLabel: string;
+}
+
+// Resolved from environment at build time
+export const climateDataConfig: ClimateDataConfig = {
+    datasetId: import.meta.env.VITE_CLIMATE_DATASET_ID ?? 'era5-land',
+    displayName: import.meta.env.VITE_CLIMATE_DISPLAY_NAME ?? 'ERA5-Land',
+    tileBaseUrl: import.meta.env.VITE_TILE_BASE_URL ?? '/data/tiles',
+    metricsBaseUrl: import.meta.env.VITE_METRICS_BASE_URL ?? '/data/metrics',
+    plotDataBaseUrl: import.meta.env.VITE_PLOT_DATA_BASE_URL ?? '/data/plots',
+    nativeResolution: parseFloat(import.meta.env.VITE_NATIVE_RESOLUTION ?? '0.1'),
+    dataDelayDays: parseInt(import.meta.env.VITE_DATA_DELAY_DAYS ?? '5', 10),
+    gridResolutionLabel: import.meta.env.VITE_GRID_RESOLUTION_LABEL ?? '~9 km',
+};
+```
+
+**Notes:** `gridResolutionLabel` defaults to the provider's native resolution (~9 km for ERA5-Land), not an interpolated value. Services import `climateDataConfig` instead of hardcoding URLs and labels.
 
 ### 10.1 Map Configuration Constants
 

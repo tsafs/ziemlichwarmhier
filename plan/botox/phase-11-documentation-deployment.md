@@ -107,8 +107,7 @@ Brief description of the pipeline purpose and scope.
 ```mermaid
 flowchart LR
     A[CDS API] --> B[fetch_era5_data.py]
-    B --> C[interpolate_to_grid.py]
-    C --> D[apply_land_mask.py]
+    B --> D[apply_land_mask.py]
     D --> E[calculate_anomalies.py]
     E --> F[generate_tiles.py]
     F --> G[Hetzner Storage]

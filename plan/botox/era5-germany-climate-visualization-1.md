@@ -1,23 +1,23 @@
 ---
-goal: ERA5 Climate Visualization for Germany - Complete Architecture and Implementation Plan
+goal: ERA5-Land Climate Visualization for Germany - Complete Architecture and Implementation Plan
 version: 1.1
 date_created: 2026-02-16
 last_updated: 2026-02-17
 owner: Sebastian
 status: 'Planned'
-tags: [architecture, feature, climate, era5, visualization, infrastructure]
+tags: [architecture, feature, climate, era5-land, visualization, infrastructure]
 ---
 
 # Introduction
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This plan describes a comprehensive climate visualization platform for Germany using ERA5 reanalysis data, displayed at 1km tile resolution. The system follows the narrative structure and visualization concepts from the original "botox" plans while optimizing for cost (~€5-15/month) through pre-generated static tiles and edge caching.
+This plan describes a comprehensive climate visualization platform for Germany using ERA5-Land reanalysis data, displayed at native provider resolution. The system follows the narrative structure and visualization concepts from the original "botox" plans while optimizing for cost (~€5-15/month) through pre-generated static tiles and edge caching.
 
 ## Executive Summary
 
-- Scope: Germany-focused ERA5 climate visualization, delivering pipelines → tiles/metrics → nightly jobs → interactive frontend (map, metrics, narrative) → docs/deployment.
-- Backend/data: Fetch ERA5-Land monthly/daily (Tmin/Tmax/precip) with retry/cache; land mask incl. islands; ~1 km interpolation; anomalies vs 1961–1990; deterministic WebP XYZ tiles z6–10; six static metrics + nine plot datasets aggregated to country/cities; JSON/CSV schemas as contracts.
+- Scope: Germany-focused ERA5-Land climate visualization, delivering pipelines → tiles/metrics → nightly jobs → interactive frontend (map, metrics, narrative) → docs/deployment.
+- Backend/data: Fetch ERA5-Land monthly/daily (Tmin/Tmax/precip) with retry/cache; land mask incl. islands; anomalies vs 1961–1990; deterministic WebP XYZ tiles z6–10; six static metrics + nine plot datasets aggregated to country/cities; JSON/CSV schemas as contracts.
 - Infrastructure/providers: Hetzner S3-compatible bucket + CORS; Cloudflare CDN for public HTTPS/free egress; env schema validation; upload/cache rules; cost target ≈€15/mo.
 - Frontend: MapLibre Germany-bounded map with anomaly tiles, month/year selector, legend; six responsive metric cards with loading/error and tooltips; three-tab narrative with nine Observable Plot components and mobile accordion; city selection with slugged search, URL param, deep links/share.
 - Scheduling/ops: Dockerized daily/monthly/yearly jobs via GitHub Actions/GHCR; idempotent runs; alerts on failure; runbook.
@@ -37,7 +37,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Functional Requirements
 
-- **REQ-001**: Display temperature anomaly maps for Germany using ERA5 data at 1km visual resolution
+- **REQ-001**: Display temperature anomaly maps for Germany using ERA5-Land data at native resolution (~9 km)
 - **REQ-002**: Support rolling 12-month anomaly visualization (globe/map equivalent)
 - **REQ-003**: Display 6 static climate metrics: Five-Year Temperature Anomaly, Warming Rate, Winter Warming, Record-Breaking Days, Snow Days Lost, Comfortable Days
 - **REQ-004**: Support city selection with tile-based metrics (cities map to grid tiles; multiple cities can share one tile's data)
@@ -60,11 +60,10 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Technical Constraints
 
-- **CON-001**: ERA5 native resolution is 0.25° (~28km) - interpolation required for 1km display
-- **CON-002**: ERA5-Land resolution is 0.1° (~9km) - can be interpolated to 1km
-- **CON-003**: HYRAS 1km data available for Germany (1951-2024) as reference/validation
-- **CON-004**: Maximum GitHub Actions runtime: 6 hours (free tier)
-- **CON-005**: Hetzner Object Storage: €0.0052/GB storage, free EU egress
+- **CON-001**: ERA5-Land native resolution is 0.1° (~9 km); data is used at native resolution, visual upscaling handled by tile rendering
+- **CON-002**: HYRAS 1km data available for Germany (1951-2024) as reference/validation
+- **CON-003**: Maximum GitHub Actions runtime: 6 hours (free tier)
+- **CON-004**: Hetzner Object Storage: €0.0052/GB storage, free EU egress
 
 ### Security Requirements
 
@@ -80,6 +79,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - **GUD-004**: Comprehensive documentation for all components
 - **GUD-005**: Test coverage > 80% for critical paths
 - **GUD-006**: All tile generation must be deterministic and reproducible
+- **GUD-007**: All pipeline and frontend modules must depend on the `ClimateDataProvider` abstraction, not on concrete dataset constants. Provider selection is configuration-driven.
 
 ### Patterns to Follow
 
@@ -88,6 +88,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 - **PAT-003**: Use PlotView component pattern for visualizations (see Code Reference 10.3)
 - **PAT-004**: Use StatCard component pattern for metrics display (see Code Reference 10.4)
 - **PAT-005**: Follow existing job structure (Dockerfile, entrypoint.sh, src/) for pipelines
+- **PAT-006**: Use Strategy Pattern for data source providers; inject via constructor/function parameter.
 
 ## 2. Implementation Steps
 
@@ -137,23 +138,22 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ---
 
-### Implementation Phase 3: ERA5 Data Pipeline - Core
+### Implementation Phase 3: ERA5-Land Data Pipeline - Core
 
-**GOAL-P3-001**: Build the core ERA5 data download and processing pipeline
+**GOAL-P3-001**: Build the core ERA5-Land data download and processing pipeline
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P3-001 | Create `analysis/era5/fetch_era5_data.py` - download ERA5/ERA5-Land NetCDF from CDS | | |
+| TASK-P3-001 | Create `analysis/era5/fetch_era5_data.py` - download ERA5-Land NetCDF from CDS | | |
 | TASK-P3-002 | Create `analysis/era5/config.py` - centralized configuration (bounds, resolution, variables) | | |
-| TASK-P3-003 | Create `analysis/era5/interpolate_to_grid.py` - interpolate ERA5 to 1km grid using scipy/xarray | | |
 | TASK-P3-004 | Create `analysis/era5/apply_land_mask.py` - filter to land-only using Natural Earth data | | |
 | TASK-P3-005 | Create `analysis/era5/calculate_anomalies.py` - compute anomalies vs 1961-1990 reference | | |
 | TASK-P3-006 | Create `analysis/era5/types.py` - Python dataclasses for pipeline data structures | | |
-| TASK-P3-007 | Write unit tests for all ERA5 processing modules | | |
-| TASK-P3-008 | Create integration test with sample ERA5 data subset | | |
+| TASK-P3-007 | Write unit tests for all ERA5-Land processing modules | | |
+| TASK-P3-008 | Create integration test with sample ERA5-Land data subset | | |
 
 **Completion Criteria:**
-- Pipeline can download, interpolate, and calculate anomalies for one month
+- Pipeline can download, apply land mask, and calculate anomalies for one month
 - Land mask correctly excludes ocean, includes German islands (Sylt, Rügen, etc.)
 - All tests pass
 
@@ -163,7 +163,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Implementation Phase 4: Tile Generation Pipeline
 
-**GOAL-P4-001**: Generate WebP map tiles from processed ERA5 data
+**GOAL-P4-001**: Generate WebP map tiles from processed ERA5-Land data
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
@@ -410,7 +410,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P10-001 | Create/update `frontend/src/services/CityService.ts` - extend for ERA5 grid correlation | | |
+| TASK-P10-001 | Create/update `frontend/src/services/CityService.ts` - extend for ERA5-Land grid correlation | | |
 | TASK-P10-002 | Create `frontend/src/components/search/CitySearch.tsx` - autocomplete search | | |
 | TASK-P10-003 | Create `frontend/src/store/slices/citySlice.ts` - city selection state | | |
 | TASK-P10-004 | Create `analysis/cities/correlate_cities_to_grid.py` - map cities to nearest grid cell | | |
@@ -470,7 +470,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 - **ALT-004**: **PostgreSQL/PostGIS with tile server** - Rejected due to ongoing server costs. Only reconsidered if dynamic queries become essential feature.
 
-- **ALT-005**: **Keep HYRAS as data source** - Considered since HYRAS is already 1km and German-specific. Rejected because project goal is extensibility to other countries; ERA5 provides global coverage for future expansion.
+- **ALT-005**: **Keep HYRAS as data source** - Considered since HYRAS is already 1km and German-specific. Rejected because project goal is extensibility to other countries; ERA5-Land provides global coverage for future expansion.
 
 - **ALT-006**: **Cloudflare R2 instead of Hetzner Object Storage** - Considered due to free egress. Rejected because Hetzner Object Storage has free egress for EU traffic, lower storage costs (€0.0052/GB vs €0.015/GB), EU-based for GDPR compliance, and S3-compatible API works with existing boto3 patterns. **Hetzner chosen.**
 
@@ -478,11 +478,13 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 - **ALT-008**: **Climate Analog Map (Plot 3.4)** - Would show "City X now feels like City Y did in 1980". Rejected for Germany-only scope because: (1) requires climate signatures for hundreds of European cities, (2) complex matching algorithms and preprocessing, (3) most analog cities would be outside Germany, making comparison less meaningful. Reconsider when expanding to pan-European scope.
 
+- **ALT-009**: **Hardcode ERA5-Land throughout (no abstraction)** — Rejected. Violates extensibility goal stated in ALT-005. Adding a second country or dataset would require touching every module. Provider abstraction costs ~2 files and zero runtime overhead.
+
 ## 4. Dependencies
 
 ### External Data Dependencies
 
-- **DEP-001**: ERA5/ERA5-Land data from Copernicus Climate Data Store (CDS)
+- **DEP-001**: ERA5-Land data from Copernicus Climate Data Store (CDS)
 - **DEP-002**: Natural Earth land mask data for filtering ocean
 - **DEP-003**: German city list (existing: `german_cities_p5000.csv`)
 
@@ -490,7 +492,6 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 - **DEP-004**: `xarray` - NetCDF handling and grid operations
 - **DEP-005**: `rasterio` - GeoTIFF read/write
-- **DEP-006**: `scipy` - Interpolation (bicubic, bilinear)
 - **DEP-007**: `rio-tiler` - Tile generation from GeoTIFF (accepted; enables smooth color continuity at tile boundaries by reading actual data values)
 - **DEP-008**: `boto3` - S3-compatible upload (Hetzner Object Storage)
 - **DEP-009**: `cdsapi` - Copernicus CDS API client
@@ -517,9 +518,11 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Pipeline Files (Python)
 
-- **FILE-001**: `analysis/era5/config.py` - NEW - Centralized ERA5 configuration
+- **FILE-001**: `analysis/era5/config.py` - NEW - Centralized ERA5-Land configuration
 - **FILE-002**: `analysis/era5/fetch_era5_data.py` - NEW - CDS download (temp + precipitation)
-- **FILE-003**: `analysis/era5/interpolate_to_grid.py` - NEW - Grid interpolation
+- **FILE-003a**: `analysis/era5/providers/__init__.py` - NEW - Provider package init and factory
+- **FILE-003b**: `analysis/era5/providers/protocol.py` - NEW - ClimateDataProvider Protocol
+- **FILE-003c**: `analysis/era5/providers/era5_land.py` - NEW - ERA5LandProvider implementation
 - **FILE-004**: `analysis/era5/apply_land_mask.py` - NEW - Land filtering
 - **FILE-005**: `analysis/era5/calculate_anomalies.py` - NEW - Anomaly calculation
 - **FILE-006**: `analysis/era5/types.py` - NEW - Data structure definitions
@@ -625,7 +628,6 @@ This plan describes a comprehensive climate visualization platform for Germany u
 ### Test Files
 
 - **FILE-079**: `analysis/era5/tests/test_fetch_era5_data.py` - NEW
-- **FILE-080**: `analysis/era5/tests/test_interpolate.py` - NEW
 - **FILE-081**: `analysis/era5/tests/test_anomalies.py` - NEW
 - **FILE-082**: `analysis/tiles/tests/test_generate_tiles.py` - NEW
 - **FILE-083**: `analysis/metrics/tests/test_calculations.py` - NEW
@@ -638,8 +640,7 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Unit Tests
 
-- **TEST-001**: ERA5 data fetching correctly downloads and validates NetCDF files
-- **TEST-002**: Grid interpolation produces correct 1km resolution output
+- **TEST-001**: ERA5-Land data fetching correctly downloads and validates NetCDF files
 - **TEST-003**: Land mask correctly includes German islands (Sylt, Rügen, Helgoland, etc.)
 - **TEST-004**: Anomaly calculation matches reference values from HYRAS overlap
 - **TEST-005**: Tile generation produces valid WebP files at expected zoom levels
@@ -681,11 +682,8 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Risks
 
-- **RISK-001**: ERA5/ERA5-Land API rate limiting or downtime delays pipeline
+- **RISK-001**: ERA5-Land API rate limiting or downtime delays pipeline
   - **Mitigation**: Implement retry logic with exponential backoff; maintain local cache of last successful download
-  
-- **RISK-002**: Interpolation from 28km to 1km introduces visual artifacts
-  - **Mitigation**: Use bicubic interpolation with edge handling; compare against HYRAS reference; adjust smoothing if needed
   
 - **RISK-003**: GitHub Actions runtime exceeds 6-hour limit for full regeneration
   - **Mitigation**: Split into smaller jobs; use job matrix for parallel processing; consider Hetzner runner for large jobs (~€5/month)
@@ -701,13 +699,12 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 ### Assumptions
 
-- **ASSUMPTION-001**: ERA5 data remains freely available via Copernicus CDS
+- **ASSUMPTION-001**: ERA5-Land data remains freely available via Copernicus CDS
 - **ASSUMPTION-002**: Hetzner Object Storage costs remain low (€0.0052/GB); free EU egress sufficient for initial deployment
 - **ASSUMPTION-003**: GitHub Actions free tier sufficient for daily/monthly pipelines
 - **ASSUMPTION-004**: User has modern browser with WebGL support (90%+ of traffic)
-- **ASSUMPTION-005**: 1km visual resolution sufficient for climate data (actual ERA5 is 28km)
-- **ASSUMPTION-006**: German city list (5000+) covers all user needs initially
-- **ASSUMPTION-007**: Monthly update frequency sufficient (vs. daily updates)
+- **ASSUMPTION-005**: German city list (5000+) covers all user needs initially
+- **ASSUMPTION-006**: Monthly update frequency sufficient (vs. daily updates)
 
 ## 8. Multi-Agent Execution Notes
 
@@ -715,12 +712,12 @@ This plan describes a comprehensive climate visualization platform for Germany u
 
 **Parallel tasks (can run simultaneously):**
 - TASK-001 to TASK-007 (Phase 1: Infrastructure) - independent setup tasks
-- TASK-008 to TASK-014 (Phase 2: ERA5 Pipeline) - can start after dev environment
+- TASK-008 to TASK-014 (Phase 2: ERA5-Land Pipeline) - can start after dev environment
 - TASK-051 to TASK-060 (Phase 6: Frontend Map) - independent of pipeline
 - TASK-061 to TASK-071 (Phase 7: Frontend Metrics) - independent of map
 
 **Sequential dependencies:**
-- Phase 2 (ERA5 Pipeline) → Phase 3 (Tile Generation) → Phase 5 (Nightly Jobs)
+- Phase 2 (ERA5-Land Pipeline) → Phase 3 (Tile Generation) → Phase 5 (Nightly Jobs)
 - Phase 4 (Metrics + Plot Data) depends on Phase 2 completion
 - Phase 6-9 (Frontend) can proceed in parallel with Phase 2-5 using mock data
 - Phase 8 (Narrative Plots) has 9 plots across 3 tabs
@@ -739,7 +736,7 @@ Each phase can be executed by a separate agent session. Provide these context fi
 **Phase 2-4 (Pipeline):**
 - This plan document, sections 2.1-2.4
 - Code Reference 10.5, 10.6 (existing pipeline patterns)
-- ERA5 API documentation link
+- ERA5-Land API documentation link
 
 **Phase 6-9 (Frontend):**
 - This plan document, sections 2.6-2.9
@@ -768,8 +765,7 @@ Each phase can be executed by a separate agent session. Provide these context fi
 - [static-metrics.md](plan/botox/static-metrics.md) - Metrics specification
 
 ### External Documentation
-- [ERA5 Documentation](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels-monthly-means)
-- [ERA5-Land Documentation](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land-monthly-means)
+- [ERA5-Land Monthly Documentation](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land-monthly-means)
 - [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/)
 - [Cloudflare R2 Documentation](https://developers.cloudflare.com/r2/)
 - [Natural Earth Data](https://www.naturalearthdata.com/)
@@ -939,12 +935,12 @@ export const FiveYearAnomalyCard: React.FC = () => {
 };
 ```
 
-### 10.5 ERA5/HYRAS NetCDF Processing Pattern
+### 10.5 ERA5-Land/HYRAS NetCDF Processing Pattern
 
 **File**: `analysis/hyras/extract_hyras_data.py`
 
 ```python
-# Existing NetCDF processing pattern - ADAPT for ERA5
+# Existing NetCDF processing pattern - ADAPT for ERA5-Land
 import xarray as xr
 import numpy as np
 from pathlib import Path
@@ -961,15 +957,15 @@ def extract_timeseries_at_point(ds: xr.Dataset, y: int, x: int, variable: str) -
     """Extract time series for a specific grid point."""
     return ds[variable].isel(y=y, x=x).values
 
-# For ERA5 (TASK-007), adapt coordinate names:
-# ERA5 uses 'latitude', 'longitude' instead of 'y', 'x'
-# ERA5 uses 't2m' (2m temperature) instead of 'tas'
+# For ERA5-Land (TASK-007), adapt coordinate names:
+# ERA5-Land uses 'latitude', 'longitude' instead of 'y', 'x'
+# ERA5-Land uses 't2m' (2m temperature) instead of 'tas'
 def load_era5_data(file_path: Path, bounds: dict) -> xr.Dataset:
-    """Load ERA5 NetCDF with geographic subsetting."""
+    """Load ERA5-Land NetCDF with geographic subsetting."""
     ds = xr.open_dataset(file_path)
     # Subset to Germany bounds
     ds = ds.sel(
-        latitude=slice(bounds['north'], bounds['south']),  # ERA5: north first
+        latitude=slice(bounds['north'], bounds['south']),  # ERA5-Land: north first
         longitude=slice(bounds['west'], bounds['east'])
     )
     return ds
@@ -1059,7 +1055,7 @@ def apply_diverging_colormap(data: np.ndarray, vmin: float, vmax: float, cmap_na
 **File**: `jobs/job-update-10min-station-data/`
 
 ```dockerfile
-# Dockerfile pattern - REUSE for ERA5 jobs
+# Dockerfile pattern - REUSE for ERA5-Land jobs
 FROM python:3.13-slim
 
 WORKDIR /app
@@ -1078,7 +1074,6 @@ RUN pip install --no-cache-dir \
     xarray \
     rasterio \
     rio-tiler \
-    scipy \
     boto3 \
     cdsapi \
     numpy \
@@ -1107,18 +1102,17 @@ done
 # Run the pipeline
 python src/process_daily.py
 
-echo "ERA5 daily pipeline completed successfully"
+echo "ERA5-Land daily pipeline completed successfully"
 ```
 
 ```python
 # process_daily.py pattern (TASK-033)
-"""ERA5 daily processing pipeline orchestrator."""
+"""ERA5-Land daily processing pipeline orchestrator."""
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from era5.fetch_era5_data import fetch_latest_month
-from era5.interpolate_to_grid import interpolate_to_1km
 from era5.apply_land_mask import apply_germany_land_mask
 from era5.calculate_anomalies import calculate_monthly_anomaly
 from tiles.generate_tiles import generate_tiles_for_geotiff
@@ -1128,31 +1122,28 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 def main():
-    """Run daily ERA5 processing pipeline."""
+    """Run daily ERA5-Land processing pipeline."""
     # Calculate target month (previous complete month)
     today = datetime.now()
     target_date = today.replace(day=1) - timedelta(days=1)
     year, month = target_date.year, target_date.month
     
-    logger.info(f"Processing ERA5 data for {year}-{month:02d}")
+    logger.info(f"Processing ERA5-Land data for {year}-{month:02d}")
     
-    # Step 1: Fetch ERA5 data
+    # Step 1: Fetch ERA5-Land data
     raw_path = fetch_latest_month(year, month, output_dir=Path("./data/raw"))
     
-    # Step 2: Interpolate to 1km grid
-    interpolated_path = interpolate_to_1km(raw_path, output_dir=Path("./data/interpolated"))
+    # Step 2: Apply land mask
+    masked_path = apply_germany_land_mask(raw_path, output_dir=Path("./data/masked"))
     
-    # Step 3: Apply land mask
-    masked_path = apply_germany_land_mask(interpolated_path, output_dir=Path("./data/masked"))
-    
-    # Step 4: Calculate anomalies
+    # Step 3: Calculate anomalies
     anomaly_path = calculate_monthly_anomaly(masked_path, year, month, output_dir=Path("./data/anomalies"))
     
-    # Step 5: Generate tiles
+    # Step 4: Generate tiles
     tiles_dir = Path(f"./data/tiles/{year}/{month:02d}")
     generate_tiles_for_geotiff(anomaly_path, tiles_dir)
     
-    # Step 6: Upload to S3-compatible storage (Hetzner Object Storage)
+    # Step 5: Upload to S3-compatible storage (Hetzner Object Storage)
     upload_directory_to_s3(tiles_dir, f"tiles/{year}/{month:02d}/")
     
     logger.info(f"Pipeline completed for {year}-{month:02d}")
@@ -1266,8 +1257,8 @@ Two separate workflows are used: one builds and pushes the image only when sourc
 **File**: `.github/workflows/era5-build.yml` (to be created)
 
 ```yaml
-# Builds and pushes the ERA5 Docker image to GHCR only when source changes.
-name: Build ERA5 Docker Image
+# Builds and pushes the ERA5-Land Docker image to GHCR only when source changes.
+name: Build ERA5-Land Docker Image
 
 on:
   push:
@@ -1305,7 +1296,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push ERA5 daily image
+      - name: Build and push ERA5-Land daily image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -1319,13 +1310,13 @@ jobs:
 **File**: `.github/workflows/era5-daily-pipeline.yml` (to be created)
 
 ```yaml
-# Nightly pipeline: pulls the pre-built image and runs the ERA5 processing job.
+# Nightly pipeline: pulls the pre-built image and runs the ERA5-Land processing job.
 # The image is only rebuilt by era5-build.yml when source files change.
-name: ERA5 Daily Pipeline
+name: ERA5-Land Daily Pipeline
 
 on:
   schedule:
-    # Run at 06:00 UTC daily (ERA5 data typically available ~5 days delayed)
+    # Run at 06:00 UTC daily (ERA5-Land data typically available ~5 days delayed)
     - cron: '0 6 * * *'
   workflow_dispatch:  # Allow manual trigger
 
@@ -1346,10 +1337,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull ERA5 daily image
+      - name: Pull ERA5-Land daily image
         run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Run ERA5 pipeline
+      - name: Run ERA5-Land pipeline
         env:
           CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
           ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
@@ -1373,8 +1364,8 @@ jobs:
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `ERA5 Pipeline Failed - ${new Date().toISOString().split('T')[0]}`,
-              body: `The daily ERA5 pipeline failed. Check [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
+              title: `ERA5-Land Pipeline Failed - ${new Date().toISOString().split('T')[0]}`,
+              body: `The daily ERA5-Land pipeline failed. Check [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
               labels: ['pipeline-failure', 'automated']
             });
 ```
@@ -1449,10 +1440,10 @@ interface LocationMetrics {
 interface MetricsFile {
     version: string;        // Schema version, e.g., "1.0"
     generatedAt: string;    // ISO timestamp
-    source: 'era5' | 'era5-land';
+    source: 'era5-land';
     coverage: {
         bounds: { north: number; south: number; east: number; west: number };
-        gridResolution: string;  // e.g., "1km"
+        gridResolution: string;  // e.g., "0.1deg"
     };
     data: LocationMetrics;
 }

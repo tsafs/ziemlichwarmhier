@@ -66,7 +66,8 @@ This phase implements the automated job orchestration for the ERA5-Land climate 
 | TASK-P6-002 | Create `jobs/job-era5-daily/entrypoint.sh` with env validation | | |
 | TASK-P6-003 | Create `jobs/job-era5-daily/src/process_daily.py` orchestrator | | |
 | TASK-P6-004 | Implement new data detection logic (check CDS availability) | | |
-| TASK-P6-005 | Integrate Phase 3-4 modules (fetch, interpolate, mask, tiles) | | |
+| TASK-P6-005 | Integrate Phase 3-4 modules (fetch, mask, anomaly, tiles) | | |
+| TASK-P6-005a | Instantiate provider from `CLIMATE_DATA_PROVIDER` env var, pass to all pipeline functions. Add env var to `.env.example` and `validate-env.py` | | |
 | TASK-P6-006 | Add comprehensive logging and progress reporting | | |
 | TASK-P6-007 | Write local test script for job execution | | |
 
@@ -328,7 +329,7 @@ COPY jobs/job-era5-daily/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 
 # Create data directories
-RUN mkdir -p ./data/raw ./data/interpolated ./data/masked ./data/anomalies ./data/tiles
+RUN mkdir -p ./data/raw ./data/masked ./data/anomalies ./data/tiles
 
 # Default command
 ENTRYPOINT ["./entrypoint.sh"]
@@ -421,7 +422,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from era5.fetch_era5_data import fetch_monthly_data, load_era5_data
-from era5.interpolate_to_grid import interpolate_to_1km
+from era5.providers import get_provider
 from era5.apply_land_mask import apply_germany_land_mask
 from era5.calculate_anomalies import calculate_monthly_anomaly
 from tiles.generate_tiles import generate_tiles_for_geotiff
@@ -481,40 +482,33 @@ def run_pipeline(year: int, month: int):
     # Define paths
     base_dir = Path('./data')
     raw_dir = base_dir / 'raw'
-    interp_dir = base_dir / 'interpolated'
     masked_dir = base_dir / 'masked'
     anomaly_dir = base_dir / 'anomalies'
     tiles_dir = base_dir / 'tiles'
     
+    # Instantiate provider
+    provider = get_provider()
+    
     # Step 1: Fetch ERA5-Land data
-    logger.info("Step 1/5: Fetching ERA5-Land data...")
+    logger.info("Step 1/4: Fetching ERA5-Land data...")
     try:
-        raw_path = fetch_monthly_data(year, month, raw_dir)
+        raw_path = fetch_monthly_data(provider, year, month, raw_dir)
         logger.info(f"  Downloaded: {raw_path}")
     except Exception as e:
         logger.error(f"  Failed to fetch data: {e}")
         raise
     
-    # Step 2: Interpolate to 1km grid
-    logger.info("Step 2/5: Interpolating to 1km grid...")
+    # Step 2: Apply land mask
+    logger.info("Step 2/4: Applying Germany land mask...")
     try:
-        interp_path = interpolate_to_1km(raw_path, interp_dir)
-        logger.info(f"  Interpolated: {interp_path}")
-    except Exception as e:
-        logger.error(f"  Interpolation failed: {e}")
-        raise
-    
-    # Step 3: Apply land mask
-    logger.info("Step 3/5: Applying Germany land mask...")
-    try:
-        masked_path = apply_germany_land_mask(interp_path, masked_dir)
+        masked_path = apply_germany_land_mask(raw_path, masked_dir)
         logger.info(f"  Masked: {masked_path}")
     except Exception as e:
         logger.error(f"  Land mask failed: {e}")
         raise
     
-    # Step 4: Calculate anomaly
-    logger.info("Step 4/5: Calculating temperature anomaly...")
+    # Step 3: Calculate anomaly
+    logger.info("Step 3/4: Calculating temperature anomaly...")
     try:
         anomaly_path = calculate_monthly_anomaly(masked_path, year, month, anomaly_dir)
         logger.info(f"  Anomaly: {anomaly_path}")
@@ -522,8 +516,8 @@ def run_pipeline(year: int, month: int):
         logger.error(f"  Anomaly calculation failed: {e}")
         raise
     
-    # Step 5: Generate and upload tiles
-    logger.info("Step 5/5: Generating and uploading tiles...")
+    # Step 4: Generate and upload tiles
+    logger.info("Step 4/4: Generating and uploading tiles...")
     try:
         stats = generate_tiles_for_geotiff(anomaly_path, tiles_dir, year, month)
         logger.info(f"  Generated: {stats['total_tiles']} tiles ({stats['total_bytes'] / 1024 / 1024:.1f} MB)")
@@ -622,7 +616,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from era5.fetch_era5_data import fetch_monthly_data
-from era5.interpolate_to_grid import interpolate_to_1km
+from era5.providers import get_provider
 from era5.apply_land_mask import apply_germany_land_mask
 from era5.calculate_anomalies import calculate_monthly_anomaly
 from tiles.generate_tiles import generate_tiles_for_geotiff
@@ -650,16 +644,16 @@ def run_full_month_pipeline(year: int, month: int):
     
     base_dir = Path('./data')
     
+    # Instantiate provider
+    provider = get_provider()
+    
     # Force re-download (might have corrections)
     logger.info("Fetching ERA5-Land data (force download)...")
-    raw_path = fetch_monthly_data(year, month, base_dir / 'raw', force_download=True)
+    raw_path = fetch_monthly_data(provider, year, month, base_dir / 'raw', force_download=True)
     
     # Process
-    logger.info("Interpolating...")
-    interp_path = interpolate_to_1km(raw_path, base_dir / 'interpolated')
-    
     logger.info("Applying land mask...")
-    masked_path = apply_germany_land_mask(interp_path, base_dir / 'masked')
+    masked_path = apply_germany_land_mask(raw_path, base_dir / 'masked')
     
     logger.info("Calculating anomaly...")
     anomaly_path = calculate_monthly_anomaly(masked_path, year, month, base_dir / 'anomalies')
@@ -1240,7 +1234,7 @@ docker run \
 1. Check tile counts in validation output
 2. Verify GeoTIFF was created correctly
 3. Check disk space in runner
-4. If persistent, investigate interpolation step
+4. If persistent, investigate land mask or anomaly step
 
 ### Issue: GitHub Actions Minutes Exhausted
 

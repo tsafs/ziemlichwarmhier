@@ -45,6 +45,7 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 | TASK-00F | Create city search/slug + URL param skill (fixtures, selectors, tests, routing) |           |      |
 | TASK-00G | Create GH Actions job/pipeline matrix skill (act parity, actionlint, mocked secrets) |           |      |
 | TASK-00H | Create Playwright/E2E execution skill (fixtures, auth-less flows, reporting) |           |      |
+| TASK-00I | Create climate data provider skill (Protocol definition, provider implementation, injection pattern, provider-swap test, env-driven selection) |           |      |
 
 ### Implementation Phase 1
 

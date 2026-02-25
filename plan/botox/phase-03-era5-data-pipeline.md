@@ -12,7 +12,7 @@ tags: [phase-3, era5, data-pipeline, python, xarray, cdsapi]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This phase implements the core ERA5-Land data download and processing pipeline. It establishes the foundation for all climate data processing by creating modules to fetch ERA5-Land data from the Copernicus Climate Data Store (CDS), interpolate it to 1km visual resolution, apply a land mask for Germany, and calculate temperature anomalies against a reference period.
+This phase implements the core ERA5-Land data download and processing pipeline. It establishes the foundation for all climate data processing by creating modules to fetch ERA5-Land data from the Copernicus Climate Data Store (CDS), apply a land mask for Germany, and calculate temperature anomalies against a reference period.
 
 **Key outputs:**
 - CDS API client setup with authentication
@@ -20,7 +20,6 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 - Daily Tmin/Tmax extraction for threshold calculations
 - Precipitation data download for snow/rain metrics
 - Germany bounding box extraction
-- Interpolation from 0.1° (~9km) to 1km grid
 - Natural Earth land mask (1:10m resolution)
 - Monthly anomaly calculation vs 1961-1990 baseline
 - Daily threshold detection (30°C, 35°C, 20°C, 0°C)
@@ -29,16 +28,15 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 
 ### From Master Plan
 
-- **REQ-001**: Display temperature anomaly maps for Germany using ERA5-Land data at 1km visual resolution
+- **REQ-001**: Display temperature anomaly maps for Germany using ERA5-Land data at native resolution (~9 km)
 - **REQ-006**: Support land areas only, including coastal islands (exclude ocean)
-- **CON-002**: ERA5-Land resolution is 0.1° (~9km) - can be interpolated to 1km
+- **CON-001**: ERA5-Land native resolution is 0.1° (~9 km); data is used at native resolution, visual upscaling handled by tile rendering
 - **CON-003**: HYRAS 1km data available for Germany (1951-2024) as reference/validation
 
 ### Phase-Specific Requirements
 
 - **REQ-P3-001**: Fetch ERA5-Land monthly AND daily 2m temperature from CDS API
 - **REQ-P3-002**: Subset data to Germany bounds (47.2°N–55.1°N, 5.8°E–15.1°E)
-- **REQ-P3-003**: Interpolate from native 0.1° to ~1km using bicubic interpolation
 - **REQ-P3-004**: Apply land mask including all German islands (Sylt, Rügen, Helgoland, Borkum, etc.)
 - **REQ-P3-005**: Calculate anomalies relative to 1961-1990 climatology
 - **REQ-P3-006**: Handle edge cases (missing data, partial months, API timeouts)
@@ -56,15 +54,29 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 
 ## 2. Implementation Steps
 
+### Implementation Phase 3.0: Provider Protocol
+
+- GOAL-P3-000: Define a pluggable `ClimateDataProvider` abstraction so the data source is replaceable without code changes
+
+| Task | Description | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-P3-100 | Create `analysis/era5/providers/__init__.py` with provider factory (`get_provider()`) and registry | | |
+| TASK-P3-101 | Create `analysis/era5/providers/protocol.py` defining `ClimateDataProvider(Protocol)` with properties: `dataset_id`, `display_name`, `native_resolution_deg`, `bounds`, `variables`, `coordinate_names`, `latitude_descending`, `unit_conversions`; and methods: `fetch_monthly()`, `fetch_daily()`, `load_dataset()` | | |
+| TASK-P3-102 | Create `analysis/era5/providers/era5_land.py` implementing `ERA5LandProvider` — move all ERA5-Land-specific constants (CDS dataset names, variable mappings, resolution, bounds) from `config.py` into the provider | | |
+| TASK-P3-103 | Refactor `config.py` to retain only source-agnostic settings (thresholds, reference period, color mapping, island list). Remove `CDS_DATASETS`, `ERA5_VARIABLES`, `GERMANY_BOUNDS`, `GERMANY_BOUNDS_BUFFERED`, `ERA5_LAND_RESOLUTION`, `CDS_CONFIG` — these become provider properties | | |
+| TASK-P3-104 | Write unit test: `ERA5LandProvider` satisfies `ClimateDataProvider` protocol at type-check time (`isinstance` check with `@runtime_checkable`) | | |
+| TASK-P3-105 | Create `StubProvider` test fixture that returns deterministic data for offline pipeline tests | | |
+| TASK-P3-106 | Write provider-swap integration test: pipeline produces valid output with `StubProvider` | | |
+
 ### Implementation Phase 3.1: Configuration Module
 
-- GOAL-P3-001: Centralize all ERA5-Land processing configuration
+- GOAL-P3-001: Centralize all source-agnostic ERA5-Land processing configuration (thresholds, reference period, color mapping)
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
 | TASK-P3-001 | Create `analysis/era5/__init__.py` with module exports | | |
 | TASK-P3-002 | Create `analysis/era5/config.py` with all constants (bounds, variables, reference period) | | |
-| TASK-P3-003 | Create `analysis/era5/types.py` with data structure definitions | | |
+| TASK-P3-003 | Create `analysis/era5/types.py` with source-agnostic data structures (`BoundsDict`, `ProcessingResult`, `AnomalyMetadata`). Variable name mappings (`ERA5_TO_STANDARD`, `STANDARD_TO_ERA5`) move to provider's `variable_name_mapping` | | |
 | TASK-P3-004 | Write unit tests for configuration validation | | |
 
 ### Implementation Phase 3.2: CDS Data Fetching
@@ -73,26 +85,14 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P3-005 | Create `analysis/era5/fetch_era5_data.py` with CDS API client setup | | |
-| TASK-P3-006 | Implement `fetch_monthly_data()` for single month download | | |
+| TASK-P3-005 | Create `analysis/era5/fetch_era5_data.py` — accepts a `ClimateDataProvider` instance (injected, not imported). CDS dataset name, variable mapping, bounds, and retry config come from the provider | | |
+| TASK-P3-006 | Implement `fetch_monthly_data(provider, year, month, output_dir)` for single month download | | |
 | TASK-P3-007 | Implement `fetch_reference_climatology()` for 1961-1990 data | | |
 | TASK-P3-008 | Add retry logic with exponential backoff | | |
 | TASK-P3-009 | Add local caching to avoid redundant downloads | | |
-| TASK-P3-010 | Write unit tests with mocked CDS client | | |
+| TASK-P3-010 | Write unit tests with mocked provider protocol (not CDS client directly) | | |
 
-### Implementation Phase 3.3: Grid Interpolation
-
-- GOAL-P3-003: Interpolate ERA5-Land to 1km visual resolution
-
-| Task | Description | Completed | Date |
-| -------- | --------------------- | --------- | ---- |
-| TASK-P3-011 | Create `analysis/era5/interpolate_to_grid.py` module | | |
-| TASK-P3-012 | Implement bicubic interpolation using `scipy.interpolate.RegularGridInterpolator` | | |
-| TASK-P3-013 | Handle coordinate system transformations (WGS84 to target grid) | | |
-| TASK-P3-014 | Implement edge handling for boundary artifacts | | |
-| TASK-P3-015 | Write unit tests validating interpolation accuracy | | |
-
-### Implementation Phase 3.4: Land Mask Application
+### Implementation Phase 3.3: Land Mask Application
 
 - GOAL-P3-004: Apply Germany land mask to exclude ocean areas
 
@@ -100,7 +100,7 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 | -------- | --------------------- | --------- | ---- |
 | TASK-P3-016 | Create `analysis/era5/apply_land_mask.py` module | | |
 | TASK-P3-017 | Download and process Natural Earth 1:10m land polygons | | |
-| TASK-P3-018 | Rasterize land polygons to match 1km grid | | |
+| TASK-P3-018 | Rasterize land polygons to match native data grid | | |
 | TASK-P3-019 | Implement mask application preserving islands | | |
 | TASK-P3-020 | Create mask validation script for visual verification | | |
 | TASK-P3-021 | Write unit tests verifying island inclusion | | |
@@ -175,14 +175,6 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 
 ## 3. Alternatives
 
-- **ALT-P3-001**: **Use ERA5-Land instead of ERA5-Land**
-  - ERA5-Land has 0.25° (~28km) resolution vs ERA5-Land's 0.1° (~9km)
-  - Rejected: More interpolation artifacts, ERA5-Land is better for land areas
-
-- **ALT-P3-002**: **Use bilinear instead of bicubic interpolation**
-  - Bilinear is faster but produces blocky results
-  - Rejected: Visual quality more important than speed for pre-generated tiles
-
 - **ALT-P3-003**: **Download full European domain, crop later**
   - Would simplify API calls but increase download size 10x
   - Rejected: Bandwidth cost, storage, and processing time
@@ -206,7 +198,6 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 | `cdsapi` | >=0.7.0 | Copernicus CDS API client |
 | `xarray` | >=2025.6.1 | NetCDF/multidimensional array handling |
 | `netCDF4` | >=1.7.2 | NetCDF file backend |
-| `scipy` | >=1.14.0 | Interpolation functions |
 | `rasterio` | >=1.4.0 | GeoTIFF read/write |
 | `shapely` | >=2.0.0 | Geometry operations |
 | `geopandas` | >=1.0.0 | Geospatial data handling |
@@ -221,19 +212,21 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 | File ID | Path | Action | Description |
 |---------|------|--------|-------------|
 | FILE-P3-001 | `analysis/era5/__init__.py` | NEW | Module exports |
-| FILE-P3-002 | `analysis/era5/config.py` | NEW | Configuration constants |
+| FILE-P3-001a | `analysis/era5/providers/__init__.py` | NEW | Provider factory and registry |
+| FILE-P3-001b | `analysis/era5/providers/protocol.py` | NEW | `ClimateDataProvider` Protocol definition |
+| FILE-P3-001c | `analysis/era5/providers/era5_land.py` | NEW | `ERA5LandProvider` implementation |
+| FILE-P3-002 | `analysis/era5/config.py` | NEW | Source-agnostic configuration (thresholds, reference period, color mapping) |
 | FILE-P3-003 | `analysis/era5/types.py` | NEW | Type definitions |
 | FILE-P3-004 | `analysis/era5/fetch_era5_data.py` | NEW | CDS data download |
-| FILE-P3-005 | `analysis/era5/interpolate_to_grid.py` | NEW | Grid interpolation |
 | FILE-P3-006 | `analysis/era5/apply_land_mask.py` | NEW | Land mask application |
 | FILE-P3-007 | `analysis/era5/calculate_anomalies.py` | NEW | Anomaly calculation |
 | FILE-P3-008 | `analysis/era5/tests/__init__.py` | NEW | Test module |
 | FILE-P3-009 | `analysis/era5/tests/conftest.py` | NEW | Pytest fixtures |
 | FILE-P3-010 | `analysis/era5/tests/test_fetch_era5_data.py` | NEW | Fetch tests |
-| FILE-P3-011 | `analysis/era5/tests/test_interpolate.py` | NEW | Interpolation tests |
 | FILE-P3-012 | `analysis/era5/tests/test_land_mask.py` | NEW | Land mask tests |
 | FILE-P3-013 | `analysis/era5/tests/test_anomalies.py` | NEW | Anomaly tests |
 | FILE-P3-014 | `analysis/era5/tests/test_integration.py` | NEW | Integration tests |
+| FILE-P3-014a | `analysis/era5/tests/test_provider.py` | NEW | Provider protocol and swap tests |
 | FILE-P3-015 | `analysis/era5/fixtures/` | NEW | Test data directory |
 | FILE-P3-016 | `analysis/era5/fetch_daily_data.py` | NEW | Daily Tmin/Tmax extraction |
 | FILE-P3-017 | `analysis/era5/fetch_precipitation.py` | NEW | Precipitation download |
@@ -259,9 +252,6 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 | TEST-P3-003 | CDS client initializes with valid credentials | `test_fetch_era5_data.py` |
 | TEST-P3-004 | fetch_monthly_data handles API timeout with retry | `test_fetch_era5_data.py` |
 | TEST-P3-005 | fetch_monthly_data returns valid xarray Dataset | `test_fetch_era5_data.py` |
-| TEST-P3-006 | Interpolation produces correct output shape | `test_interpolate.py` |
-| TEST-P3-007 | Interpolation preserves value range | `test_interpolate.py` |
-| TEST-P3-008 | Bicubic interpolation smoother than bilinear | `test_interpolate.py` |
 | TEST-P3-009 | Land mask includes Sylt island | `test_land_mask.py` |
 | TEST-P3-010 | Land mask includes Rügen island | `test_land_mask.py` |
 | TEST-P3-011 | Land mask includes Helgoland island | `test_land_mask.py` |
@@ -296,7 +286,6 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 | Risk ID | Description | Probability | Impact | Mitigation |
 |---------|-------------|-------------|--------|------------|
 | RISK-P3-001 | CDS API unavailable/rate limited | Medium | High | Retry logic, local cache |
-| RISK-P3-002 | Interpolation artifacts at boundaries | Low | Medium | Edge handling, visual validation |
 | RISK-P3-003 | Natural Earth mask misses small islands | Low | Medium | Manual verification checklist |
 | RISK-P3-004 | Memory overflow on full Germany grid | Low | High | Process in chunks if needed |
 | RISK-P3-005 | Coordinate system confusion (lat/lon order) | Medium | Medium | Explicit coordinate handling, tests |
@@ -306,7 +295,6 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 - **ASSUMPTION-P3-001**: CDS API key available via environment variable
 - **ASSUMPTION-P3-002**: ERA5-Land data available for 1961-present
 - **ASSUMPTION-P3-003**: Output grid coordinate system is EPSG:4326 (WGS84)
-- **ASSUMPTION-P3-004**: 1km visual resolution is approximately 0.009° per cell
 - **ASSUMPTION-P3-005**: Reference period 1961-1990 is standard WMO baseline
 
 ## 8. Multi-Agent Execution Notes
@@ -314,15 +302,15 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 ### Execution Order
 
 **Sequential tasks (must run in order):**
-1. TASK-P3-001 → TASK-P3-004 (Configuration first)
-2. TASK-P3-005 → TASK-P3-010 (CDS fetching)
-3. TASK-P3-011 → TASK-P3-015 (Interpolation)
+1. TASK-P3-100 → TASK-P3-106 (Provider protocol first)
+2. TASK-P3-001 → TASK-P3-004 (Source-agnostic configuration)
+3. TASK-P3-005 → TASK-P3-010 (CDS fetching, injected with provider)
 4. TASK-P3-016 → TASK-P3-021 (Land mask)
 5. TASK-P3-022 → TASK-P3-027 (Anomalies)
 6. TASK-P3-028 → TASK-P3-032 (Integration)
 
 **Parallel opportunities:**
-- Phase 3.3 (Interpolation) and 3.4 (Land mask) can develop in parallel after 3.2
+- Phase 3.3 (Land mask) can develop after 3.2
 - Tests can be written alongside implementation
 
 ### Agent Context Requirements
@@ -335,10 +323,10 @@ Each agent session needs:
 
 ### Validation Checkpoints
 
-- **After Phase 3.1**: `python -c "from analysis.era5.config import GERMANY_BOUNDS"` works
+- **After Phase 3.0**: `python -c "from analysis.era5.providers import get_provider; p = get_provider(); assert isinstance(p, ClimateDataProvider)"` works
+- **After Phase 3.1**: `python -c "from analysis.era5.config import REFERENCE_PERIOD, TEMPERATURE_THRESHOLDS"` works (source-agnostic config only)
 - **After Phase 3.2**: Sample data downloads to `data/era5/raw/`
-- **After Phase 3.3**: Interpolated grid has shape ~(880, 1040) for Germany at 1km
-- **After Phase 3.4**: Land mask PNG shows Germany with islands, no ocean
+- **After Phase 3.3**: Land mask PNG shows Germany with islands, no ocean
 - **After Phase 3.5**: GeoTIFF opens in QGIS with valid anomaly values
 - **After Phase 3.6**: `pytest analysis/era5/tests/ -v` passes all tests
 - **After Phase 3.7**: Daily Tmin/Tmax NetCDF files exist with valid ranges
@@ -350,11 +338,202 @@ Each agent session needs:
 - [ERA5-Land Documentation](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land-monthly-means)
 - [CDS API Documentation](https://cds.climate.copernicus.eu/api-how-to)
 - [Natural Earth 1:10m Cultural Vectors](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/)
-- [SciPy RegularGridInterpolator](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RegularGridInterpolator.html)
 - [Rasterio Documentation](https://rasterio.readthedocs.io/)
 - Master Plan: `plan/botox/era5-germany-climate-visualization-1.md`
 
 ## 10. Code Reference
+
+### 10.0a Provider Protocol
+
+**File**: `analysis/era5/providers/protocol.py`
+
+```python
+#!/usr/bin/env python3
+"""Climate data provider protocol.
+
+Defines the interface that all climate data sources must satisfy.
+Uses structural subtyping (typing.Protocol) — providers do not need
+to inherit from this class, only implement its methods/properties.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Protocol, runtime_checkable
+
+import xarray as xr
+
+from ..types import BoundsDict
+
+
+@runtime_checkable
+class ClimateDataProvider(Protocol):
+    """Interface for pluggable climate reanalysis data sources."""
+
+    @property
+    def dataset_id(self) -> str:
+        """Short identifier, e.g. 'era5-land', 'cerra', 'hyras'."""
+        ...
+
+    @property
+    def display_name(self) -> str:
+        """Human-readable name, e.g. 'ERA5-Land'."""
+        ...
+
+    @property
+    def native_resolution_deg(self) -> float:
+        """Native grid resolution in degrees, e.g. 0.1 for ERA5-Land."""
+        ...
+
+    @property
+    def bounds(self) -> BoundsDict:
+        """Geographic bounds for data extraction."""
+        ...
+
+    @property
+    def variables(self) -> dict[str, dict]:
+        """Variable definitions: keys are internal names, values contain
+        'cds_name', 'unit', 'description', optional 'derived'."""
+        ...
+
+    @property
+    def coordinate_names(self) -> dict[str, str]:
+        """Mapping of standard coord roles to dataset-specific names.
+        E.g. {'latitude': 'latitude', 'longitude': 'longitude', 'time': 'time'}."""
+        ...
+
+    @property
+    def latitude_descending(self) -> bool:
+        """True if latitude is stored north-to-south (ERA5/ERA5-Land convention)."""
+        ...
+
+    @property
+    def unit_conversions(self) -> dict[str, dict]:
+        """Unit conversion rules. E.g. {'temperature': {'from': 'K', 'offset': -273.15},
+        'precipitation': {'from': 'm', 'factor': 1000}}."""
+        ...
+
+    def fetch_monthly(
+        self, year: int, month: int, output_dir: Path, variable: str = 't2m',
+        force: bool = False,
+    ) -> Path:
+        """Download monthly aggregated data. Returns path to NetCDF."""
+        ...
+
+    def fetch_daily(
+        self, year: int, month: int, output_dir: Path,
+        force: bool = False,
+    ) -> Path:
+        """Download daily/hourly data for Tmin/Tmax derivation. Returns path to NetCDF."""
+        ...
+
+    def load_dataset(self, file_path: Path) -> xr.Dataset:
+        """Load and subset a downloaded file to the provider's bounds."""
+        ...
+```
+
+**Notes:** `@runtime_checkable` enables `isinstance(obj, ClimateDataProvider)` checks for validation. All ERA5-Land-specific constants (CDS dataset names, variable mappings, resolution, bounds) move into `ERA5LandProvider`. `config.py` retains only source-agnostic settings (thresholds, reference period, color mapping). No `OUTPUT_GRID` or `get_grid_dimensions()` — the pipeline uses the provider's `native_resolution_deg` and the actual data grid shape.
+
+### 10.0b ERA5-Land Provider Implementation
+
+**File**: `analysis/era5/providers/era5_land.py`
+
+```python
+#!/usr/bin/env python3
+"""ERA5-Land climate data provider implementation."""
+
+from pathlib import Path
+
+import cdsapi
+import xarray as xr
+
+from ..types import BoundsDict
+
+
+class ERA5LandProvider:
+    """Concrete provider for Copernicus ERA5-Land reanalysis data."""
+
+    dataset_id = 'era5-land'
+    display_name = 'ERA5-Land'
+    native_resolution_deg = 0.1  # ~9 km
+
+    bounds = BoundsDict(north=55.1, south=47.2, west=5.8, east=15.1)
+
+    coordinate_names = {
+        'latitude': 'latitude',
+        'longitude': 'longitude',
+        'time': 'time',
+    }
+
+    latitude_descending = True  # ERA5-Land stores north first
+
+    variables = {
+        't2m': {'cds_name': '2m_temperature', 'unit': 'K', 'description': '2m air temperature'},
+        'tp': {'cds_name': 'total_precipitation', 'unit': 'm', 'description': 'Total precipitation'},
+        # ... (moved from config.py ERA5_VARIABLES)
+    }
+
+    unit_conversions = {
+        'temperature': {'from': 'K', 'offset': -273.15},
+        'precipitation': {'from': 'm', 'factor': 1000},  # m → mm
+    }
+
+    CDS_DATASETS = {
+        'monthly': 'reanalysis-era5-land-monthly-means',
+        'hourly': 'reanalysis-era5-land',
+    }
+
+    def fetch_monthly(self, year, month, output_dir, variable='t2m', force=False):
+        # CDS API call using self.CDS_DATASETS['monthly'], self.bounds, etc.
+        ...
+
+    def fetch_daily(self, year, month, output_dir, force=False):
+        # CDS API call using self.CDS_DATASETS['hourly']
+        ...
+
+    def load_dataset(self, file_path: Path) -> xr.Dataset:
+        ds = xr.open_dataset(file_path)
+        lat_key = self.coordinate_names['latitude']
+        lon_key = self.coordinate_names['longitude']
+        if self.latitude_descending:
+            ds = ds.sel(**{
+                lat_key: slice(self.bounds['north'], self.bounds['south']),
+                lon_key: slice(self.bounds['west'], self.bounds['east']),
+            })
+        return ds
+```
+
+**Notes:** This is a sketch. The actual implementation will be specified during implementation. The key point is that ALL ERA5-Land-specific knowledge is encapsulated here.
+
+### 10.0c Provider Factory
+
+**File**: `analysis/era5/providers/__init__.py`
+
+```python
+"""Climate data provider registry."""
+
+import os
+from .protocol import ClimateDataProvider
+from .era5_land import ERA5LandProvider
+
+_PROVIDERS: dict[str, type[ClimateDataProvider]] = {
+    'era5-land': ERA5LandProvider,
+}
+
+def get_provider(provider_id: str | None = None) -> ClimateDataProvider:
+    """Instantiate the configured climate data provider.
+    
+    Args:
+        provider_id: Provider identifier. If None, reads from
+                     CLIMATE_DATA_PROVIDER env var (default: 'era5-land').
+    """
+    pid = provider_id or os.environ.get('CLIMATE_DATA_PROVIDER', 'era5-land')
+    if pid not in _PROVIDERS:
+        raise ValueError(f"Unknown provider '{pid}'. Available: {list(_PROVIDERS)}")
+    return _PROVIDERS[pid]()
+```
+
+**Notes:** Adding a new provider = implement the protocol + add one entry to `_PROVIDERS`. Zero changes to pipeline code.
 
 ### 10.1 Configuration Module
 
@@ -365,11 +544,17 @@ Each agent session needs:
 """
 ERA5-Land data processing configuration.
 
-Centralized configuration for all ERA5-Land-related processing including
-geographic bounds, variable definitions, and reference periods.
+Source-agnostic configuration for climate data processing including
+reference periods, temperature thresholds, and color mapping.
+Dataset-specific values (bounds, variables, resolution, CDS config)
+live in the active ClimateDataProvider implementation.
 """
 
-# Germany geographic bounds (EPSG:4326)
+# NOTE: The following constants move to ERA5LandProvider (providers/era5_land.py)
+# during TASK-P3-103. They remain here as reference for the initial implementation
+# but will be accessed via provider.bounds, provider.variables, etc.
+
+# Germany geographic bounds (EPSG:4326) → provider.bounds
 GERMANY_BOUNDS = {
     'north': 55.1,
     'south': 47.2,
@@ -377,7 +562,7 @@ GERMANY_BOUNDS = {
     'east': 15.1,
 }
 
-# Add small buffer for interpolation edge handling
+# Add small buffer for edge handling
 GERMANY_BOUNDS_BUFFERED = {
     'north': 55.2,
     'south': 47.1,
@@ -442,21 +627,6 @@ PRECIPITATION_THRESHOLDS = {
 
 # Snow day detection: precip > 0.1mm AND Tmean <= 0°C
 SNOW_DAY_TEMP_THRESHOLD = 0.0  # °C
-
-# Output grid configuration
-OUTPUT_GRID = {
-    'resolution_deg': 0.009,  # ~1km at German latitudes
-    'crs': 'EPSG:4326',
-}
-
-# Calculate grid dimensions for Germany
-def get_grid_dimensions():
-    """Calculate output grid dimensions for Germany at 1km resolution."""
-    lat_range = GERMANY_BOUNDS['north'] - GERMANY_BOUNDS['south']
-    lon_range = GERMANY_BOUNDS['east'] - GERMANY_BOUNDS['west']
-    n_lat = int(lat_range / OUTPUT_GRID['resolution_deg'])
-    n_lon = int(lon_range / OUTPUT_GRID['resolution_deg'])
-    return n_lat, n_lon  # ~878 x 1033
 
 # ERA5-Land native resolution
 ERA5_LAND_RESOLUTION = 0.1  # degrees (~9km)
@@ -532,12 +702,6 @@ class BoundsDict(TypedDict):
     west: float
 
 
-class GridConfig(TypedDict):
-    """Output grid configuration."""
-    resolution_deg: float
-    crs: str
-
-
 class ProcessingResult(TypedDict):
     """Result of a processing step."""
     success: bool
@@ -559,6 +723,7 @@ class AnomalyMetadata(TypedDict):
 
 
 # Variable name mappings between datasets
+# NOTE: These move to provider.variable_name_mapping during TASK-P3-103
 ERA5_TO_STANDARD = {
     't2m': 'temperature_2m',
     'tp': 'total_precipitation',
@@ -578,7 +743,8 @@ STANDARD_TO_ERA5 = {v: k for k, v in ERA5_TO_STANDARD.items()}
 ERA5-Land data fetching from Copernicus Climate Data Store.
 
 Downloads monthly ERA5-Land temperature data for Germany with
-retry logic and local caching.
+retry logic and local caching. Accepts a ClimateDataProvider
+instance for dataset-specific parameters.
 """
 
 import os
@@ -590,12 +756,8 @@ from pathlib import Path
 import cdsapi
 import xarray as xr
 
-from .config import (
-    GERMANY_BOUNDS_BUFFERED,
-    ERA5_VARIABLES,
-    CDS_CONFIG,
-    REFERENCE_PERIOD,
-)
+from .providers.protocol import ClimateDataProvider
+from .config import REFERENCE_PERIOD
 
 # Configure logging
 logging.basicConfig(
@@ -638,19 +800,21 @@ def get_cds_client():
 
 
 def fetch_monthly_data(
+    provider: ClimateDataProvider,
     year: int,
     month: int,
     output_dir: Path,
     variable: str = 't2m',
     force_download: bool = False,
 ) -> Path:
-    """Fetch ERA5-Land monthly data for a specific month.
+    """Fetch monthly data for a specific month via the active provider.
     
     Args:
+        provider: Climate data provider instance
         year: Year to fetch (e.g., 2024)
         month: Month to fetch (1-12)
         output_dir: Directory to save downloaded file
-        variable: ERA5-Land variable name (default: t2m)
+        variable: Variable name (default: t2m)
         force_download: If True, download even if cached
         
     Returns:
@@ -662,7 +826,7 @@ def fetch_monthly_data(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    filename = f"era5_land_{variable}_{year}{month:02d}.nc"
+    filename = f"{provider.dataset_id}_{variable}_{year}{month:02d}.nc"
     output_path = output_dir / filename
     
     # Check cache
@@ -670,53 +834,14 @@ def fetch_monthly_data(
         logger.info(f"Using cached file: {output_path}")
         return output_path
     
-    logger.info(f"Fetching ERA5-Land {variable} for {year}-{month:02d}")
+    logger.info(f"Fetching {provider.display_name} {variable} for {year}-{month:02d}")
     
-    # Build CDS request
-    var_config = ERA5_VARIABLES[variable]
-    request = {
-        'product_type': CDS_CONFIG['product_type'],
-        'variable': var_config['cds_name'],
-        'year': str(year),
-        'month': f"{month:02d}",
-        'time': '00:00',
-        'area': [
-            GERMANY_BOUNDS_BUFFERED['north'],
-            GERMANY_BOUNDS_BUFFERED['west'],
-            GERMANY_BOUNDS_BUFFERED['south'],
-            GERMANY_BOUNDS_BUFFERED['east'],
-        ],
-        'format': CDS_CONFIG['format'],
-    }
-    
-    # Download with retry
-    client = get_cds_client()
-    
-    for attempt in range(CDS_CONFIG['max_retries']):
-        try:
-            client.retrieve(
-                CDS_CONFIG['dataset'],
-                request,
-                str(output_path)
-            )
-            logger.info(f"Downloaded: {output_path}")
-            return output_path
-            
-        except Exception as e:
-            delay = CDS_CONFIG['retry_delay_base'] * (2 ** attempt)
-            logger.warning(
-                f"Download attempt {attempt + 1} failed: {e}. "
-                f"Retrying in {delay}s..."
-            )
-            if attempt < CDS_CONFIG['max_retries'] - 1:
-                time.sleep(delay)
-            else:
-                raise RuntimeError(
-                    f"Failed to download ERA5-Land data after {CDS_CONFIG['max_retries']} attempts"
-                ) from e
+    # Delegate to provider
+    return provider.fetch_monthly(year, month, output_dir, variable, force_download)
 
 
 def fetch_reference_climatology(
+    provider: ClimateDataProvider,
     output_dir: Path,
     variable: str = 't2m',
 ) -> Path:
@@ -726,8 +851,9 @@ def fetch_reference_climatology(
     all years in reference period and calculates monthly means.
     
     Args:
+        provider: Climate data provider instance
         output_dir: Directory for climatology files
-        variable: ERA5-Land variable name
+        variable: Variable name
         
     Returns:
         Path to climatology NetCDF file
@@ -802,222 +928,14 @@ if __name__ == '__main__':
     print(f"Data saved to: {output_path}")
 ```
 
-### 10.4 Grid Interpolation
-
-**File**: `analysis/era5/interpolate_to_grid.py`
-
-```python
-#!/usr/bin/env python3
-"""
-Interpolate ERA5-Land data to 1km grid resolution.
-
-Uses bicubic interpolation for smooth visual results.
-"""
-
-import logging
-from pathlib import Path
-
-import numpy as np
-import xarray as xr
-from scipy.interpolate import RegularGridInterpolator
-
-from .config import GERMANY_BOUNDS, OUTPUT_GRID, get_grid_dimensions
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-
-def create_output_grid():
-    """Create the target 1km output grid coordinates.
-    
-    Returns:
-        Tuple of (lat_array, lon_array) for output grid
-    """
-    n_lat, n_lon = get_grid_dimensions()
-    
-    # Create coordinate arrays
-    lats = np.linspace(
-        GERMANY_BOUNDS['north'],
-        GERMANY_BOUNDS['south'],
-        n_lat
-    )
-    lons = np.linspace(
-        GERMANY_BOUNDS['west'],
-        GERMANY_BOUNDS['east'],
-        n_lon
-    )
-    
-    return lats, lons
-
-
-def interpolate_to_1km(
-    input_path: Path,
-    output_dir: Path,
-    variable: str = 't2m',
-    method: str = 'cubic',
-) -> Path:
-    """Interpolate ERA5-Land data to 1km grid.
-    
-    Args:
-        input_path: Path to input NetCDF file
-        output_dir: Directory for output file
-        variable: Variable to interpolate
-        method: Interpolation method ('linear', 'cubic')
-        
-    Returns:
-        Path to interpolated NetCDF file
-    """
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    logger.info(f"Interpolating {input_path} to 1km grid")
-    
-    # Load input data
-    ds = xr.open_dataset(input_path)
-    data = ds[variable].values
-    
-    # Handle data dimensions (time, lat, lon) or (lat, lon)
-    if data.ndim == 3:
-        # Has time dimension
-        data = data[0]  # Take first time step
-    
-    # Get input coordinates (ERA5-Land uses latitude, longitude)
-    in_lats = ds['latitude'].values
-    in_lons = ds['longitude'].values
-    
-    # ERA5-Land latitude is often descending (north to south)
-    if in_lats[0] > in_lats[-1]:
-        in_lats = in_lats[::-1]
-        data = data[::-1, :]
-    
-    # Create interpolator
-    interpolator = RegularGridInterpolator(
-        (in_lats, in_lons),
-        data,
-        method=method,
-        bounds_error=False,
-        fill_value=np.nan
-    )
-    
-    # Create output grid
-    out_lats, out_lons = create_output_grid()
-    
-    # Create meshgrid for interpolation points
-    lon_grid, lat_grid = np.meshgrid(out_lons, out_lats)
-    points = np.column_stack([lat_grid.ravel(), lon_grid.ravel()])
-    
-    # Interpolate
-    interpolated = interpolator(points)
-    interpolated = interpolated.reshape(len(out_lats), len(out_lons))
-    
-    logger.info(f"Output shape: {interpolated.shape}")
-    
-    # Create output Dataset
-    out_ds = xr.Dataset(
-        {
-            variable: (['latitude', 'longitude'], interpolated)
-        },
-        coords={
-            'latitude': out_lats,
-            'longitude': out_lons
-        },
-        attrs={
-            'source': 'ERA5-Land interpolated to 1km',
-            'interpolation_method': method,
-            'crs': OUTPUT_GRID['crs'],
-            'resolution': f"{OUTPUT_GRID['resolution_deg']} degrees (~1km)",
-            'original_file': str(input_path),
-        }
-    )
-    
-    # Copy variable attributes
-    out_ds[variable].attrs = ds[variable].attrs.copy()
-    
-    # Save output
-    output_filename = input_path.stem + '_1km.nc'
-    output_path = output_dir / output_filename
-    out_ds.to_netcdf(output_path)
-    
-    logger.info(f"Saved interpolated data: {output_path}")
-    return output_path
-
-
-def interpolate_from_xarray(
-    ds: xr.Dataset,
-    variable: str = 't2m',
-    method: str = 'cubic',
-) -> xr.Dataset:
-    """Interpolate xarray Dataset in memory.
-    
-    Args:
-        ds: Input xarray Dataset
-        variable: Variable to interpolate
-        method: Interpolation method
-        
-    Returns:
-        Interpolated xarray Dataset
-    """
-    data = ds[variable].values
-    
-    # Handle dimensions
-    if data.ndim == 3:
-        data = data[0]
-    
-    in_lats = ds['latitude'].values
-    in_lons = ds['longitude'].values
-    
-    # Ensure ascending latitude
-    if in_lats[0] > in_lats[-1]:
-        in_lats = in_lats[::-1]
-        data = data[::-1, :]
-    
-    interpolator = RegularGridInterpolator(
-        (in_lats, in_lons),
-        data,
-        method=method,
-        bounds_error=False,
-        fill_value=np.nan
-    )
-    
-    out_lats, out_lons = create_output_grid()
-    lon_grid, lat_grid = np.meshgrid(out_lons, out_lats)
-    points = np.column_stack([lat_grid.ravel(), lon_grid.ravel()])
-    
-    interpolated = interpolator(points).reshape(len(out_lats), len(out_lons))
-    
-    return xr.Dataset(
-        {variable: (['latitude', 'longitude'], interpolated)},
-        coords={'latitude': out_lats, 'longitude': out_lons},
-        attrs={
-            'source': 'ERA5-Land interpolated to 1km',
-            'interpolation_method': method,
-        }
-    )
-
-
-if __name__ == '__main__':
-    import argparse
-    
-    parser = argparse.ArgumentParser(description='Interpolate ERA5-Land data to 1km')
-    parser.add_argument('input_file', help='Input NetCDF file')
-    parser.add_argument('--output-dir', default='./data/era5/interpolated',
-                        help='Output directory')
-    parser.add_argument('--method', choices=['linear', 'cubic'], default='cubic',
-                        help='Interpolation method')
-    args = parser.parse_args()
-    
-    output = interpolate_to_1km(Path(args.input_file), Path(args.output_dir), method=args.method)
-    print(f"Output: {output}")
-```
-
-### 10.5 Land Mask Application
+### 10.4 Land Mask Application
 
 **File**: `analysis/era5/apply_land_mask.py`
 
 ```python
 #!/usr/bin/env python3
 """
-Apply Germany land mask to interpolated ERA5-Land data.
+Apply Germany land mask to native-resolution ERA5-Land data.
 
 Uses Natural Earth 1:10m land polygons to mask out ocean areas
 while preserving German islands.
@@ -1034,7 +952,8 @@ from rasterio import features
 from rasterio.transform import from_bounds
 from shapely.geometry import Point
 
-from .config import GERMANY_BOUNDS, OUTPUT_GRID, GERMAN_ISLANDS, get_grid_dimensions
+from .config import GERMAN_ISLANDS
+from .providers.protocol import ClimateDataProvider
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -1084,12 +1003,16 @@ def download_land_polygons(cache_dir: Path) -> Path:
 
 def create_germany_land_mask(
     output_path: Path,
+    ds: xr.Dataset,
+    provider: ClimateDataProvider,
     cache_dir: Path = Path('./data/cache'),
 ) -> np.ndarray:
-    """Create a land mask for Germany at 1km resolution.
+    """Create a land mask for Germany matching the native data grid.
     
     Args:
         output_path: Path to save mask as GeoTIFF
+        ds: xarray Dataset whose grid shape to match
+        provider: Climate data provider for bounds
         cache_dir: Directory for cached data
         
     Returns:
@@ -1101,16 +1024,17 @@ def create_germany_land_mask(
     # Download land polygons
     shp_path = download_land_polygons(cache_dir)
     
-    # Load and clip to Germany bounds (with buffer)
+    # Load and clip to provider bounds (with buffer)
     logger.info("Loading and clipping land polygons...")
     land = gpd.read_file(shp_path)
     
+    bounds = provider.bounds
     # Create bounding box with buffer
     bounds_buffered = {
-        'north': GERMANY_BOUNDS['north'] + 0.5,
-        'south': GERMANY_BOUNDS['south'] - 0.5,
-        'west': GERMANY_BOUNDS['west'] - 0.5,
-        'east': GERMANY_BOUNDS['east'] + 0.5,
+        'north': bounds['north'] + 0.5,
+        'south': bounds['south'] - 0.5,
+        'west': bounds['west'] - 0.5,
+        'east': bounds['east'] + 0.5,
     }
     
     # Clip to bounds
@@ -1119,15 +1043,16 @@ def create_germany_land_mask(
         bounds_buffered['south']:bounds_buffered['north']
     ]
     
-    # Get grid dimensions
-    n_lat, n_lon = get_grid_dimensions()
+    # Get grid dimensions from the dataset
+    n_lat = len(ds['latitude'])
+    n_lon = len(ds['longitude'])
     
     # Create transform for rasterization
     transform = from_bounds(
-        GERMANY_BOUNDS['west'],
-        GERMANY_BOUNDS['south'],
-        GERMANY_BOUNDS['east'],
-        GERMANY_BOUNDS['north'],
+        bounds['west'],
+        bounds['south'],
+        bounds['east'],
+        bounds['north'],
         n_lon,
         n_lat
     )
@@ -1159,7 +1084,7 @@ def create_germany_land_mask(
         width=n_lon,
         count=1,
         dtype=np.uint8,
-        crs=OUTPUT_GRID['crs'],
+        crs='EPSG:4326',
         transform=transform,
     ) as dst:
         dst.write(mask.astype(np.uint8), 1)
@@ -1218,10 +1143,10 @@ def apply_germany_land_mask(
     mask_path: Path = None,
     variable: str = 't2m',
 ) -> Path:
-    """Apply land mask to interpolated ERA5-Land data.
+    """Apply land mask to ERA5-Land data.
     
     Args:
-        input_path: Path to interpolated NetCDF
+        input_path: Path to ERA5-Land NetCDF
         output_dir: Output directory
         mask_path: Path to precomputed mask (creates if None)
         variable: Variable to mask
@@ -1263,7 +1188,7 @@ def apply_germany_land_mask(
     out_ds.attrs['land_mask_applied'] = True
     
     # Save
-    output_filename = input_path.stem.replace('_1km', '_masked') + '.nc'
+    output_filename = input_path.stem + '_masked.nc'
     output_path = output_dir / output_filename
     out_ds.to_netcdf(output_path)
     
@@ -1312,7 +1237,8 @@ import xarray as xr
 import rasterio
 from rasterio.transform import from_bounds
 
-from .config import GERMANY_BOUNDS, OUTPUT_GRID, REFERENCE_PERIOD, ANOMALY_COLORMAP, get_grid_dimensions
+from .config import REFERENCE_PERIOD, ANOMALY_COLORMAP
+from .providers.protocol import ClimateDataProvider
 from .types import AnomalyMetadata
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -1340,6 +1266,7 @@ def load_climatology(climatology_path: Path, month: int) -> xr.DataArray:
 
 
 def calculate_monthly_anomaly(
+    provider: ClimateDataProvider,
     current_path: Path,
     year: int,
     month: int,
@@ -1350,6 +1277,7 @@ def calculate_monthly_anomaly(
     """Calculate temperature anomaly for a specific month.
     
     Args:
+        provider: Climate data provider instance
         current_path: Path to current month masked data
         year: Year of current data
         month: Month of current data
@@ -1381,13 +1309,16 @@ def calculate_monthly_anomaly(
     
     clim_data = load_climatology(climatology_path, month)
     
-    # Ensure shapes match (may need to interpolate climatology)
+    # Ensure shapes match (may need to regrid climatology)
     if clim_data.shape != current_data.shape:
-        logger.info("Interpolating climatology to match current data grid...")
-        from .interpolate_to_grid import interpolate_from_xarray
+        logger.info("Regridding climatology to match current data grid...")
         clim_ds = xr.Dataset({variable: clim_data})
-        clim_ds_interp = interpolate_from_xarray(clim_ds, variable)
-        clim_data = clim_ds_interp[variable].values
+        clim_ds = clim_ds.interp(
+            latitude=ds_current['latitude'],
+            longitude=ds_current['longitude'],
+            method='linear',
+        )
+        clim_data = clim_ds[variable].values
     else:
         clim_data = clim_data.values
     
@@ -1402,19 +1333,20 @@ def calculate_monthly_anomaly(
         'month': month,
         'reference_start': REFERENCE_PERIOD['start_year'],
         'reference_end': REFERENCE_PERIOD['end_year'],
-        'bounds': GERMANY_BOUNDS,
-        'resolution': f"{OUTPUT_GRID['resolution_deg']} degrees",
-        'crs': OUTPUT_GRID['crs'],
+        'bounds': provider.bounds,
+        'resolution': f'native {provider.display_name} {provider.native_resolution_deg}°',
+        'crs': 'EPSG:4326',
         'units': '°C',
     }
     
     # Save as GeoTIFF
-    n_lat, n_lon = get_grid_dimensions()
+    n_lat = len(ds_current['latitude'])
+    n_lon = len(ds_current['longitude'])
     transform = from_bounds(
-        GERMANY_BOUNDS['west'],
-        GERMANY_BOUNDS['south'],
-        GERMANY_BOUNDS['east'],
-        GERMANY_BOUNDS['north'],
+        provider.bounds['west'],
+        provider.bounds['south'],
+        provider.bounds['east'],
+        provider.bounds['north'],
         n_lon,
         n_lat
     )
@@ -1430,7 +1362,7 @@ def calculate_monthly_anomaly(
         width=n_lon,
         count=1,
         dtype=np.float32,
-        crs=OUTPUT_GRID['crs'],
+        crs='EPSG:4326',
         transform=transform,
         nodata=np.nan,
     ) as dst:
@@ -1773,14 +1705,14 @@ class TestLandMaskCreation:
     """Tests for land mask creation."""
     
     @pytest.mark.slow
-    def test_mask_created_with_correct_shape(self, temp_output_dir):
-        """Land mask has expected dimensions for Germany at 1km."""
+    def test_mask_created_with_correct_shape(self, temp_output_dir, sample_era5_data):
+        """Land mask has expected dimensions for Germany at native ERA5-Land grid."""
         mask_path = temp_output_dir / 'mask.tif'
-        mask = create_germany_land_mask(mask_path)
+        mask = create_germany_land_mask(mask_path, sample_era5_data)
         
-        # Expected shape ~878 x 1033 for Germany at 1km
-        assert mask.shape[0] > 800
-        assert mask.shape[1] > 900
+        # Expected shape ~79 x 93 for Germany at ERA5-Land 0.1° native resolution
+        assert mask.shape[0] > 70
+        assert mask.shape[1] > 80
         assert mask.dtype == bool
     
     @pytest.mark.slow

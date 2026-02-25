@@ -26,7 +26,7 @@ This phase implements the map tile generation pipeline that converts processed E
 
 ### From Master Plan
 
-- **REQ-001**: Display temperature anomaly maps using ERA5-Land data at 1km visual resolution
+- **REQ-001**: Display temperature anomaly maps using ERA5-Land data at native resolution (~9 km)
 - **NFR-003**: Map tile loading < 500ms per visible viewport
 - **NFR-001**: Monthly operational costs ≤ €15/month
 
@@ -201,7 +201,7 @@ This phase implements the map tile generation pipeline that converts processed E
 # fixtures/sample_anomaly.tif
 # - GeoTIFF with anomaly values in range [-3, +3]
 # - EPSG:4326, Germany bounds
-# - Resolution ~1km (match Phase 3 output)
+# - Resolution native 0.1° (~9 km, match Phase 3 output)
 # - Includes NaN for ocean areas
 ```
 

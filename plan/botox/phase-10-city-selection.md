@@ -139,9 +139,9 @@ This phase implements the city search and selection functionality that connects 
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---- |
-| TASK-P10-026 | Create `analysis/cities/correlate_cities_to_grid.py` | | |
+| TASK-P10-026 | Create `analysis/cities/correlate_cities_to_grid.py` (accept `ClimateDataProvider`) | | |
 | TASK-P10-027 | Load Germany city list from `german_cities_p5000.csv` | | |
-| TASK-P10-028 | Define ERA5-Land grid (0.1° resolution) | | |
+| TASK-P10-028 | Obtain grid resolution & bounds from provider (no hardcoded constants) | | |
 | TASK-P10-029 | Calculate nearest grid cell for each city | | |
 | TASK-P10-030 | Output correlation data as JSON (`city_grid_correlation.json`) | | |
 | TASK-P10-031 | Include city slug in output for URL matching | | |
@@ -1000,15 +1000,8 @@ from typing import List, Tuple
 import unicodedata
 import re
 
-
-# ERA5-Land grid configuration
-ERA5_RESOLUTION = 0.1  # degrees
-ERA5_GERMANY_BOUNDS = {
-    'north': 55.1,
-    'south': 47.2,
-    'west': 5.8,
-    'east': 15.1,
-}
+from era5.providers import get_provider
+from era5.providers.protocol import ClimateDataProvider
 
 
 @dataclass
@@ -1062,9 +1055,12 @@ def city_name_to_slug(name: str) -> str:
     return result
 
 
-def lat_lon_to_grid_indices(lat: float, lon: float) -> Tuple[int, int, float, float]:
+def lat_lon_to_grid_indices(
+    lat: float, lon: float,
+    bounds: dict, resolution: float,
+) -> Tuple[int, int, float, float]:
     """
-    Convert lat/lon to ERA5-Land grid indices.
+    Convert lat/lon to grid indices using provider bounds & resolution.
     
     Returns (i, j, grid_lat, grid_lon) where:
     - i is the column index (longitude)
@@ -1072,12 +1068,12 @@ def lat_lon_to_grid_indices(lat: float, lon: float) -> Tuple[int, int, float, fl
     - grid_lat/grid_lon are the grid cell center coordinates
     """
     # Calculate grid indices
-    i = int((lon - ERA5_GERMANY_BOUNDS['west']) / ERA5_RESOLUTION)
-    j = int((ERA5_GERMANY_BOUNDS['north'] - lat) / ERA5_RESOLUTION)
+    i = int((lon - bounds['west']) / resolution)
+    j = int((bounds['north'] - lat) / resolution)
     
     # Calculate grid cell center
-    grid_lon = ERA5_GERMANY_BOUNDS['west'] + (i + 0.5) * ERA5_RESOLUTION
-    grid_lat = ERA5_GERMANY_BOUNDS['north'] - (j + 0.5) * ERA5_RESOLUTION
+    grid_lon = bounds['west'] + (i + 0.5) * resolution
+    grid_lat = bounds['north'] - (j + 0.5) * resolution
     
     return i, j, grid_lat, grid_lon
 
@@ -1099,10 +1095,14 @@ def load_cities(csv_path: Path) -> List[dict]:
     return cities
 
 
-def correlate_cities(cities: List[dict]) -> List[CityCorrelation]:
-    """Correlate cities to ERA5-Land grid cells."""
+def correlate_cities(
+    provider: ClimateDataProvider, cities: List[dict],
+) -> List[CityCorrelation]:
+    """Correlate cities to grid cells using provider configuration."""
     correlations = []
     seen_slugs = set()
+    bounds = provider.bounds
+    resolution = provider.native_resolution_deg
     
     for city in cities:
         slug = city_name_to_slug(city['name'])
@@ -1115,7 +1115,9 @@ def correlate_cities(cities: List[dict]) -> List[CityCorrelation]:
             counter += 1
         seen_slugs.add(slug)
         
-        i, j, grid_lat, grid_lon = lat_lon_to_grid_indices(city['lat'], city['lon'])
+        i, j, grid_lat, grid_lon = lat_lon_to_grid_indices(
+            city['lat'], city['lon'], bounds, resolution,
+        )
         tile_id = f"{i}_{j}"  # Multiple cities can share the same tile_id
         
         correlations.append(CityCorrelation(
@@ -1143,19 +1145,21 @@ def main():
     # Ensure output directory exists
     output_json.parent.mkdir(parents=True, exist_ok=True)
     
+    provider = get_provider()  # resolved from CLIMATE_DATA_PROVIDER env var
+    
     print(f"Loading cities from {cities_csv}")
     cities = load_cities(cities_csv)
     print(f"Loaded {len(cities)} cities")
     
-    print("Correlating cities to grid...")
-    correlations = correlate_cities(cities)
+    print(f"Correlating cities to {provider.display_name} grid...")
+    correlations = correlate_cities(provider, cities)
     print(f"Generated {len(correlations)} correlations")
     
     # Convert to JSON-serializable format
     output_data = {
         'meta': {
-            'grid_resolution': ERA5_RESOLUTION,
-            'bounds': ERA5_GERMANY_BOUNDS,
+            'grid_resolution': provider.native_resolution_deg,
+            'bounds': provider.bounds,
             'city_count': len(correlations),
         },
         'cities': [asdict(c) for c in correlations],

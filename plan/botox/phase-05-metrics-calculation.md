@@ -159,8 +159,8 @@ This phase implements the climate metrics calculation pipeline that processes ER
 | TASK-P5-041 | Create `analysis/metrics/aggregate_metrics.py` | | |
 | TASK-P5-042 | Implement grid-to-city aggregation (nearest neighbor or avg) | | |
 | TASK-P5-043 | Implement country-level aggregation (weighted by area) | | |
-| TASK-P5-044 | Create `analysis/metrics/export_metrics.py` | | |
-| TASK-P5-045 | Implement JSON export conforming to frontend schema | | |
+| TASK-P5-044 | Create `analysis/metrics/export_metrics.py` — stamp `source: provider.dataset_id` on output JSON instead of hardcoded `'era5-land'` | | |
+| TASK-P5-045 | Implement JSON export conforming to frontend schema — `gridResolution` from `provider.native_resolution_deg`, bounds from `provider.bounds` | | |
 | TASK-P5-046 | Write integration tests for full pipeline | | |
 
 ### Implementation Phase 5.10: Testing & Documentation
@@ -570,7 +570,7 @@ class MetricsFile(TypedDict):
     """Root structure for metrics JSON file."""
     version: str           # Schema version
     generatedAt: str       # ISO timestamp
-    source: Literal['era5', 'era5-land']
+    source: str            # From provider.dataset_id (e.g. 'era5-land')
     coverage: dict         # bounds, gridResolution
     data: LocationMetrics
 ```
@@ -1402,6 +1402,9 @@ from typing import Dict
 
 from .types import LocationMetrics, MetricsFile
 
+# NOTE: Import provider protocol for type hints
+from analysis.era5.providers.protocol import ClimateDataProvider
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -1409,16 +1412,14 @@ logger = logging.getLogger(__name__)
 def export_metrics_json(
     metrics: LocationMetrics,
     output_path: Path,
-    bounds: dict = None,
-    source: str = 'era5-land',
+    provider: 'ClimateDataProvider',
 ) -> Path:
     """Export metrics to JSON file.
     
     Args:
         metrics: LocationMetrics dictionary
         output_path: Path for output JSON file
-        bounds: Geographic bounds dictionary
-        source: Data source identifier
+        provider: Climate data provider for source, bounds, resolution
         
     Returns:
         Path to created JSON file
@@ -1430,15 +1431,10 @@ def export_metrics_json(
     metrics_file: MetricsFile = {
         'version': '1.0',
         'generatedAt': datetime.utcnow().isoformat() + 'Z',
-        'source': source,
+        'source': provider.dataset_id,
         'coverage': {
-            'bounds': bounds or {
-                'north': 55.1,
-                'south': 47.2,
-                'west': 5.8,
-                'east': 15.1,
-            },
-            'gridResolution': '~1km',
+            'bounds': dict(provider.bounds),
+            'gridResolution': f'{provider.native_resolution_deg}deg',
         },
         'data': metrics,
     }
@@ -1454,14 +1450,14 @@ def export_metrics_json(
 def export_all_tile_metrics(
     tile_metrics: Dict[str, LocationMetrics],
     output_dir: Path,
-    source: str = 'era5-land',
+    provider: 'ClimateDataProvider',
 ) -> Dict[str, Path]:
     """Export metrics for all tiles (grid cells).
     
     Args:
         tile_metrics: Dictionary mapping tile_id (grid_i_grid_j) to metrics
         output_dir: Directory for output files
-        source: Data source identifier
+        provider: Climate data provider for metadata
         
     Returns:
         Dictionary mapping tile_id to output path
@@ -1475,7 +1471,7 @@ def export_all_tile_metrics(
         # tile_id format: "{grid_i}_{grid_j}"
         output_path = output_dir / f"{tile_id}.json"
         
-        paths[tile_id] = export_metrics_json(metrics, output_path, source=source)
+        paths[tile_id] = export_metrics_json(metrics, output_path, provider=provider)
     
     logger.info(f"Exported metrics for {len(paths)} tiles to {output_dir}")
     return paths
@@ -1484,20 +1480,20 @@ def export_all_tile_metrics(
 def export_germany_metrics(
     metrics: LocationMetrics,
     output_dir: Path,
-    source: str = 'era5-land',
+    provider: 'ClimateDataProvider',
 ) -> Path:
     """Export country-level metrics for Germany.
     
     Args:
         metrics: Germany-aggregated LocationMetrics
         output_dir: Output directory
-        source: Data source identifier
+        provider: Climate data provider for metadata
         
     Returns:
         Path to germany.json
     """
     output_path = Path(output_dir) / 'germany.json'
-    return export_metrics_json(metrics, output_path, source=source)
+    return export_metrics_json(metrics, output_path, provider=provider)
 
 
 def validate_metrics_schema(data: dict) -> bool:
