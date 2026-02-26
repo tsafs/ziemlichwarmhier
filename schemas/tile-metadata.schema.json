@@ -1,0 +1,74 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "tile-metadata.schema.json",
+    "title": "TileMetadata",
+    "description": "Validation rules for ERA5-Land temperature anomaly WebP tiles (Phase 4).",
+    "type": "object",
+    "required": [
+        "tileSpec",
+        "urlPattern"
+    ],
+    "properties": {
+        "tileSpec": {
+            "type": "object",
+            "required": [
+                "format",
+                "width",
+                "height",
+                "maxSizeBytes",
+                "quality",
+                "zoomRange"
+            ],
+            "properties": {
+                "format": {
+                    "type": "string",
+                    "const": "webp"
+                },
+                "width": {
+                    "type": "integer",
+                    "const": 256
+                },
+                "height": {
+                    "type": "integer",
+                    "const": 256
+                },
+                "maxSizeBytes": {
+                    "type": "integer",
+                    "description": "Maximum tile size in bytes (50KB)",
+                    "const": 51200
+                },
+                "quality": {
+                    "type": "integer",
+                    "const": 80
+                },
+                "zoomRange": {
+                    "type": "object",
+                    "required": [
+                        "min",
+                        "max"
+                    ],
+                    "properties": {
+                        "min": {
+                            "type": "integer",
+                            "const": 6
+                        },
+                        "max": {
+                            "type": "integer",
+                            "const": 10
+                        }
+                    }
+                }
+            }
+        },
+        "urlPattern": {
+            "type": "string",
+            "description": "URL template for tile requests",
+            "const": "/{year}/{month:02d}/{z}/{x}/{y}.webp"
+        },
+        "webpMagicBytes": {
+            "type": "string",
+            "description": "First 4 bytes of a valid WebP file (ASCII 'RIFF')",
+            "const": "RIFF"
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "days-above-below-merged.schema.json",
+  "title": "Merged Temperature Day Counts per Station",
+  "description": "4-metric merged temperature day counts (ice/frost/summer/hot days).",
+  "type": "object",
+  "required": [
+    "daysBelowMinus10Tmin",
+    "daysBelow0Tmin",
+    "daysAbove25Tmax",
+    "daysAbove30Tmax"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "daysBelowMinus10Tmin": {
+      "$ref": "xy-data.schema.json"
+    },
+    "daysBelow0Tmin": {
+      "$ref": "xy-data.schema.json"
+    },
+    "daysAbove25Tmax": {
+      "$ref": "xy-data.schema.json"
+    },
+    "daysAbove30Tmax": {
+      "$ref": "xy-data.schema.json"
+    }
+  }
+}

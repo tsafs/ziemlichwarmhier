@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ice-and-hot-days.schema.json",
+  "title": "Ice and Hot Days per Station",
+  "description": "Historical temperature day counts for a station (2-key variant for iceAndHotDays).",
+  "type": "object",
+  "required": [
+    "daysBelow0Tmax",
+    "daysAbove30Tmax"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "daysBelow0Tmax": {
+      "$ref": "xy-data.schema.json"
+    },
+    "daysAbove30Tmax": {
+      "$ref": "xy-data.schema.json"
+    }
+  }
+}

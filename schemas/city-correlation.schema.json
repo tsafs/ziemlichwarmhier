@@ -1,0 +1,111 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "city-correlation.schema.json",
+    "title": "CityGridCorrelation",
+    "description": "City-to-ERA5-Land grid mapping (Phase 10). Maps cities to their nearest grid cell and tile.",
+    "type": "object",
+    "required": [
+        "meta",
+        "cities"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "meta": {
+            "type": "object",
+            "required": [
+                "grid_resolution",
+                "bounds",
+                "city_count"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "grid_resolution": {
+                    "type": "number",
+                    "description": "Grid cell size in degrees (e.g. 0.1)"
+                },
+                "bounds": {
+                    "type": "object",
+                    "required": [
+                        "north",
+                        "south",
+                        "west",
+                        "east"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "north": {
+                            "type": "number"
+                        },
+                        "south": {
+                            "type": "number"
+                        },
+                        "west": {
+                            "type": "number"
+                        },
+                        "east": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "city_count": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "cities": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "slug",
+                    "lat",
+                    "lon",
+                    "grid_i",
+                    "grid_j",
+                    "grid_lat",
+                    "grid_lon",
+                    "tile_id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "slug": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]+$",
+                        "description": "URL-safe city slug"
+                    },
+                    "lat": {
+                        "type": "number"
+                    },
+                    "lon": {
+                        "type": "number"
+                    },
+                    "grid_i": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "grid_j": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "grid_lat": {
+                        "type": "number"
+                    },
+                    "grid_lon": {
+                        "type": "number"
+                    },
+                    "tile_id": {
+                        "type": "string",
+                        "pattern": "^\\d+_\\d+$",
+                        "description": "Grid cell identifier as 'i_j'"
+                    }
+                }
+            }
+        }
+    }
+}

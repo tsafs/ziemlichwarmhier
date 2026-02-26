@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "csv-headers.schema.json",
+  "title": "CSV Header Contracts",
+  "description": "Expected column headers for each CSV data format.",
+  "type": "object",
+  "properties": {
+    "10min_station_data": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "station_id",
+            "station_name",
+            "data_date",
+            "elevation",
+            "lat",
+            "lon",
+            "humidity",
+            "max_temperature",
+            "min_temperature",
+            "temperature"
+          ]
+        }
+      }
+    },
+    "rolling_average_daily_0": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "date",
+            "tasmin",
+            "tasmax",
+            "tas"
+          ]
+        }
+      }
+    },
+    "rolling_average_daily_7d": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "date",
+            "tas"
+          ]
+        }
+      }
+    },
+    "german_cities": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "city_name",
+            "lat",
+            "lon"
+          ]
+        }
+      }
+    },
+    "daily_recent_by_station": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "date",
+            "temperature_mean",
+            "temperature_min",
+            "temperature_max",
+            "humidity_mean"
+          ]
+        }
+      }
+    },
+    "daily_recent_by_date": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "station_id",
+            "date",
+            "max_temperature",
+            "min_temperature",
+            "mean_temperature",
+            "mean_humidity"
+          ]
+        }
+      }
+    },
+    "yearly_mean_by_day": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "station_id",
+            "tasmin",
+            "tasmax",
+            "tas"
+          ]
+        }
+      }
+    },
+    "hyras_stations": {
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "const": [
+            "station_id",
+            "station_name",
+            "station_lat",
+            "station_lon"
+          ]
+        }
+      }
+    }
+  }
+}

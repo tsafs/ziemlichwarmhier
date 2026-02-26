@@ -1,0 +1,50 @@
+{
+    "$comment": "Golden-file contract for Phase 9 plot CSV headers. Each key maps to the expected column list for that plot type.",
+    "temperature_evolution": {
+        "headers": [
+            "year",
+            "temperature",
+            "anomaly",
+            "trend"
+        ],
+        "description": "Annual mean temperature, anomaly from 1961-1990 reference, linear trend"
+    },
+    "seasonal_warming": {
+        "headers": [
+            "year",
+            "winter",
+            "spring",
+            "summer",
+            "fall"
+        ],
+        "description": "Annual seasonal anomalies relative to 1961-1990 reference"
+    },
+    "extremes": {
+        "headers": [
+            "year",
+            "hot_days",
+            "cold_days",
+            "reference_hot",
+            "reference_cold"
+        ],
+        "description": "Annual threshold-day counts and reference period averages"
+    },
+    "monthly_distribution": {
+        "headers": [
+            "month",
+            "cur_min",
+            "cur_q1",
+            "cur_median",
+            "cur_q3",
+            "cur_max",
+            "cur_mean",
+            "ref_min",
+            "ref_q1",
+            "ref_median",
+            "ref_q3",
+            "ref_max",
+            "ref_mean"
+        ],
+        "description": "Monthly temperature box-plot statistics for current vs reference period"
+    }
+}

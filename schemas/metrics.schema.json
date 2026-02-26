@@ -1,0 +1,328 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "metrics.schema.json",
+  "title": "MetricsFile",
+  "description": "ERA5-Land LocationMetrics JSON (Phase 5/8). One file per location (national or per-tile).",
+  "type": "object",
+  "required": [
+    "version",
+    "generatedAt",
+    "source",
+    "coverage",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Schema version, e.g. '1.0'"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "era5-land"
+      ],
+      "description": "Climate data provider identifier"
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "bounds",
+        "gridResolution"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bounds": {
+          "$ref": "#/$defs/bounds"
+        },
+        "gridResolution": {
+          "type": "string",
+          "pattern": "^[0-9.]+deg$"
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "calculatedAt",
+        "fiveYearAnomaly",
+        "warmingRate",
+        "recordDays",
+        "winterWarming",
+        "seasonalWarming",
+        "thresholdDays",
+        "snowDaysLost",
+        "comfortableDays"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "calculatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "fiveYearAnomaly": {
+          "type": "object",
+          "required": [
+            "value",
+            "periodStart",
+            "periodEnd",
+            "referenceStart",
+            "referenceEnd"
+          ],
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "periodStart": {
+              "type": "integer"
+            },
+            "periodEnd": {
+              "type": "integer"
+            },
+            "referenceStart": {
+              "type": "integer"
+            },
+            "referenceEnd": {
+              "type": "integer"
+            }
+          }
+        },
+        "warmingRate": {
+          "type": "object",
+          "required": [
+            "value",
+            "startYear",
+            "endYear",
+            "confidence"
+          ],
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "startYear": {
+              "type": "integer"
+            },
+            "endYear": {
+              "type": "integer"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "recordDays": {
+          "type": "object",
+          "required": [
+            "total",
+            "hot",
+            "cold",
+            "year"
+          ],
+          "properties": {
+            "total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "hot": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cold": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "year": {
+              "type": "integer"
+            }
+          }
+        },
+        "winterWarming": {
+          "type": "object",
+          "required": [
+            "value",
+            "periodStart",
+            "periodEnd",
+            "referenceStart",
+            "referenceEnd"
+          ],
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "periodStart": {
+              "type": "integer"
+            },
+            "periodEnd": {
+              "type": "integer"
+            },
+            "referenceStart": {
+              "type": "integer"
+            },
+            "referenceEnd": {
+              "type": "integer"
+            }
+          }
+        },
+        "seasonalWarming": {
+          "type": "object",
+          "required": [
+            "winter",
+            "spring",
+            "summer",
+            "fall",
+            "fastestSeason",
+            "periodStart",
+            "periodEnd",
+            "referenceStart",
+            "referenceEnd"
+          ],
+          "properties": {
+            "winter": {
+              "type": "number"
+            },
+            "spring": {
+              "type": "number"
+            },
+            "summer": {
+              "type": "number"
+            },
+            "fall": {
+              "type": "number"
+            },
+            "fastestSeason": {
+              "type": "string",
+              "enum": [
+                "winter",
+                "spring",
+                "summer",
+                "fall"
+              ]
+            },
+            "periodStart": {
+              "type": "integer"
+            },
+            "periodEnd": {
+              "type": "integer"
+            },
+            "referenceStart": {
+              "type": "integer"
+            },
+            "referenceEnd": {
+              "type": "integer"
+            }
+          }
+        },
+        "thresholdDays": {
+          "type": "object",
+          "required": [
+            "hotDays",
+            "tropicalNights",
+            "iceDays",
+            "frostDays",
+            "year"
+          ],
+          "properties": {
+            "hotDays": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tropicalNights": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "iceDays": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "frostDays": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "year": {
+              "type": "integer"
+            }
+          }
+        },
+        "snowDaysLost": {
+          "type": "object",
+          "required": [
+            "value",
+            "currentAverage",
+            "referenceAverage",
+            "periodStart",
+            "periodEnd"
+          ],
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "currentAverage": {
+              "type": "number",
+              "minimum": 0
+            },
+            "referenceAverage": {
+              "type": "number",
+              "minimum": 0
+            },
+            "periodStart": {
+              "type": "integer"
+            },
+            "periodEnd": {
+              "type": "integer"
+            }
+          }
+        },
+        "comfortableDays": {
+          "type": "object",
+          "required": [
+            "count",
+            "average"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "average": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "bounds": {
+      "type": "object",
+      "required": [
+        "north",
+        "south",
+        "west",
+        "east"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "north": {
+          "type": "number"
+        },
+        "south": {
+          "type": "number"
+        },
+        "west": {
+          "type": "number"
+        },
+        "east": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}
