@@ -26,7 +26,10 @@
         "start": "vite",
         "start:now": "VITE_APP_NOW=2025-11-28T12:00:00Z vite",
         "build": "vite build",
-        "serve": "vite preview"
+        "serve": "vite preview",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage"
     },
     "eslintConfig": {
         "extends": [
@@ -46,6 +49,9 @@
         ]
     },
     "devDependencies": {
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@testing-library/user-event": "^14.6.1",
         "@types/d3": "^7.4.3",
         "@types/luxon": "^3.7.1",
         "@types/node": "^24.10.1",
@@ -53,6 +59,10 @@
         "@types/react-dom": "^19.1.7",
         "@types/topojson-client": "^3.1.5",
         "@vitejs/plugin-react": "^5.0.0",
+        "@vitest/coverage-v8": "^4.0.18",
+        "ajv": "^8.18.0",
+        "ajv-formats": "^3.0.1",
+        "jsdom": "^28.1.0",
         "typescript": "^5.9.2",
         "vite-plugin-node-polyfills": "^0.24.0",
         "vitest": "^4.0.18"
