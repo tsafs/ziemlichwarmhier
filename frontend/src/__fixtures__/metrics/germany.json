@@ -1,0 +1,72 @@
+{
+    "version": "1.0",
+    "generatedAt": "2026-02-15T10:00:00Z",
+    "source": "era5-land",
+    "coverage": {
+        "bounds": {
+            "north": 55.1,
+            "south": 47.2,
+            "west": 5.8,
+            "east": 15.1
+        },
+        "gridResolution": "0.1deg"
+    },
+    "data": {
+        "calculatedAt": "2026-02-15T10:00:00Z",
+        "fiveYearAnomaly": {
+            "value": 2.3,
+            "periodStart": 2021,
+            "periodEnd": 2025,
+            "referenceStart": 1961,
+            "referenceEnd": 1990
+        },
+        "warmingRate": {
+            "value": 0.45,
+            "startYear": 1995,
+            "endYear": 2025,
+            "confidence": 0.85
+        },
+        "recordDays": {
+            "total": 18,
+            "hot": 16,
+            "cold": 2,
+            "year": 2025
+        },
+        "winterWarming": {
+            "value": 2.8,
+            "periodStart": 2021,
+            "periodEnd": 2025,
+            "referenceStart": 1961,
+            "referenceEnd": 1990
+        },
+        "seasonalWarming": {
+            "winter": 2.8,
+            "spring": 2.1,
+            "summer": 1.9,
+            "fall": 2.4,
+            "fastestSeason": "winter",
+            "periodStart": 2021,
+            "periodEnd": 2025,
+            "referenceStart": 1961,
+            "referenceEnd": 1990
+        },
+        "thresholdDays": {
+            "hotDays": 15,
+            "tropicalNights": 8,
+            "iceDays": 4,
+            "frostDays": 52,
+            "year": 2025
+        },
+        "snowDaysLost": {
+            "value": -18,
+            "currentAverage": 12.0,
+            "referenceAverage": 30.0,
+            "periodStart": 2021,
+            "periodEnd": 2025
+        },
+        "comfortableDays": {
+            "count": 95,
+            "average": 93.0
+        }
+    }
+}

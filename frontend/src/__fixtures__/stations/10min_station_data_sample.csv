@@ -1,0 +1,6 @@
+station_id,station_name,data_date,elevation,lat,lon,humidity,max_temperature,min_temperature,temperature
+44,Großenkneten,25.02.2026 12:00,44,52.9336,8.2370,72.1,6.3,-1.2,4.1
+73,Aldersbach-Kramersepp,25.02.2026 12:00,374,48.6183,13.0620,85.4,5.8,-2.5,3.4
+78,Alfhausen,25.02.2026 12:00,64,52.4853,7.9125,68.9,7.1,-0.8,4.8
+91,Alsfeld-Eifa,25.02.2026 12:00,304,50.7446,9.3450,74.2,5.2,-3.1,2.9
+164,Aachen,25.02.2026 12:00,202,50.7831,6.0946,78.6,8.4,0.2,5.6

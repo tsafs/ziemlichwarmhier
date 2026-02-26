@@ -1,0 +1,22 @@
+{
+  "stationId": "1001",
+  "period": "1991-2020",
+  "metrics": {
+    "meanAnnualTemperature": {
+      "value": 9.8,
+      "unit": "°C"
+    },
+    "hotDaysPerYear": {
+      "value": 12.3,
+      "unit": "days"
+    },
+    "iceDaysPerYear": {
+      "value": 18.7,
+      "unit": "days"
+    },
+    "frostDaysPerYear": {
+      "value": 72.1,
+      "unit": "days"
+    }
+  }
+}
