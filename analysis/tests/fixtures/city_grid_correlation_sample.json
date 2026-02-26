@@ -1,0 +1,47 @@
+{
+    "meta": {
+        "grid_resolution": 0.1,
+        "bounds": {
+            "north": 55.1,
+            "south": 47.2,
+            "west": 5.8,
+            "east": 15.1
+        },
+        "city_count": 3
+    },
+    "cities": [
+        {
+            "name": "Berlin",
+            "slug": "berlin",
+            "lat": 52.52,
+            "lon": 13.405,
+            "grid_i": 76,
+            "grid_j": 26,
+            "grid_lat": 52.55,
+            "grid_lon": 13.35,
+            "tile_id": "76_26"
+        },
+        {
+            "name": "München",
+            "slug": "muenchen",
+            "lat": 48.14,
+            "lon": 11.58,
+            "grid_i": 57,
+            "grid_j": 69,
+            "grid_lat": 48.15,
+            "grid_lon": 11.55,
+            "tile_id": "57_69"
+        },
+        {
+            "name": "Freiburg im Breisgau",
+            "slug": "freiburg-im-breisgau",
+            "lat": 47.999,
+            "lon": 7.842,
+            "grid_i": 20,
+            "grid_j": 71,
+            "grid_lat": 47.95,
+            "grid_lon": 7.85,
+            "tile_id": "20_71"
+        }
+    ]
+}

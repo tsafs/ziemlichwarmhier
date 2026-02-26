@@ -1,0 +1,3 @@
+# Python test fixtures
+# Small, realistic data files for offline pytest runs.
+# See frontend/src/__fixtures__/README.md for the companion frontend fixtures.
