@@ -133,6 +133,38 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 ### Execution Order
 - **Sequential dependencies**: Phase 0 skills (TASK-000–TASK-00H) precede all other tasks. Phase 1 tasks parallelizable (TASK-001, TASK-002, TASK-003), then TASK-004. Phase 2 follows after Phase 1; TASK-008 last.
 
+```mermaid
+graph TD
+    subgraph "Phase 0 — Agent Skills"
+        P0[TASK-000 … TASK-00I<br/>Author all skills]
+    end
+
+    GATE0{Validation:<br/>skills published}
+
+    subgraph "Phase 1 — Test Harnesses & Fixtures"
+        T1[TASK-001<br/>Vitest config]
+        T2[TASK-002<br/>Fixture pack]
+        T3[TASK-003<br/>pytest setup]
+        T4[TASK-004<br/>Schema / golden checks]
+    end
+
+    GATE1{Validation:<br/>fixtures documented,<br/>tests pass}
+
+    subgraph "Phase 2 — CI Parity & Guardrails"
+        T5[TASK-005<br/>act + actionlint]
+        T6[TASK-006<br/>Self-correct playbook]
+        T7[TASK-007<br/>Preflight command]
+        T8[TASK-008<br/>Update botox refs]
+    end
+
+    GATE2{Validation:<br/>preflight exits 0}
+
+    P0 --> GATE0 --> T1 & T2 & T3
+    T1 & T2 & T3 --> T4 --> GATE1
+    GATE1 --> T5 & T6 & T7
+    T5 & T6 & T7 --> T8 --> GATE2
+```
+
 ### Agent Context Requirements
 - Access to fixture seeds and schema files.
 - Commands for tests/preflight documented in playbook.
