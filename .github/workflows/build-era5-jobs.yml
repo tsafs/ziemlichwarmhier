@@ -1,0 +1,93 @@
+name: Build ERA5 Docker Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "jobs/job-era5-daily/**"
+      - "jobs/job-era5-monthly/**"
+      - "jobs/job-era5-yearly/**"
+      - "analysis/era5/**"
+      - "analysis/tiles/**"
+      - "analysis/__init__.py"
+  workflow_dispatch:
+
+jobs:
+  build-era5-daily:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Clear Docker config
+        run: rm -f ~/.docker/config.json
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image (era5-daily)
+        run: |
+          docker build \
+            -t ghcr.io/tsafs/itishotnow:era5-daily-latest \
+            -f jobs/job-era5-daily/Dockerfile .
+
+      - name: Push Docker image (era5-daily)
+        run: |
+          docker push ghcr.io/tsafs/itishotnow:era5-daily-latest
+
+  build-era5-monthly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Clear Docker config
+        run: rm -f ~/.docker/config.json
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image (era5-monthly)
+        run: |
+          docker build \
+            -t ghcr.io/tsafs/itishotnow:era5-monthly-latest \
+            -f jobs/job-era5-monthly/Dockerfile .
+
+      - name: Push Docker image (era5-monthly)
+        run: |
+          docker push ghcr.io/tsafs/itishotnow:era5-monthly-latest
+
+  build-era5-yearly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Clear Docker config
+        run: rm -f ~/.docker/config.json
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image (era5-yearly)
+        run: |
+          docker build \
+            -t ghcr.io/tsafs/itishotnow:era5-yearly-latest \
+            -f jobs/job-era5-yearly/Dockerfile .
+
+      - name: Push Docker image (era5-yearly)
+        run: |
+          docker push ghcr.io/tsafs/itishotnow:era5-yearly-latest

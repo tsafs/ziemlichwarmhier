@@ -1,0 +1,52 @@
+name: ERA5 Yearly Pipeline
+
+on:
+  schedule:
+    - cron: "0 5 15 1 *" # January 15th at 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      target_year:
+        description: "Year to process (e.g. 2024). Defaults to previous year."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  run-era5-yearly:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull ERA5 yearly Docker image
+        run: docker pull ghcr.io/tsafs/itishotnow:era5-yearly-latest
+
+      - name: Run ERA5 yearly pipeline
+        run: |
+          docker run --rm \
+            -e CDS_API_KEY="${{ secrets.CDS_API_KEY }}" \
+            -e ACCESS_KEY="${{ secrets.S3_ACCESS_KEY }}" \
+            -e SECRET_KEY="${{ secrets.S3_SECRET_KEY }}" \
+            -e ENDPOINT_URL="${{ secrets.S3_ENDPOINT_URL }}" \
+            -e BUCKET_NAME="${{ secrets.BUCKET_NAME }}" \
+            -e TARGET_YEAR="${{ github.event.inputs.target_year }}" \
+            ghcr.io/tsafs/itishotnow:era5-yearly-latest
+
+      - name: Create GitHub issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE=$(date -u +"%Y-%m-%d")
+          gh issue create \
+            --title "ERA5 Yearly Pipeline Failed - ${DATE}" \
+            --body "The ERA5 yearly pipeline failed on ${DATE}. See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details." \
+            --label "bug,automated"

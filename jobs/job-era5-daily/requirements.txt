@@ -1,0 +1,14 @@
+cdsapi
+xarray
+rasterio
+rioxarray
+geopandas
+shapely
+numpy
+boto3
+tqdm
+rio-tiler
+mercantile
+pillow
+matplotlib
+requests
