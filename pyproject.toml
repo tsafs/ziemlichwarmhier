@@ -26,8 +26,13 @@ test = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["analysis/tests"]
+testpaths = [
+    "analysis/tests",
+    "analysis/era5/tests",
+    "analysis/tiles/tests",
+]
 pythonpath = [
+    ".",
     "analysis/stations",
     "analysis/hyras",
     "analysis/rolling_average",
