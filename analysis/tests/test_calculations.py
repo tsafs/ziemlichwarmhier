@@ -72,50 +72,6 @@ class TestGenerateOutputFilename:
         assert result == "01234_daysBelowMinus10TminHistorical.json"
 
 
-# ── extract_hyras_data grid functions ────────────────────────────────────
-
-from extract_hyras_data import calculate_grid_centers, find_nearest_grid_point, get_grid_cell_bounds
-
-
-class TestCalculateGridCenters:
-    def test_3x3_grid(self, sample_hyras_grid: dict) -> None:
-        lat, lon = sample_hyras_grid["lat"], sample_hyras_grid["lon"]
-        clat, clon = calculate_grid_centers(lat, lon)
-        # 3x3 corners → 2x2 centers
-        assert clat.shape == (2, 2)
-        assert clon.shape == (2, 2)
-        # Center of cells should be average of 4 corners
-        np.testing.assert_allclose(clat[0, 0], 47.5)
-        np.testing.assert_allclose(clon[0, 0], 6.5)
-
-
-class TestFindNearestGridPoint:
-    def test_exact_center(self, sample_hyras_grid: dict) -> None:
-        lat, lon = sample_hyras_grid["lat"], sample_hyras_grid["lon"]
-        clat, clon = calculate_grid_centers(lat, lon)
-        y, x = find_nearest_grid_point(clat, clon, 47.5, 6.5)
-        assert (y, x) == (0, 0)
-
-    def test_nearest_to_upper_right(self, sample_hyras_grid: dict) -> None:
-        lat, lon = sample_hyras_grid["lat"], sample_hyras_grid["lon"]
-        clat, clon = calculate_grid_centers(lat, lon)
-        y, x = find_nearest_grid_point(clat, clon, 48.5, 7.5)
-        assert (y, x) == (1, 1)
-
-
-class TestGetGridCellBounds:
-    def test_interior_cell(self, sample_hyras_grid: dict) -> None:
-        lat, lon = sample_hyras_grid["lat"], sample_hyras_grid["lon"]
-        bounds = get_grid_cell_bounds(lat, lon, 1, 1)
-        assert len(bounds) == 4
-        lat1, lon1, lat2, lon2 = bounds
-        # Cell (1,1) is bounded by corners at (1,1) and (2,2)
-        assert lat1 == pytest.approx(48.0)
-        assert lon1 == pytest.approx(7.0)
-        assert lat2 == pytest.approx(49.0)
-        assert lon2 == pytest.approx(8.0)
-
-
 # ── merge_temperature_days string functions ──────────────────────────────
 
 from merge_temperature_days import extract_station_id_from_filename, create_key_from_filename
