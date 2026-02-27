@@ -1,4 +1,5 @@
 .env
+.act-secrets
 
 # Custom to project
 playground/data

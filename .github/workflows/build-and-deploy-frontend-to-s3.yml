@@ -8,6 +8,9 @@ on:
       - 'frontend/**'
   workflow_dispatch:  # Allows manual triggering
 
+# act local CI: run with ./scripts/act-local.sh build
+# Secrets mocked via .act-secrets (see .act-secrets.example)
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest

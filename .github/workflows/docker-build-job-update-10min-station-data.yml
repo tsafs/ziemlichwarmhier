@@ -7,6 +7,9 @@ on:
     paths:
       - 'jobs/job-update-10min-station-data/**'
   workflow_dispatch:  # Allows manual triggering
+
+# act local CI: run with ./scripts/act-local.sh docker-10min
+# Secrets mocked via .act-secrets (see .act-secrets.example)
       
 jobs:
   build-and-publish:

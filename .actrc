@@ -1,0 +1,14 @@
+# Default act configuration
+# See https://github.com/nektos/act
+
+# Use medium Ubuntu image (good balance of speed vs compatibility)
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# Load secrets from file (mocked for local dry-runs)
+--secret-file .act-secrets
+
+# Reuse containers between runs for speed
+--reuse
+
+# Bind workspace (default behavior)
+--bind
