@@ -34,6 +34,16 @@ This phase implements the climate metrics calculation pipeline that processes ER
 4. **Local CI parity**: optionally run `./scripts/act-local.sh build` to verify GHA workflows locally (requires Docker + act)
 5. **CDS fixture data**: This phase requires ERA5-Land data from the Copernicus Climate Data Store. Prompt the user for their `CDS_API_KEY` — never assume it is available. See `docs/self-correct-playbook.md` §7 for the one-time fixture pull procedure.
 
+## 0.1 Regular Commits
+
+Commit after each logical unit of work to maintain a clear and reviewable change history. Avoid accumulating large batches of uncommitted changes — they make it harder to understand what belongs to what, harder to review PRs, and harder to revert individual changes if something goes wrong.
+
+**Guidelines:**
+- Commit after completing each task group or implementation sub-section
+- Use [Conventional Commits](https://www.conventionalcommits.org/) format: `feat(phase-X):`, `fix(phase-X):`, `chore(phase-X):`, `test(phase-X):`, etc.
+- Each commit should pass the preflight checks (see § 0 above)
+- Keep PRs focused — one logical concern per PR makes reviews faster and safer
+
 ## 1. Requirements & Constraints
 
 ### From Master Plan

@@ -2,15 +2,15 @@
 goal: Phase 3 - ERA5-Land Data Pipeline Core Implementation
 version: 1.1
 date_created: 2026-02-16
-last_updated: 2026-02-17
+last_updated: 2026-02-27
 owner: Sebastian
-status: 'Planned'
+status: 'Completed'
 tags: [phase-3, era5, data-pipeline, python, xarray, cdsapi]
 ---
 
 # Introduction
 
-![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
+![Status: Completed](https://img.shields.io/badge/status-Completed-brightgreen)
 
 This phase implements the core ERA5-Land data download and processing pipeline. It establishes the foundation for all climate data processing by creating modules to fetch ERA5-Land data from the Copernicus Climate Data Store (CDS), apply a land mask for Germany, and calculate temperature anomalies against a reference period.
 
@@ -33,6 +33,16 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 3. **On failure**: follow retry guidance in the playbook (max 3 attempts per issue, then revert and re-analyze)
 4. **Local CI parity**: optionally run `./scripts/act-local.sh build` to verify GHA workflows locally (requires Docker + act)
 5. **CDS fixture data**: This phase requires ERA5-Land data from the Copernicus Climate Data Store. Prompt the user for their `CDS_API_KEY` — never assume it is available. See `docs/self-correct-playbook.md` §7 for the one-time fixture pull procedure.
+
+## 0.1 Regular Commits
+
+Commit after each logical unit of work to maintain a clear and reviewable change history. Avoid accumulating large batches of uncommitted changes — they make it harder to understand what belongs to what, harder to review PRs, and harder to revert individual changes if something goes wrong.
+
+**Guidelines:**
+- Commit after completing each task group or implementation sub-section
+- Use [Conventional Commits](https://www.conventionalcommits.org/) format: `feat(phase-X):`, `fix(phase-X):`, `chore(phase-X):`, `test(phase-X):`, etc.
+- Each commit should pass the preflight checks (see § 0 above)
+- Keep PRs focused — one logical concern per PR makes reviews faster and safer
 
 ## 1. Requirements & Constraints
 

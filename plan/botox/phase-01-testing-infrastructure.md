@@ -2,15 +2,15 @@
 goal: "Phase 1: Testing Infrastructure & Development Setup"
 version: 1.0
 date_created: 2026-02-16
-last_updated: 2026-02-16
+last_updated: 2026-02-27
 owner: Sebastian
-status: 'Planned'
+status: 'Completed'
 tags: [phase-1, testing, infrastructure, vitest, pytest, ci-cd]
 ---
 
 # Introduction
 
-![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
+![Status: Completed](https://img.shields.io/badge/status-Completed-brightgreen)
 
 This phase establishes comprehensive testing infrastructure for both frontend (TypeScript/React) and backend (Python) codebases **before any feature work begins**. Following a testing-first approach ensures code quality, enables confident refactoring, and provides a safety net for all subsequent phases.
 
@@ -37,6 +37,16 @@ This phase establishes comprehensive testing infrastructure for both frontend (T
 2. **After each change**: re-run preflight or the targeted test subset (see `docs/self-correct-playbook.md`)
 3. **On failure**: follow retry guidance in the playbook (max 3 attempts per issue, then revert and re-analyze)
 4. **Local CI parity**: optionally run `./scripts/act-local.sh build` to verify GHA workflows locally (requires Docker + act)
+
+## 0.1 Regular Commits
+
+Commit after each logical unit of work to maintain a clear and reviewable change history. Avoid accumulating large batches of uncommitted changes — they make it harder to understand what belongs to what, harder to review PRs, and harder to revert individual changes if something goes wrong.
+
+**Guidelines:**
+- Commit after completing each task group or implementation sub-section
+- Use [Conventional Commits](https://www.conventionalcommits.org/) format: `feat(phase-X):`, `fix(phase-X):`, `chore(phase-X):`, `test(phase-X):`, etc.
+- Each commit should pass the preflight checks (see § 0 above)
+- Keep PRs focused — one logical concern per PR makes reviews faster and safer
 
 ## 1. Requirements & Constraints
 
