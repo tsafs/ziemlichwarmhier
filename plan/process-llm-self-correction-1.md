@@ -89,9 +89,9 @@ Prepare the repo so LLM agents can self-correct across all botox phases via dete
 - **FILE-004**: frontend/src/__fixtures__/** — NEW — tiles/metrics/plots/city-grid/city-correlation/MapLibre fixture pack + README on seeds/attribution.
 - **FILE-005**: python/pytest.ini or pyproject.toml — MODIFY — pytest config with Python 3.13 and coverage thresholds.
 - **FILE-006**: analysis/tests/** — NEW — pytest suites using fixtures/mocks for pipelines.
-- **FILE-007**: schemas/metrics.schema.json, schemas/plots.schema.json, schemas/decadal.schema.json — NEW — schema contracts for JSON/CSV outputs.
+- **FILE-007**: schemas/metrics.schema.json, schemas/plot-csv-headers.schema.json — NEW — schema contracts for JSON/CSV outputs. Additional granular schemas: schemas/days-above-below-merged.schema.json, schemas/ice-and-hot-days.schema.json, schemas/xy-data.schema.json, schemas/csv-headers.schema.json.
 - **FILE-008**: schemas/city-correlation.schema.json — NEW — schema for city correlation JSON.
-- **FILE-009**: schemas/tile-headers.schema.json — NEW — expected headers/size/checksum rules.
+- **FILE-009**: schemas/tile-metadata.schema.json — NEW — expected tile format/size/zoom rules.
 - **FILE-010**: schemas/env.schema.json — NEW — env validation spec (mirrors .env.example).
 - **FILE-011**: scripts/run-preflight.sh — NEW — orchestrates unit/schema/golden/coverage/env validation + actionlint + act dry-runs.
 - **FILE-012**: docs/self-correct-playbook.md — NEW — commands, expected outputs, troubleshooting.
