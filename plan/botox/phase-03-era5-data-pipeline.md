@@ -24,6 +24,16 @@ This phase implements the core ERA5-Land data download and processing pipeline. 
 - Monthly anomaly calculation vs 1961-1990 baseline
 - Daily threshold detection (30°C, 35°C, 20°C, 0°C)
 
+## 0. Preflight & Self-Correction
+
+> **Mandatory gate**: Before starting any task in this phase and after every change, run the preflight script and follow the self-correction loop.
+
+1. **Run preflight**: `./scripts/run-preflight.sh` — all checks must pass before starting work
+2. **After each change**: re-run preflight or the targeted test subset (see `docs/self-correct-playbook.md`)
+3. **On failure**: follow retry guidance in the playbook (max 3 attempts per issue, then revert and re-analyze)
+4. **Local CI parity**: optionally run `./scripts/act-local.sh build` to verify GHA workflows locally (requires Docker + act)
+5. **CDS fixture data**: This phase requires ERA5-Land data from the Copernicus Climate Data Store. Prompt the user for their `CDS_API_KEY` — never assume it is available. See `docs/self-correct-playbook.md` §7 for the one-time fixture pull procedure.
+
 ## 1. Requirements & Constraints
 
 ### From Master Plan

@@ -33,6 +33,15 @@ This phase implements the narrative plot section that tells the climate story th
 - Tropical nights: Tmin ≥ 20°C (DWD: Tropennacht)
 - Ice days: Tmax ≤ 0°C (DWD: Eistag)
 
+## 0. Preflight & Self-Correction
+
+> **Mandatory gate**: Before starting any task in this phase and after every change, run the preflight script and follow the self-correction loop.
+
+1. **Run preflight**: `./scripts/run-preflight.sh` — all checks must pass before starting work
+2. **After each change**: re-run preflight or the targeted test subset (see `docs/self-correct-playbook.md`)
+3. **On failure**: follow retry guidance in the playbook (max 3 attempts per issue, then revert and re-analyze)
+4. **Local CI parity**: optionally run `./scripts/act-local.sh build` to verify GHA workflows locally (requires Docker + act)
+
 ## 1. Requirements & Constraints
 
 ### Functional Requirements (from Master Plan)

@@ -24,6 +24,15 @@ This plan details the infrastructure setup for the ERA5-Land Germany Climate Vis
 
 **Expected Duration:** 2-4 hours
 
+## 0. Preflight & Self-Correction
+
+> **Mandatory gate**: Before starting any task in this phase and after every change, run the preflight script and follow the self-correction loop.
+
+1. **Run preflight**: `./scripts/run-preflight.sh` — all checks must pass before starting work
+2. **After each change**: re-run preflight or the targeted test subset (see `docs/self-correct-playbook.md`)
+3. **On failure**: follow retry guidance in the playbook (max 3 attempts per issue, then revert and re-analyze)
+4. **Local CI parity**: optionally run `./scripts/act-local.sh build` to verify GHA workflows locally (requires Docker + act)
+
 ## 1. Requirements & Constraints
 
 ### Requirements (from Master Plan)
