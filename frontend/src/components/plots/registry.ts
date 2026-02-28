@@ -5,6 +5,10 @@ export interface PlotRegistryEntry {
 
 export const plots: PlotRegistryEntry[] = [
     {
+        id: 'climate-map',
+        loader: () => import('../maps/ClimateMap/View'),
+    },
+    {
         id: 'country-heatmap',
         loader: () => import('./HeatmapGermany/View'),
     },

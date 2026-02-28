@@ -17,6 +17,7 @@ import heatmapGermanySlice from './slices/heatmapGermanySlice.js';
 import temperatureAnomaliesByDayOverYearsReducer from './slices/temperatureAnomaliesByDayOverYearsSlice.js';
 import iceAndHotDaysReducer from './slices/iceAndHotDaysSlice.js';
 import iceAndHotDaysDataReducer from './slices/iceAndHotDaysDataSlice.js';
+import mapReducer from './slices/mapSlice.js';
 
 export const store = configureStore({
     reducer: {
@@ -37,6 +38,7 @@ export const store = configureStore({
         temperatureAnomaliesByDayOverYears: temperatureAnomaliesByDayOverYearsReducer,
         iceAndHotDays: iceAndHotDaysReducer,
         iceAndHotDaysData: iceAndHotDaysDataReducer,
+        map: mapReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
