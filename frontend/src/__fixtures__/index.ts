@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 /**
  * Fixture loader — provides raw fixture strings and a `mockFetchWithFixtures`
  * helper so Vitest tests can intercept `fetch()` calls and return deterministic

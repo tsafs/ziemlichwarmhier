@@ -108,7 +108,7 @@ describe('useMapTiles', () => {
             wrapper: createWrapper(storeWithSelection),
         });
 
-        expect(result.current.cityMarkers[0].isSelected).toBe(true);
+        expect(result.current.cityMarkers[0]!.isSelected).toBe(true);
     });
 
     it('reports citiesLoaded based on cityData status', () => {

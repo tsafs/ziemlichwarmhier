@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 /**
  * Schema validation tests — ensure fixture/golden data conforms to JSON schemas.
  *
@@ -18,7 +20,7 @@ const root = resolve(__dir, '..', '..', '..');  // -> project root
 
 const readJson = (rel: string) => JSON.parse(readFileSync(resolve(root, rel), 'utf-8'));
 const readCsvHeaders = (rel: string) =>
-    readFileSync(resolve(root, rel), 'utf-8').split('\n')[0].split(',');
+    readFileSync(resolve(root, rel), 'utf-8').split('\n')[0]!.split(',');
 
 // ── Load schemas ────────────────────────────────────────────────────────
 

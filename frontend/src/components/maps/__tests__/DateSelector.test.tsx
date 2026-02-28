@@ -45,20 +45,20 @@ describe('DateSelector', () => {
         render(<DateSelector />, { wrapper: createWrapper(store) });
 
         // Month dropdown is the first combobox
-        const monthDropdown = screen.getAllByRole('combobox')[0];
+        const monthDropdown = screen.getAllByRole('combobox')[0]!;
         const options = monthDropdown.querySelectorAll('option');
         expect(options).toHaveLength(12);
-        expect(options[0].textContent).toBe('Januar');
-        expect(options[11].textContent).toBe('Dezember');
+        expect(options[0]!.textContent).toBe('Januar');
+        expect(options[11]!.textContent).toBe('Dezember');
     });
 
     it('year dropdown starts from 2016', () => {
         const store = createTestStore();
         render(<DateSelector />, { wrapper: createWrapper(store) });
 
-        const yearDropdown = screen.getAllByRole('combobox')[1];
+        const yearDropdown = screen.getAllByRole('combobox')[1]!;
         const options = yearDropdown.querySelectorAll('option');
-        expect(options[0].textContent).toBe('2016');
+        expect(options[0]!.textContent).toBe('2016');
     });
 
     it('dispatches setSelectedDate when month is changed', () => {
@@ -66,7 +66,7 @@ describe('DateSelector', () => {
         store.dispatch(setSelectedDate({ year: 2020, month: 6 }));
         render(<DateSelector />, { wrapper: createWrapper(store) });
 
-        const monthDropdown = screen.getAllByRole('combobox')[0];
+        const monthDropdown = screen.getAllByRole('combobox')[0]!;
         fireEvent.change(monthDropdown, { target: { value: '3' } });
 
         const state = store.getState();
@@ -79,7 +79,7 @@ describe('DateSelector', () => {
         store.dispatch(setSelectedDate({ year: 2020, month: 6 }));
         render(<DateSelector />, { wrapper: createWrapper(store) });
 
-        const yearDropdown = screen.getAllByRole('combobox')[1];
+        const yearDropdown = screen.getAllByRole('combobox')[1]!;
         fireEvent.change(yearDropdown, { target: { value: '2022' } });
 
         const state = store.getState();
@@ -106,7 +106,7 @@ describe('DateSelector', () => {
         store.dispatch(setSelectedDate({ year: currentYear, month: 1 }));
         render(<DateSelector />, { wrapper: createWrapper(store) });
 
-        const monthDropdown = screen.getAllByRole('combobox')[0];
+        const monthDropdown = screen.getAllByRole('combobox')[0]!;
         const options = monthDropdown.querySelectorAll('option');
         // Current year should have fewer than 12 months available
         // (ERA5-Land has ~5 day delay so current month is not available)
