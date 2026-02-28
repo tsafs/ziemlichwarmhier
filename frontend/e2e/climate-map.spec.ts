@@ -4,14 +4,13 @@ import { test, expect, type Page } from '@playwright/test';
  * Phase 7 E2E Tests: ClimateMap
  *
  * Tests the interactive climate map visualization including:
- * - Map rendering with OSM base layer and city markers
+ * - Map rendering with anomaly tiles on solid background
  * - DateSelector interactions (month/year dropdowns, Aktuell button)
  * - Tile URL changes when date is updated
  * - City marker click → city selection
  * - Legend display
  *
- * Note: ERR_NAME_NOT_RESOLVED errors for tiles.itishotnow.de are expected
- * in the dev environment since the tile server is a Phase 4 production artifact.
+ * Mock tiles are served from public/mock-tiles/ via Vite static serving.
  */
 
 const BASE_URL = 'http://localhost:5173';
@@ -39,10 +38,6 @@ test.describe('ClimateMap – rendering', () => {
     test('MapLibre map canvas renders', async ({ page }) => {
         const canvas = page.locator('.maplibregl-canvas');
         await expect(canvas).toBeVisible();
-    });
-
-    test('OpenStreetMap attribution is shown', async ({ page }) => {
-        await expect(page.getByText('© OpenStreetMap contributors')).toBeVisible();
     });
 
     test('legend shows correct temperature labels', async ({ page }) => {
@@ -137,7 +132,7 @@ test.describe('ClimateMap – DateSelector', () => {
         const tileRequests: string[] = [];
         page.on('request', req => {
             const url = req.url();
-            if (url.includes('tiles.itishotnow.de') || url.includes('/webp')) {
+            if (url.includes('/mock-tiles/') && url.endsWith('.webp')) {
                 tileRequests.push(url);
             }
         });
@@ -251,7 +246,7 @@ test.describe('ClimateMap – visual snapshot', () => {
         await page.goto(BASE_URL);
         await waitForMapReady(page);
 
-        // Wait for OSM tiles to render (they load quickly in browser)
+        // Wait for anomaly tiles to render
         await page.waitForTimeout(1500);
 
         const mapSection = page.locator('section').filter({

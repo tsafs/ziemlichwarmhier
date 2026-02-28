@@ -6,6 +6,13 @@ playground/data
 data
 observable-testing
 
+# Generated mock tiles for frontend dev
+frontend/public/mock-tiles/
+
+# Playwright test artifacts
+frontend/test-results/
+frontend/e2e/*.spec.ts-snapshots/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

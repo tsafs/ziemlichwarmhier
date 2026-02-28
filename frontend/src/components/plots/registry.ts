@@ -8,20 +8,4 @@ export const plots: PlotRegistryEntry[] = [
         id: 'climate-map',
         loader: () => import('../maps/ClimateMap/View'),
     },
-    {
-        id: 'country-heatmap',
-        loader: () => import('./HeatmapGermany/View'),
-    },
-    {
-        id: 'historical-analysis',
-        loader: () => import('./TemperatureAnomaliesByDayOverYears/View'),
-    },
-    {
-        id: 'ice-and-hot-days',
-        loader: () => import('./iceAndHotDays/View'),
-    },
-    {
-        id: 'stats',
-        loader: () => import('./Stats/View'),
-    },
 ];

@@ -25,3 +25,5 @@ yarn-error.log*
 # custom public data
 public/data
 public/station_data
+
+public/mock-tiles

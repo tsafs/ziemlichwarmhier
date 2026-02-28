@@ -34,27 +34,14 @@ export const MAP_CONFIG = {
     },
 } as const;
 
-// Base URL for tile server (from environment or default)
-export const TILE_BASE_URL = import.meta.env.VITE_TILE_BASE_URL || 'https://tiles.itishotnow.de';
+// Base URL for tile server (from environment or default).
+// In dev, served from public/mock-tiles/ via Vite's static file serving.
+export const TILE_BASE_URL = import.meta.env.VITE_TILE_BASE_URL || '/mock-tiles';
 
-// OpenStreetMap base layer (free, no API key required)
+// Empty base style – no OSM or other background layers.
+// Only the anomaly raster tiles (land silhouette) are rendered on the map.
 export const BASE_MAP_STYLE = {
     version: 8 as const,
-    sources: {
-        osm: {
-            type: 'raster' as const,
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
-        },
-    },
-    layers: [
-        {
-            id: 'osm-tiles',
-            type: 'raster' as const,
-            source: 'osm',
-            minzoom: 0,
-            maxzoom: 19,
-        },
-    ],
+    sources: {},
+    layers: [],
 };

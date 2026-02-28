@@ -78,13 +78,13 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
                 tileSize: MAP_CONFIG.TILE_SIZE,
             });
 
-            // Add anomaly tile layer above the base layer
+            // Add anomaly tile layer (no base layer underneath)
             map.addLayer({
                 id: ANOMALY_LAYER_ID,
                 type: 'raster',
                 source: ANOMALY_SOURCE_ID,
                 paint: {
-                    'raster-opacity': 0.8,
+                    'raster-opacity': 1.0,
                     'raster-fade-duration': 300,
                 },
             });

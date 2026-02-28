@@ -21,24 +21,28 @@ import mapReducer from './slices/mapSlice.js';
 
 export const store = configureStore({
     reducer: {
+        // Active slices (used by the botox app shell)
         cityData: cityDataReducer,
         liveData: liveDataReducer,
-        yearlyMeanByDay: yearlyMeanByDayReducer,
-        referenceYearlyHourlyInterpolatedByDay: referenceYearlyHourlyInterpolatedByDayReducer,
         selectedCity: selectedCityReducer,
         rememberedCities: rememberedCitiesReducer,
-        selectedDate: selectedDateReducer,
         rollingAverageData: rollingAverageDataReducer,
         dailyAverageData: dailyAverageDataReducer,
+        temperatureAnomaliesByDayOverYears: temperatureAnomaliesByDayOverYearsReducer,
+        iceAndHotDays: iceAndHotDaysReducer,
+        iceAndHotDaysData: iceAndHotDaysDataReducer,
+        map: mapReducer,
+
+        // Legacy slices – kept so RootState stays compatible with existing
+        // selectors / hooks that haven't been removed yet.
+        yearlyMeanByDay: yearlyMeanByDayReducer,
+        referenceYearlyHourlyInterpolatedByDay: referenceYearlyHourlyInterpolatedByDayReducer,
+        selectedDate: selectedDateReducer,
         historicalDailyData: historicalDailyDataReducer,
         dailyRecentByDate: dailyRecentByDateReducer,
         stationDateRanges: stationDateRangesReducer,
         geoJson: geoJsonReducer,
         heatmapGermany: heatmapGermanySlice,
-        temperatureAnomaliesByDayOverYears: temperatureAnomaliesByDayOverYearsReducer,
-        iceAndHotDays: iceAndHotDaysReducer,
-        iceAndHotDaysData: iceAndHotDaysDataReducer,
-        map: mapReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
