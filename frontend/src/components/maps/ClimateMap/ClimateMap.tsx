@@ -10,10 +10,9 @@ import type { CSSProperties } from 'react';
 import maplibregl, { type Map as MapLibreMap } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAppDispatch } from '../../../store/hooks/useAppDispatch.js';
-import { useAppSelector } from '../../../store/hooks/useAppSelector.js';
-import { selectMapViewport, selectSelectedDate, setViewport, setLoading } from '../../../store/slices/mapSlice.js';
+import { setViewport, setLoading } from '../../../store/slices/mapSlice.js';
+import { useMapTiles } from '../../../hooks/useMapTiles.js';
 import { MAP_CONFIG, BASE_MAP_STYLE } from '../../../constants/mapConfig.js';
-import { getTileUrlTemplate } from '../../../services/TileService.js';
 import { theme } from '../../../styles/design-system.js';
 import Legend from './Legend.js';
 import DateSelector from './DateSelector.js';
@@ -73,12 +72,7 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
     const [mapReady, setMapReady] = useState(false);
     const [tilesLoading, setTilesLoading] = useState(false);
 
-    const viewport = useAppSelector(selectMapViewport);
-    const selectedDate = useAppSelector(selectSelectedDate);
-
-    const tileUrlTemplate = useMemo(() =>
-        getTileUrlTemplate(selectedDate.year, selectedDate.month),
-    [selectedDate.year, selectedDate.month]);
+    const { viewport, tileUrlTemplate } = useMapTiles();
 
     // Initialize map on mount
     useEffect(() => {

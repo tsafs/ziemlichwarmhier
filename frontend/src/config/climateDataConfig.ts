@@ -29,7 +29,7 @@ export interface ClimateDataConfig {
 export const climateDataConfig: ClimateDataConfig = {
     datasetId: import.meta.env.VITE_CLIMATE_DATASET_ID ?? 'era5-land',
     displayName: import.meta.env.VITE_CLIMATE_DISPLAY_NAME ?? 'ERA5-Land',
-    tileBaseUrl: import.meta.env.VITE_TILE_BASE_URL ?? '/data/tiles',
+    tileBaseUrl: import.meta.env.VITE_TILE_BASE_URL ?? '/mock-tiles',
     metricsBaseUrl: import.meta.env.VITE_METRICS_BASE_URL ?? '/data/metrics',
     plotDataBaseUrl: import.meta.env.VITE_PLOT_DATA_BASE_URL ?? '/data/plots',
     nativeResolution: parseFloat(import.meta.env.VITE_NATIVE_RESOLUTION ?? '0.1'),

@@ -2,9 +2,11 @@
  * Tile Service
  *
  * Generates URLs for ERA5-Land temperature anomaly tiles.
+ * Reads the tile base URL from the central climate data configuration.
  */
 
-import { TILE_BASE_URL, MAP_CONFIG } from '../constants/mapConfig.js';
+import { climateDataConfig } from '../config/climateDataConfig.js';
+import { MAP_CONFIG } from '../constants/mapConfig.js';
 
 /**
  * Generate tile URL for specific date and coordinates
@@ -17,7 +19,7 @@ export const getTileUrl = (
     y: number,
 ): string => {
     const monthStr = month.toString().padStart(2, '0');
-    return `${TILE_BASE_URL}/${year}/${monthStr}/${z}/${x}/${y}.${MAP_CONFIG.TILE_FORMAT}`;
+    return `${climateDataConfig.tileBaseUrl}/${year}/${monthStr}/${z}/${x}/${y}.${MAP_CONFIG.TILE_FORMAT}`;
 };
 
 /**
@@ -26,7 +28,7 @@ export const getTileUrl = (
  */
 export const getTileUrlTemplate = (year: number, month: number): string => {
     const monthStr = month.toString().padStart(2, '0');
-    return `${TILE_BASE_URL}/${year}/${monthStr}/{z}/{x}/{y}.${MAP_CONFIG.TILE_FORMAT}`;
+    return `${climateDataConfig.tileBaseUrl}/${year}/${monthStr}/{z}/{x}/{y}.${MAP_CONFIG.TILE_FORMAT}`;
 };
 
 /**

@@ -34,10 +34,6 @@ export const MAP_CONFIG = {
     },
 } as const;
 
-// Base URL for tile server (from environment or default).
-// In dev, served from public/mock-tiles/ via Vite's static file serving.
-export const TILE_BASE_URL = import.meta.env.VITE_TILE_BASE_URL || '/mock-tiles';
-
 // Empty base style – no OSM or other background layers.
 // Only the anomaly raster tiles (land silhouette) are rendered on the map.
 export const BASE_MAP_STYLE = {

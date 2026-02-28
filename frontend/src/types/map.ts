@@ -32,16 +32,3 @@ export interface CityMarker {
     coordinates: [number, number]; // [lng, lat]
     isSelected: boolean;
 }
-
-/** Legend configuration */
-export interface LegendConfig {
-    min: number;
-    max: number;
-    unit: string;
-    colors: {
-        min: string;
-        zero: string;
-        max: string;
-    };
-    ticks: number[];
-}
