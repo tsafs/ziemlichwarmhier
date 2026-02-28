@@ -129,6 +129,7 @@ test.describe('ClimateMap – DateSelector', () => {
     });
 
     test('tile URL changes to new date when year is changed', async ({ page }) => {
+        // Collect tile requests that fire after the year change
         const tileRequests: string[] = [];
         page.on('request', req => {
             const url = req.url();
@@ -140,19 +141,12 @@ test.describe('ClimateMap – DateSelector', () => {
         // Change to year 2018
         await page.getByRole('combobox').nth(1).selectOption('2018');
 
-        // Wait a short moment for the tile source to update
-        await page.waitForTimeout(600);
+        // Wait for MapLibre to request tiles for the new source
+        await page.waitForTimeout(1500);
 
-        // Network requests should contain the new year in the tile path
-        // (requests will fail with ERR_NAME_NOT_RESOLVED in dev, but they are still fired)
-        // We verify by checking the tile source update via the console or DOM
-        // The tile URL template is reflected in the raster-source tiles attribute:
-        const tileUrl = await page.evaluate(() => {
-            // @ts-ignore access maplibre instance for test inspection
-            const maps = document.querySelectorAll('.maplibregl-canvas');
-            return maps.length > 0 ? '2018-present' : null;
-        });
-        expect(tileUrl).not.toBeNull();
+        // At least one tile request should contain /2018/ in the URL path
+        const has2018Tile = tileRequests.some(url => url.includes('/2018/'));
+        expect(has2018Tile).toBe(true);
     });
 });
 
@@ -230,6 +224,9 @@ test.describe('ClimateMap – map bounds', () => {
     test('map controls (zoom/attribution) are present', async ({ page }) => {
         // MapLibre renders zoom controls and attribution
         await expect(page.locator('.maplibregl-ctrl-attrib')).toBeVisible();
+        // NavigationControl zoom buttons
+        await expect(page.locator('.maplibregl-ctrl-zoom-in')).toBeVisible();
+        await expect(page.locator('.maplibregl-ctrl-zoom-out')).toBeVisible();
     });
 
     test('map canvas has non-zero dimensions', async ({ page }) => {
