@@ -56,6 +56,7 @@ Commit after each logical unit of work to maintain a clear and reviewable change
 - **REQ-P7-004**: Date selector must allow month/year navigation back to 2016
 - **REQ-P7-005**: Legend must display diverging color scale (-3°C to +3°C)
 - **REQ-P7-006**: Map performance must maintain 60fps on mobile during pan/zoom
+- **REQ-P7-007**: Map height should fill the viewport below the header (`calc(100vh - var(--header-height, 0px) - title)`). Content below the map is reachable by scrolling. **Note:** The header component does not exist yet — once implemented, set the CSS custom property `--header-height` on `<html>` or the app root so the map auto-adjusts.
 
 ### Technical Constraints
 - **CON-P7-001**: MapLibre GL JS requires WebGL support (90%+ browser coverage)

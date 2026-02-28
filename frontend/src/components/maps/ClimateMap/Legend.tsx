@@ -12,7 +12,7 @@ import { MAP_CONFIG } from '../../../constants/mapConfig.js';
 const getContainerStyle = (): CSSProperties => ({
     position: 'absolute',
     bottom: 20,
-    right: 20,
+    left: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: theme.borderRadius?.md ?? '4px',
     padding: theme.spacing.sm,
