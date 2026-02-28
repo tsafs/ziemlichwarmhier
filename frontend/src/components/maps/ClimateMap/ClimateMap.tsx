@@ -5,7 +5,7 @@
  * for Germany using MapLibre GL JS.
  */
 
-import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import maplibregl, { type Map as MapLibreMap } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -38,6 +38,29 @@ const getMapStyle = (): CSSProperties => ({
     height: '100%',
 });
 
+const getLoadingOverlayStyle = (): CSSProperties => ({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    zIndex: 20,
+    pointerEvents: 'none',
+});
+
+const getLoadingTextStyle = (): CSSProperties => ({
+    color: 'white',
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: theme.typography.fontWeight.medium,
+    padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: theme.borderRadius.sm,
+});
+
 interface ClimateMapProps {
     height?: number | string;
     showControls?: boolean;
@@ -48,6 +71,7 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MapLibreMap | null>(null);
     const [mapReady, setMapReady] = useState(false);
+    const [tilesLoading, setTilesLoading] = useState(false);
 
     const viewport = useAppSelector(selectMapViewport);
     const selectedDate = useAppSelector(selectSelectedDate);
@@ -70,6 +94,9 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
             maxBounds: MAP_CONFIG.GERMANY_BOUNDS,
         });
 
+        // Add zoom/rotation controls
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
         map.on('load', () => {
             // Add anomaly tile source
             map.addSource(ANOMALY_SOURCE_ID, {
@@ -91,6 +118,28 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
 
             dispatch(setLoading(false));
             setMapReady(true);
+        });
+
+        // Track tile loading state via proper MapLibre events.
+        // MapDataEvent includes sourceId at runtime but the v4 types
+        // don't expose it, so we cast via `as any`.
+        map.on('dataloading', (e) => {
+            const ev = e as any;
+            if (ev.dataType === 'source' && ev.sourceId === ANOMALY_SOURCE_ID) {
+                setTilesLoading(true);
+                dispatch(setLoading(true));
+            }
+        });
+
+        map.on('data', (e) => {
+            const ev = e as any;
+            if (ev.dataType === 'source' && ev.sourceId === ANOMALY_SOURCE_ID) {
+                // Check if the source is fully loaded
+                if (map.isSourceLoaded(ANOMALY_SOURCE_ID)) {
+                    setTilesLoading(false);
+                    dispatch(setLoading(false));
+                }
+            }
         });
 
         map.on('moveend', () => {
@@ -122,18 +171,21 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
 
         const source = map.getSource(ANOMALY_SOURCE_ID);
         if (source && source.type === 'raster') {
-            dispatch(setLoading(true));
             (source as maplibregl.RasterTileSource).setTiles([tileUrlTemplate]);
-            // Reset loading after a short delay (tiles load asynchronously)
-            setTimeout(() => dispatch(setLoading(false)), 500);
+            // Loading state is handled by the dataloading/data events above
         }
-    }, [tileUrlTemplate, mapReady, dispatch]);
+    }, [tileUrlTemplate, mapReady]);
 
     const containerStyle = useMemo(() => getContainerStyle(height), [height]);
 
     return (
         <div style={containerStyle}>
             <div ref={mapContainerRef} style={getMapStyle()} />
+            {tilesLoading && (
+                <div style={getLoadingOverlayStyle()}>
+                    <span style={getLoadingTextStyle()}>Lade Kacheln…</span>
+                </div>
+            )}
             {mapReady && mapRef.current && (
                 <CityMarkers map={mapRef.current} />
             )}
