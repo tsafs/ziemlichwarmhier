@@ -155,7 +155,7 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
             mapRef.current = null;
             setMapReady(false);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Only run once on mount
 
     // Update tile source when selected date changes
