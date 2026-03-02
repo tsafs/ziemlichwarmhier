@@ -32,10 +32,10 @@ describe('mapSlice', () => {
 
     describe('reducers', () => {
         it('should handle setViewport', () => {
-            const newViewport = { center: [10.0, 51.0] as [number, number], zoom: 8 };
+            const newViewport = { center: [10.0, 51.0] as [number, number], zoom: 6.5 };
             const state = mapReducer(initialState, setViewport(newViewport));
             expect(state.viewport.center).toEqual(newViewport.center);
-            expect(state.viewport.zoom).toBe(8);
+            expect(state.viewport.zoom).toBe(6.5);
         });
 
         it('should handle setSelectedDate', () => {
@@ -85,7 +85,7 @@ describe('mapSlice', () => {
         it('should handle resetMapView', () => {
             const modifiedState = {
                 ...initialState,
-                viewport: { center: [12.0, 52.0] as [number, number], zoom: 10 },
+                viewport: { center: [12.0, 52.0] as [number, number], zoom: 7 },
             };
             const state = mapReducer(modifiedState, resetMapView());
             expect(state.viewport.center).toEqual(MAP_CONFIG.INITIAL_CENTER);
@@ -96,7 +96,7 @@ describe('mapSlice', () => {
             const modifiedState = {
                 ...initialState,
                 selectedDate: { year: 2022, month: 3 },
-                viewport: { center: [12.0, 52.0] as [number, number], zoom: 10 },
+                viewport: { center: [12.0, 52.0] as [number, number], zoom: 7 },
             };
             const state = mapReducer(modifiedState, resetMapView());
             expect(state.selectedDate).toEqual({ year: 2022, month: 3 });

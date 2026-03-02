@@ -12,9 +12,12 @@ export const MAP_CONFIG = {
     INITIAL_CENTER: [10.45, 51.15] as [number, number],
 
     // Zoom constraints
-    MIN_ZOOM: 6,
-    MAX_ZOOM: 10,
-    INITIAL_ZOOM: 7,
+    MIN_ZOOM: 5,
+    MAX_ZOOM: 7,
+    INITIAL_ZOOM: 5,
+
+    // Scroll-wheel zoom increment (fractional for smooth zooming)
+    ZOOM_STEP: 0.25,
 
     // Tile configuration
     TILE_SIZE: 256,

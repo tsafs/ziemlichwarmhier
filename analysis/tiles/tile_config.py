@@ -28,11 +28,11 @@ WEBP_QUALITY: int = 80
 # Zoom levels
 # ---------------------------------------------------------------------------
 
-#: Minimum XYZ zoom level generated.  z6 ≈ 8 tiles cover all of Germany.
-MIN_ZOOM: int = 6
+#: Minimum XYZ zoom level generated.  z5 ≈ 2 tiles cover all of Germany.
+MIN_ZOOM: int = 5
 
-#: Maximum XYZ zoom level generated.  z10 gives ~400 tiles and good detail.
-MAX_ZOOM: int = 10
+#: Maximum XYZ zoom level generated.  z7 gives ~12 tiles and good detail.
+MAX_ZOOM: int = 7
 
 # ---------------------------------------------------------------------------
 # Geographic extent – Germany
@@ -88,11 +88,9 @@ MAX_TILE_SIZE_BYTES: int = 50 * 1024  # 50 KB
 #: Computed via ``mercantile.tiles()``; transparent ocean tiles are excluded
 #: from the actual output so real counts will be lower.
 EXPECTED_TILE_COUNTS: dict[int, int] = {
+    5: 2,
     6: 4,
     7: 12,
-    8: 35,
-    9: 110,
-    10: 400,
 }
 
 # ---------------------------------------------------------------------------

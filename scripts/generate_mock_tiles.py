@@ -2,7 +2,7 @@
 """
 Generate synthetic mock tiles for frontend development.
 
-Creates transparent WebP tiles at zoom levels 6-8 for Germany,
+Creates transparent WebP tiles at zoom levels 5-7 for Germany,
 using the same RdBu_r color ramp as the real tile pipeline.
 Tiles are written to frontend/public/mock-tiles/{year}/{month:02d}/{z}/{x}/{y}.webp.
 
@@ -33,7 +33,7 @@ from shapely.geometry import shape, box as shapely_box, MultiPolygon, Polygon
 TILE_SIZE = 256
 WEBP_QUALITY = 80
 GERMANY_BOUNDS = {"north": 55.1, "south": 47.2, "west": 5.8, "east": 15.1}
-ZOOM_LEVELS = [6, 7, 8]
+ZOOM_LEVELS = [5, 6, 7]
 COLORMAP_NAME = "RdBu_r"
 ANOMALY_VMIN = -3.0
 ANOMALY_VMAX = 3.0

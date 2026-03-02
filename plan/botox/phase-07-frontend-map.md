@@ -51,7 +51,7 @@ Commit after each logical unit of work to maintain a clear and reviewable change
 
 ### Phase-Specific Requirements
 - **REQ-P7-001**: Map must constrain view to Germany bounds (lat: 47.2-55.1, lon: 5.8-15.1)
-- **REQ-P7-002**: Tile overlay must support zoom levels 6-10
+- **REQ-P7-002**: Tile overlay must support zoom levels 5-7
 - **REQ-P7-003**: City markers must be clickable and trigger `selectCity` action
 - **REQ-P7-004**: Date selector must allow month/year navigation back to 2016
 - **REQ-P7-005**: Legend must display diverging color scale (-3°C to +3°C)
@@ -139,7 +139,7 @@ Commit after each logical unit of work to maintain a clear and reviewable change
 | TASK-P7-016 | Create `frontend/src/components/maps/ClimateMap/ClimateMap.tsx` base component | | |
 | TASK-P7-017 | Initialize MapLibre GL map with OpenStreetMap base layer | | |
 | TASK-P7-018 | Implement Germany bounds constraint using `maxBounds` | | |
-| TASK-P7-019 | Configure zoom constraints (min: 6, max: 10) | | |
+| TASK-P7-019 | Configure zoom constraints (min: 5, max: 7) with 0.25 scroll-wheel steps | | |
 | TASK-P7-020 | Add map load and error event handlers | | |
 | TASK-P7-021 | Implement responsive container sizing | | |
 | TASK-P7-022 | Write integration tests for ClimateMap rendering | | |
@@ -349,7 +349,7 @@ Commit after each logical unit of work to maintain a clear and reviewable change
 - **ASSUMPTION-P7-001**: MapLibre GL CSS can be imported without build config changes
 - **ASSUMPTION-P7-002**: OpenStreetMap tiles available as base layer (free, no API key)
 - **ASSUMPTION-P7-003**: Tile server (Hetzner) responds within 500ms
-- **ASSUMPTION-P7-004**: 10 zoom levels (6-10) provide sufficient detail range
+- **ASSUMPTION-P7-004**: 3 zoom levels (5-7) with 0.25 scroll-wheel steps provide sufficient detail range
 
 ## 8. Multi-Agent Execution Notes
 
@@ -456,9 +456,10 @@ export const MAP_CONFIG = {
     INITIAL_CENTER: [10.45, 51.15] as [number, number],
     
     // Zoom constraints
-    MIN_ZOOM: 6,
-    MAX_ZOOM: 10,
-    INITIAL_ZOOM: 7,
+    MIN_ZOOM: 5,
+    MAX_ZOOM: 7,
+    INITIAL_ZOOM: 5,
+    ZOOM_STEP: 0.25,
     
     // Tile configuration
     TILE_SIZE: 256,
@@ -1292,10 +1293,10 @@ describe('mapSlice', () => {
 
     describe('reducers', () => {
         it('should handle setViewport', () => {
-            const newViewport = { center: [10.0, 51.0] as [number, number], zoom: 8 };
+            const newViewport = { center: [10.0, 51.0] as [number, number], zoom: 6.5 };
             const state = mapReducer(initialState, setViewport(newViewport));
             expect(state.viewport.center).toEqual(newViewport.center);
-            expect(state.viewport.zoom).toBe(8);
+            expect(state.viewport.zoom).toBe(6.5);
         });
 
         it('should handle setSelectedDate', () => {
@@ -1323,7 +1324,7 @@ describe('mapSlice', () => {
         it('should handle resetMapView', () => {
             const modifiedState = {
                 ...initialState,
-                viewport: { center: [12.0, 52.0] as [number, number], zoom: 10 },
+                viewport: { center: [12.0, 52.0] as [number, number], zoom: 7 },
             };
             const state = mapReducer(modifiedState, resetMapView());
             expect(state.viewport.center).toEqual(MAP_CONFIG.INITIAL_CENTER);

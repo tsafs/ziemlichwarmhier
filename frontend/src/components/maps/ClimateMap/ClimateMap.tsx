@@ -18,6 +18,13 @@ import Legend from './Legend.js';
 import DateSelector from './DateSelector.js';
 import CityMarkers from './CityMarkers.js';
 
+/**
+ * Round a number down to the nearest multiple of `step`.
+ * Example: roundToStep(5.87, 0.25) → 5.75
+ */
+const roundToStep = (value: number, step: number): number =>
+    Math.floor(value / step) * step;
+
 const ANOMALY_LAYER_ID = 'anomaly-tiles';
 const ANOMALY_SOURCE_ID = 'anomaly-source';
 
@@ -86,6 +93,17 @@ const ClimateMap = ({ height = 500, showControls = true }: ClimateMapProps) => {
             minZoom: MAP_CONFIG.MIN_ZOOM,
             maxZoom: MAP_CONFIG.MAX_ZOOM,
             maxBounds: MAP_CONFIG.GERMANY_BOUNDS,
+        });
+
+        // Smooth scroll-wheel zoom in 0.25 increments
+        map.scrollZoom.setWheelZoomRate(MAP_CONFIG.ZOOM_STEP);
+
+        // Fit the map to Germany bounds, then snap to a 0.25 step
+        map.once('load', () => {
+            const [west, south, east, north] = MAP_CONFIG.GERMANY_BOUNDS;
+            map.fitBounds([west, south, east, north], { animate: false });
+            const fittedZoom = roundToStep(map.getZoom(), MAP_CONFIG.ZOOM_STEP);
+            map.setZoom(fittedZoom);
         });
 
         // Add zoom/rotation controls

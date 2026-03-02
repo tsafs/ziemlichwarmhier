@@ -41,6 +41,6 @@ export const createMockMap = () => ({
     addLayer: vi.fn(),
     getSource: vi.fn(() => ({ setTiles: vi.fn() })),
     getCenter: vi.fn(() => ({ lng: 10.45, lat: 51.15 })),
-    getZoom: vi.fn(() => 7),
+    getZoom: vi.fn(() => MAP_CONFIG.INITIAL_ZOOM),
     isStyleLoaded: vi.fn(() => true),
 });

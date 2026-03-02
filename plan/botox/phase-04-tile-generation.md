@@ -19,7 +19,7 @@ This phase implements the map tile generation pipeline that converts processed E
 **Key outputs:**
 - GeoTIFF to WebP tile conversion
 - Diverging blue-red color ramp (cold-warm anomalies)
-- Tile pyramid at zoom levels 6-10
+- Tile pyramid at zoom levels 5-7
 - Transparency support for land-only display
 - Upload functionality to Hetzner Object Storage
 - Tile validation and integrity checking scripts
@@ -53,7 +53,7 @@ Commit after each logical unit of work to maintain a clear and reviewable change
 
 ### Phase-Specific Requirements
 
-- **REQ-P4-001**: Generate WebP tiles from anomaly GeoTIFFs at zoom levels 6-10
+- **REQ-P4-001**: Generate WebP tiles from anomaly GeoTIFFs at zoom levels 5-7
 - **REQ-P4-002**: Apply diverging color ramp (-3°C to +3°C, blue to red). Range is configurable via `ANOMALY_VMIN` / `ANOMALY_VMAX` in `tile_config.py`.
 - **REQ-P4-003**: Preserve transparency for ocean/NoData areas
 - **REQ-P4-004**: Follow XYZ tile naming: `/{year}/{month:02d}/{z}/{x}/{y}.webp`
@@ -240,7 +240,7 @@ Commit after each logical unit of work to maintain a clear and reviewable change
 ### Assumptions
 
 - **ASSUMPTION-P4-001**: WebP browser support sufficient (95%+)
-- **ASSUMPTION-P4-002**: Zoom levels 6-10 sufficient for intended use
+- **ASSUMPTION-P4-002**: Zoom levels 5-7 sufficient for intended use
 - **ASSUMPTION-P4-003**: 256x256 tile size optimal (standard)
 - **ASSUMPTION-P4-004**: Hetzner S3 API fully compatible with boto3
 - **ASSUMPTION-P4-005**: Input GeoTIFFs are in EPSG:4326
@@ -304,10 +304,10 @@ TILE_FORMAT = 'webp'
 WEBP_QUALITY = 80  # 0-100, balance of size and quality
 
 # Zoom level range for Germany
-# z6: ~8 tiles covering Germany
-# z10: ~128 tiles, good detail without excessive count
-MIN_ZOOM = 6
-MAX_ZOOM = 10
+# z5: ~2 tiles covering Germany
+# z7: ~12 tiles, good detail without excessive count
+MIN_ZOOM = 5
+MAX_ZOOM = 7
 
 # Import Germany bounds from Phase 3 config to avoid duplication
 # from analysis.era5.config import GERMANY_BOUNDS
@@ -338,11 +338,9 @@ CONTENT_TYPE = "image/webp"
 # Expected tile counts per zoom level for Germany
 # Calculated using mercantile.tiles() for Germany bounds
 EXPECTED_TILE_COUNTS = {
-    6: 4,      # Approximate, varies slightly
+    5: 2,      # Approximate, varies slightly
+    6: 4,
     7: 12,
-    8: 35,
-    9: 110,
-    10: 400,
 }
 
 # Maximum individual tile file size (bytes)
